@@ -7,11 +7,13 @@ import type { Importance } from '@/types/memory';
 import { groupMemoriesByDate, getBucketLabel, type DateBucket } from '@/lib/dateBuckets';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 
 export default function TimelinePage() {
   const { memories, isLoaded } = useMemories();
   const [searchQuery, setSearchQuery] = useState('');
   const [importanceFilter, setImportanceFilter] = useState<Importance | 'all'>('all');
+  const [peopleFilter, setPeopleFilter] = useState('');
 
   const filteredMemories = useMemo(() => {
     let filtered = memories;
@@ -31,8 +33,16 @@ export default function TimelinePage() {
       filtered = filtered.filter((m) => m.importance === importanceFilter);
     }
 
+    // People filter
+    if (peopleFilter.trim()) {
+      const query = peopleFilter.toLowerCase();
+      filtered = filtered.filter((m) =>
+        m.people.some((person) => person.toLowerCase().includes(query))
+      );
+    }
+
     return filtered;
-  }, [memories, searchQuery, importanceFilter]);
+  }, [memories, searchQuery, importanceFilter, peopleFilter]);
 
   const bucketedMemories = useMemo(() => {
     return groupMemoriesByDate(filteredMemories);
@@ -66,28 +76,52 @@ export default function TimelinePage() {
           Timeline
         </h1>
         <Link href="/save">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+          <Button variant="primary" aria-label="Create a new memory">
             + New Memory
-          </button>
+          </Button>
         </Link>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
+          <label htmlFor="search-memories" className="sr-only">
+            Search memories
+          </label>
           <input
             type="text"
+            id="search-memories"
             placeholder="Search memories..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Search memories by title or description"
+          />
+        </div>
+        <div className="flex-1">
+          <label htmlFor="people-filter" className="sr-only">
+            Filter by person
+          </label>
+          <input
+            type="text"
+            id="people-filter"
+            placeholder="Filter by person..."
+            value={peopleFilter}
+            onChange={(e) => setPeopleFilter(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Filter memories by person name"
           />
         </div>
         <div>
+          <label htmlFor="importance-filter" className="sr-only">
+            Filter by importance
+          </label>
           <select
+            id="importance-filter"
             value={importanceFilter}
             onChange={(e) => setImportanceFilter(e.target.value as Importance | 'all')}
             className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Filter memories by importance level"
           >
             <option value="all">All Importance</option>
             <option value="low">Low</option>
@@ -97,23 +131,54 @@ export default function TimelinePage() {
         </div>
       </div>
 
-      {/* Results count */}
+      {/* Empty states */}
       {filteredMemories.length === 0 && memories.length > 0 && (
-        <p className="text-gray-600 dark:text-gray-400 text-center py-8">
-          No memories match your filters.
-        </p>
+        <Card>
+          <div className="text-center py-12 space-y-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+              No memories match your filters
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              Try adjusting your search query, people filter, or importance filter to see more results.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setSearchQuery('');
+                  setPeopleFilter('');
+                  setImportanceFilter('all');
+                }}
+                aria-label="Clear all filters"
+              >
+                Clear Filters
+              </Button>
+              <Link href="/save">
+                <Button variant="primary" aria-label="Save a new memory">
+                  Save New Memory
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </Card>
       )}
 
       {filteredMemories.length === 0 && memories.length === 0 && (
         <Card>
-          <div className="text-center py-12">
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              No memories yet. Start by saving your first memory!
-            </p>
+          <div className="text-center py-12 space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                Your timeline is empty
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+                Start building your memory collection by saving your first memory. Once you have memories, 
+                they'll appear here organized by date.
+              </p>
+            </div>
             <Link href="/save">
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                Save Memory
-              </button>
+              <Button variant="primary" aria-label="Save your first memory">
+                Save Your First Memory
+              </Button>
             </Link>
           </div>
         </Card>

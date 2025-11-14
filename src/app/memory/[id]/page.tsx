@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useMemories } from '@/lib/useMemories';
 import { generateCueCard } from '@/lib/cueCard';
 import { Button } from '@/components/ui/Button';
@@ -49,7 +50,32 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   }
 
   if (!memory) {
-    return null;
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <Button
+          variant="secondary"
+          onClick={() => router.push('/timeline')}
+          aria-label="Go back to timeline"
+        >
+          ← Back to Timeline
+        </Button>
+        <Card>
+          <div className="text-center py-12 space-y-4">
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              Memory not found
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              The memory you're looking for doesn't exist or may have been deleted.
+            </p>
+            <Link href="/timeline">
+              <Button variant="primary" aria-label="View all memories in timeline">
+                View All Memories
+              </Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
   }
 
   const formatDate = (dateString: string) => {
@@ -70,6 +96,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
         <Button
           variant="secondary"
           onClick={() => router.push('/timeline')}
+          aria-label="Go back to timeline"
         >
           ← Back to Timeline
         </Button>
@@ -77,6 +104,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
           variant="danger"
           onClick={handleDelete}
           disabled={isDeleting}
+          aria-label={isDeleting ? 'Deleting memory' : 'Delete this memory'}
         >
           {isDeleting ? 'Deleting...' : 'Delete Memory'}
         </Button>

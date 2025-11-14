@@ -47,11 +47,13 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
 
   if (!isLoaded) {
     return (
-      <Card>
-        <div className="text-center py-16">
-          <p className="text-lg text-gray-700 dark:text-gray-300">Loading memory...</p>
-        </div>
-      </Card>
+      <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+        <Card>
+          <div className="text-center py-16">
+            <p className="text-lg text-slate-600">Loading memory...</p>
+          </div>
+        </Card>
+      </div>
     );
   }
 
@@ -68,10 +70,10 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
         </Button>
         <Card>
           <div className="text-center py-16 space-y-6">
-            <h1 className="text-3xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+            <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
               Memory not found
             </h1>
-            <p className="text-lg text-gray-700 dark:text-gray-300">
+            <p className="text-lg text-slate-600">
               The memory you're looking for doesn't exist or may have been deleted.
             </p>
             <Link href="/timeline">
@@ -100,9 +102,9 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
       {showSuccess && (
-        <Card className="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800">
+        <Card className="bg-green-50 border-2 border-green-200">
           <div className="text-center py-4">
-            <p className="text-base font-semibold text-green-800 dark:text-green-200" role="alert">
+            <p className="text-base font-semibold text-green-800" role="alert">
               Memory updated successfully!
             </p>
           </div>
@@ -138,14 +140,14 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
-      <Card className="mx-auto">
+      <Card>
         <div className="space-y-8">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <div className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+              <div className="text-sm text-slate-500 mb-2 uppercase tracking-wide">
                 {formatDate(memory.date)}
               </div>
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+              <h1 className="text-3xl md:text-4xl font-semibold text-slate-900">
                 {memory.title}
               </h1>
             </div>
@@ -156,32 +158,32 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
 
           {memory.people.length > 0 && (
             <div className="space-y-3">
-              <p className="text-base font-semibold text-gray-700 dark:text-gray-300">
+              <p className="text-lg font-semibold text-slate-800">
                 People
               </p>
-              <p className="text-lg text-gray-900 dark:text-gray-100">
+              <p className="text-base text-slate-900">
                 {memory.people.join(', ')}
               </p>
             </div>
           )}
 
           <div className="space-y-3">
-            <p className="text-base font-semibold text-gray-700 dark:text-gray-300">
+            <p className="text-lg font-semibold text-slate-800">
               Description
             </p>
-            <p className="text-lg text-gray-900 dark:text-gray-100 whitespace-pre-wrap leading-relaxed">
+            <p className="text-base text-slate-900 whitespace-pre-wrap leading-relaxed">
               {memory.description}
             </p>
           </div>
         </div>
       </Card>
 
-      <Card className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800">
+      <Card className="bg-blue-50 border-2 border-blue-200">
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h2 className="text-2xl font-semibold text-slate-900">
             Cue Card
           </h2>
-          <p className="text-lg text-gray-800 dark:text-gray-200 leading-relaxed">
+          <p className="text-base text-slate-700 leading-relaxed">
             {cueCard}
           </p>
         </div>

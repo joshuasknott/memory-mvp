@@ -3,6 +3,7 @@
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import Link from 'next/link';
+import { Card } from '@/components/ui/Card';
 
 // Type for Convex memory document returned from the server
 type ConvexMemory = {
@@ -35,13 +36,13 @@ export default function TimelinePage() {
   const getImportanceBadgeColor = (importance: 'low' | 'medium' | 'high') => {
     switch (importance) {
       case 'low':
-        return 'bg-gray-600 text-gray-200';
+        return 'bg-green-50 text-green-700 border border-green-200';
       case 'medium':
-        return 'bg-blue-600 text-blue-100';
+        return 'bg-amber-50 text-amber-700 border border-amber-200';
       case 'high':
-        return 'bg-red-600 text-red-100';
+        return 'bg-rose-50 text-rose-700 border border-rose-200';
       default:
-        return 'bg-gray-600 text-gray-200';
+        return 'bg-slate-100 text-slate-800';
     }
   };
 
@@ -49,10 +50,12 @@ export default function TimelinePage() {
   if (memories === undefined) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-        <h1 className="text-3xl font-semibold mb-4 text-gray-100">Timeline</h1>
-        <div className="p-8 text-center">
-          <p className="text-lg text-gray-300">Loading memories...</p>
-        </div>
+        <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Timeline</h1>
+        <Card>
+          <div className="p-8 text-center">
+            <p className="text-lg text-slate-600">Loading memories...</p>
+          </div>
+        </Card>
       </div>
     );
   }
@@ -61,10 +64,12 @@ export default function TimelinePage() {
   if (memories.length === 0) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-        <h1 className="text-3xl font-semibold mb-4 text-gray-100">Timeline</h1>
-        <div className="p-8 text-center">
-          <p className="text-lg text-gray-300">No memories yet. Save your first memory to get started!</p>
-        </div>
+        <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Timeline</h1>
+        <Card>
+          <div className="p-8 text-center">
+            <p className="text-lg text-slate-600">No memories yet. Save your first memory to get started!</p>
+          </div>
+        </Card>
       </div>
     );
   }
@@ -72,29 +77,29 @@ export default function TimelinePage() {
   // Timeline view
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-      <h1 className="text-3xl font-semibold mb-4 text-gray-100">Timeline</h1>
+      <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Timeline</h1>
 
-      <div className="space-y-8">
+      <div className="space-y-6">
         {memories.map((memory: ConvexMemory) => (
           <Link
             key={memory._id}
             href={`/memory/${memory._id}`}
             className="block"
           >
-            <div className="p-6 border border-gray-600 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all shadow hover:shadow-md">
+            <Card>
               <div className="space-y-4">
                 {/* Header: Date, Title, Importance Badge */}
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <div className="text-xs text-gray-400 mb-2 uppercase tracking-wide">
+                    <div className="text-xs text-slate-500 mb-2 uppercase tracking-wide">
                       {formatDate(memory.date)}
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-100 mb-2">
+                    <h2 className="text-2xl font-semibold text-slate-900 mb-2">
                       {memory.title}
                     </h2>
                   </div>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${getImportanceBadgeColor(
+                    className={`rounded-full px-3 py-0.5 text-xs font-medium ${getImportanceBadgeColor(
                       memory.importance
                     )}`}
                   >
@@ -103,18 +108,18 @@ export default function TimelinePage() {
                 </div>
 
                 {/* Truncated Description */}
-                <p className="text-base text-gray-300 leading-relaxed">
+                <p className="text-base text-slate-600 leading-relaxed">
                   {truncateDescription(memory.description)}
                 </p>
 
                 {/* People */}
                 {memory.people.length > 0 && (
-                  <div className="text-sm text-gray-500 italic">
+                  <div className="text-sm text-slate-500 italic">
                     With {memory.people.join(', ')}
                   </div>
                 )}
               </div>
-            </div>
+            </Card>
           </Link>
         ))}
       </div>

@@ -145,13 +145,13 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
 
   if (!isLoaded) {
     return (
-      <div className="max-w-3xl mx-auto space-y-8">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+      <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+        <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
           Edit Memory
         </h1>
         <Card>
           <div className="text-center py-16">
-            <p className="text-lg text-gray-700 dark:text-gray-300">Loading memory...</p>
+            <p className="text-lg text-slate-600">Loading memory...</p>
           </div>
         </Card>
       </div>
@@ -160,16 +160,16 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
 
   if (!memory) {
     return (
-      <div className="max-w-3xl mx-auto space-y-8">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+      <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+        <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
           Edit Memory
         </h1>
         <Card>
           <div className="text-center py-16 space-y-6">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <h2 className="text-3xl md:text-4xl font-semibold text-slate-900">
               Memory not found
             </h2>
-            <p className="text-lg text-gray-700 dark:text-gray-300">
+            <p className="text-lg text-slate-600">
               The memory you're trying to edit doesn't exist or may have been deleted.
             </p>
             <Link href="/timeline">
@@ -184,15 +184,15 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
-      <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+    <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+      <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
         Edit Memory
       </h1>
 
       <Card>
-        <form onSubmit={handleSubmit} className="space-y-8" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           <div>
-            <label htmlFor="title" className="block text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">
+            <label htmlFor="title" className="block text-base font-medium text-slate-800 mb-3">
               Title <span className="text-red-600" aria-label="required">*</span>
             </label>
             <input
@@ -204,22 +204,22 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               onBlur={() => handleBlur('title')}
               aria-invalid={touched.title && !!errors.title}
               aria-describedby={touched.title && errors.title ? 'title-error' : undefined}
-              className={`w-full px-4 py-3 text-base border-2 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 min-h-[44px] ${
+              className={`w-full px-3.5 py-2.5 text-base border rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 min-h-[44px] ${
                 touched.title && errors.title
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                  : 'border-slate-300 focus:ring-blue-500 focus:border-blue-500'
               }`}
               placeholder="What happened?"
             />
             {touched.title && errors.title && (
-              <p id="title-error" className="mt-2 text-base text-red-600 dark:text-red-400 font-medium" role="alert">
+              <p id="title-error" className="mt-2 text-base text-red-600 font-medium" role="alert">
                 {errors.title}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">
+            <label htmlFor="description" className="block text-base font-medium text-slate-800 mb-3">
               Description <span className="text-red-600" aria-label="required">*</span>
             </label>
             <textarea
@@ -231,22 +231,22 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               onBlur={() => handleBlur('description')}
               aria-invalid={touched.description && !!errors.description}
               aria-describedby={touched.description && errors.description ? 'description-error' : undefined}
-              className={`w-full px-4 py-3 text-base border-2 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 resize-none leading-relaxed ${
+              className={`w-full px-3.5 py-2.5 text-base border rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 resize-none leading-relaxed ${
                 touched.description && errors.description
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                  : 'border-slate-300 focus:ring-blue-500 focus:border-blue-500'
               }`}
               placeholder="Tell me about this memory..."
             />
             {touched.description && errors.description && (
-              <p id="description-error" className="mt-2 text-base text-red-600 dark:text-red-400 font-medium" role="alert">
+              <p id="description-error" className="mt-2 text-base text-red-600 font-medium" role="alert">
                 {errors.description}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="date" className="block text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">
+            <label htmlFor="date" className="block text-base font-medium text-slate-800 mb-3">
               Date
             </label>
             <input
@@ -258,28 +258,28 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               aria-invalid={touched.date && !!errors.date}
               aria-describedby={touched.date && errors.date ? 'date-error' : undefined}
               max={new Date().toISOString().split('T')[0]}
-              className={`w-full px-4 py-3 text-base border-2 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 min-h-[44px] ${
+              className={`w-full px-3.5 py-2.5 text-base border rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 min-h-[44px] ${
                 touched.date && errors.date
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                  : 'border-slate-300 focus:ring-blue-500 focus:border-blue-500'
               }`}
             />
             {touched.date && errors.date && (
-              <p id="date-error" className="mt-2 text-base text-red-600 dark:text-red-400 font-medium" role="alert">
+              <p id="date-error" className="mt-2 text-base text-red-600 font-medium" role="alert">
                 {errors.date}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="importance" className="block text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">
+            <label htmlFor="importance" className="block text-base font-medium text-slate-800 mb-3">
               Importance
             </label>
             <select
               id="importance"
               value={formData.importance}
               onChange={(e) => handleChange('importance', e.target.value as Importance)}
-              className="w-full px-4 py-3 text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]"
+              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]"
               aria-label="Select importance level"
             >
               <option value="low">Low</option>
@@ -289,7 +289,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
           </div>
 
           <div>
-            <label htmlFor="people" className="block text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">
+            <label htmlFor="people" className="block text-base font-medium text-slate-800 mb-3">
               People (comma-separated)
             </label>
             <input
@@ -297,11 +297,11 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               id="people"
               value={formData.people}
               onChange={(e) => handleChange('people', e.target.value)}
-              className="w-full px-4 py-3 text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]"
+              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]"
               placeholder="Alice, Bob, Charlie"
               aria-label="People involved in this memory, separated by commas"
             />
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            <p className="mt-2 text-sm text-slate-500">
               Separate multiple names with commas
             </p>
           </div>

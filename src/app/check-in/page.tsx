@@ -115,20 +115,20 @@ export default function CheckInPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-      <h1 className="text-3xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+      <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
         Daily Check-In
       </h1>
 
       <Card>
         <div className="space-y-6 mb-8">
-          <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed">
+          <p className="text-base text-slate-600 leading-relaxed">
             A quick way to reflect on your day and save important details.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           <div>
-            <label htmlFor="mood" className="block text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">
+            <label htmlFor="mood" className="block text-base font-medium text-slate-800 mb-3">
               How are you feeling today? <span className="text-red-600" aria-label="required">*</span>
             </label>
             <input
@@ -140,22 +140,22 @@ export default function CheckInPage() {
               onBlur={() => handleBlur('mood')}
               aria-invalid={touched.mood && !!errors.mood}
               aria-describedby={touched.mood && errors.mood ? 'mood-error' : undefined}
-              className={`w-full px-4 py-3 text-base border-2 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 min-h-[44px] ${
+              className={`w-full px-3.5 py-2.5 text-base border rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 min-h-[44px] ${
                 touched.mood && errors.mood
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                  : 'border-slate-300 focus:ring-blue-500 focus:border-blue-500'
               }`}
               placeholder="e.g., happy, tired, excited, grateful"
             />
             {touched.mood && errors.mood && (
-              <p id="mood-error" className="mt-2 text-base text-red-600 dark:text-red-400 font-medium" role="alert">
+              <p id="mood-error" className="mt-2 text-base text-red-600 font-medium" role="alert">
                 {errors.mood}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="events" className="block text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">
+            <label htmlFor="events" className="block text-base font-medium text-slate-800 mb-3">
               Did anything important happen today? <span className="text-red-600" aria-label="required">*</span>
             </label>
             <textarea
@@ -167,22 +167,22 @@ export default function CheckInPage() {
               onBlur={() => handleBlur('events')}
               aria-invalid={touched.events && !!errors.events}
               aria-describedby={touched.events && errors.events ? 'events-error' : undefined}
-              className={`w-full px-4 py-3 text-base border-2 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 resize-none leading-relaxed ${
+              className={`w-full px-3.5 py-2.5 text-base border rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 resize-none leading-relaxed ${
                 touched.events && errors.events
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                  : 'border-slate-300 focus:ring-blue-500 focus:border-blue-500'
               }`}
               placeholder="Share what happened today..."
             />
             {touched.events && errors.events && (
-              <p id="events-error" className="mt-2 text-base text-red-600 dark:text-red-400 font-medium" role="alert">
+              <p id="events-error" className="mt-2 text-base text-red-600 font-medium" role="alert">
                 {errors.events}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="people" className="block text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">
+            <label htmlFor="people" className="block text-base font-medium text-slate-800 mb-3">
               Who were you with?
             </label>
             <input
@@ -190,11 +190,11 @@ export default function CheckInPage() {
               id="people"
               value={formData.people}
               onChange={(e) => handleChange('people', e.target.value)}
-              className="w-full px-4 py-3 text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]"
+              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]"
               placeholder="Alice, Bob, Charlie"
               aria-label="People you were with today, separated by commas"
             />
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            <p className="mt-2 text-sm text-slate-500">
               Separate multiple names with commas (optional)
             </p>
           </div>
@@ -204,7 +204,7 @@ export default function CheckInPage() {
               type="submit"
               variant="primary"
               disabled={isSubmitting || !isValid}
-              className="flex-1 min-w-[200px] font-semibold shadow-md hover:shadow-lg"
+              className="flex-1 min-w-[200px] font-semibold"
               aria-label={isSubmitting ? 'Saving check-in' : isValid ? 'Save check-in' : 'Save check-in (form is incomplete)'}
             >
               {isSubmitting ? 'Saving...' : 'Save Check-In'}

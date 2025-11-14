@@ -38,25 +38,25 @@ export default function RootLayout({
             <div className="min-h-screen bg-slate-50">
             <nav className="border-b border-slate-200 bg-white">
               <div className="max-w-5xl mx-auto px-4 py-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <Link href="/" className="flex items-center">
                     <span className="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-500 bg-clip-text text-transparent text-xl font-semibold">
                       Memvella
                     </span>
                   </Link>
-                  <div className="flex gap-3">
-                    <Link href="/">
-                      <Button variant="secondary" className="text-base px-4 py-2 min-h-[44px]">
+                  <div className="flex flex-col gap-2 w-full sm:flex-row sm:gap-3 sm:w-auto">
+                    <Link href="/" className="w-full sm:w-auto">
+                      <Button variant="secondary" className="text-base px-4 py-2 min-h-[44px] w-full sm:w-auto">
                         Home
                       </Button>
                     </Link>
-                    <Link href="/save">
-                      <Button variant="secondary" className="text-base px-4 py-2 min-h-[44px]">
+                    <Link href="/save" className="w-full sm:w-auto">
+                      <Button variant="secondary" className="text-base px-4 py-2 min-h-[44px] w-full sm:w-auto">
                         Save Memory
                       </Button>
                     </Link>
-                    <Link href="/timeline">
-                      <Button variant="secondary" className="text-base px-4 py-2 min-h-[44px]">
+                    <Link href="/timeline" className="w-full sm:w-auto">
+                      <Button variant="secondary" className="text-base px-4 py-2 min-h-[44px] w-full sm:w-auto">
                         Timeline
                       </Button>
                     </Link>

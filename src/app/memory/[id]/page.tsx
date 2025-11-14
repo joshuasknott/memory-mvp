@@ -184,50 +184,52 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
           </div>
         </Card>
       )}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      
+      <div className="flex flex-col gap-4 max-w-md">
         <Button
-          variant="secondary"
-          onClick={() => router.push('/timeline')}
-          aria-label="Go back to timeline"
-          className="min-w-[200px] font-normal"
+          variant="primary"
+          onClick={() => router.push(`/memory/${memory.id}/edit`)}
+          aria-label="Edit this memory"
+          className="w-full min-w-[200px]"
         >
-          ← Back to Timeline
+          Edit This Memory
         </Button>
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col gap-3">
           <Button
-            variant="primary"
-            onClick={() => router.push(`/memory/${memory.id}/edit`)}
-            aria-label="Edit this memory"
-            className="min-w-[200px]"
+            variant="secondary"
+            onClick={() => router.push('/timeline')}
+            aria-label="Go back to timeline"
+            className="w-full min-w-[200px] font-normal"
           >
-            Edit Memory
+            ← Back to Timeline
           </Button>
           <Button
             variant="danger"
             onClick={handleDelete}
             disabled={isDeleting}
             aria-label={isDeleting ? 'Deleting memory' : 'Delete this memory'}
-            className="min-w-[200px]"
+            className="w-full min-w-[200px]"
           >
-            {isDeleting ? 'Deleting...' : 'Delete Memory'}
+            {isDeleting ? 'Deleting...' : 'Delete This Memory'}
           </Button>
         </div>
       </div>
 
       <Card>
         <div className="space-y-8">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="text-sm text-slate-500 mb-2 uppercase tracking-wide">
-                {formatDate(memory.date)}
-              </div>
-              <h1 className="text-3xl md:text-4xl font-semibold text-slate-900">
+          {/* Single column layout: Date, Title, Importance */}
+          <div className="space-y-3">
+            <div className="text-base text-slate-700">
+              {formatDate(memory.date)}
+            </div>
+            <div className="flex items-start gap-3">
+              <h1 className="text-3xl md:text-4xl font-semibold text-slate-900 flex-1">
                 {memory.title}
               </h1>
+              <Badge variant={memory.importance} className="flex-shrink-0">
+                {memory.importance}
+              </Badge>
             </div>
-            <Badge variant={memory.importance}>
-              {memory.importance}
-            </Badge>
           </div>
 
           {memory.people.length > 0 && (

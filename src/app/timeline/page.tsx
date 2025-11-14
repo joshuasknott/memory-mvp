@@ -3,6 +3,7 @@
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
 // Type for Convex memory document returned from the server
@@ -77,29 +78,39 @@ export default function TimelinePage() {
   // Timeline view
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-      <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Timeline</h1>
+      <div className="flex flex-col gap-6">
+        <h1 className="text-3xl md:text-4xl font-semibold text-slate-900">Timeline</h1>
+        
+        <div className="max-w-md">
+          <Link href="/save">
+            <Button variant="primary" className="w-full min-w-[200px]">
+              Add a New Memory
+            </Button>
+          </Link>
+        </div>
+      </div>
 
       <div className="space-y-6">
         {memories.map((memory: ConvexMemory) => (
           <Link
             key={memory._id}
             href={`/memory/${memory._id}`}
-            className="block"
+            className="block cursor-pointer"
+            aria-label={`View memory: ${memory.title}`}
           >
-            <Card>
+            <Card className="hover:shadow-lg transition-shadow">
               <div className="space-y-4">
-                {/* Header: Date, Title, Importance Badge */}
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="text-xs text-slate-500 mb-2 uppercase tracking-wide">
-                      {formatDate(memory.date)}
-                    </div>
-                    <h2 className="text-2xl font-semibold text-slate-900 mb-2">
-                      {memory.title}
-                    </h2>
-                  </div>
+                {/* Single column layout: Date, Title, Importance, Description, People */}
+                <div className="text-base text-slate-700 mb-1">
+                  {formatDate(memory.date)}
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <h2 className="text-2xl font-semibold text-slate-900 flex-1">
+                    {memory.title}
+                  </h2>
                   <span
-                    className={`rounded-full px-3 py-0.5 text-xs font-medium ${getImportanceBadgeColor(
+                    className={`rounded-full px-3 py-1 text-sm font-medium flex-shrink-0 ${getImportanceBadgeColor(
                       memory.importance
                     )}`}
                   >
@@ -114,7 +125,7 @@ export default function TimelinePage() {
 
                 {/* People */}
                 {memory.people.length > 0 && (
-                  <div className="text-sm text-slate-500 italic">
+                  <div className="text-base text-slate-500">
                     With {memory.people.join(', ')}
                   </div>
                 )}

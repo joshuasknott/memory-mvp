@@ -40,15 +40,15 @@ export default function Home() {
                 and organize them in your timeline.
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/check-in">
-                <Button variant="primary" className="w-full sm:w-auto min-w-[200px]">
-                  Daily Check-In
+            <div className="flex flex-col gap-4 max-w-md mx-auto">
+              <Link href="/save">
+                <Button variant="primary" className="w-full min-w-[200px]">
+                  Save Your First Memory
                 </Button>
               </Link>
-              <Link href="/save">
-                <Button variant="secondary" className="w-full sm:w-auto min-w-[200px]">
-                  Save Your First Memory
+              <Link href="/check-in">
+                <Button variant="secondary" className="w-full min-w-[200px]">
+                  Daily Check-In
                 </Button>
               </Link>
             </div>
@@ -64,22 +64,24 @@ export default function Home() {
             </div>
           </Card>
 
-          <div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
-            <Link href="/check-in">
-              <Button variant="primary" className="w-full sm:w-auto min-w-[200px]">
-                Daily Check-In
-              </Button>
-            </Link>
-            <Link href="/save">
-              <Button variant="secondary" className="w-full sm:w-auto min-w-[200px]">
-                Save a New Memory
-              </Button>
-            </Link>
+          <div className="flex flex-col gap-4 max-w-md mx-auto">
             <Link href="/timeline">
-              <Button variant="secondary" className="w-full sm:w-auto min-w-[200px]">
-                View Timeline
+              <Button variant="primary" className="w-full min-w-[200px]">
+                View Your Memories
               </Button>
             </Link>
+            <div className="flex flex-col gap-3 pt-2">
+              <Link href="/save">
+                <Button variant="secondary" className="w-full min-w-[200px]">
+                  Save a New Memory
+                </Button>
+              </Link>
+              <Link href="/check-in">
+                <Button variant="secondary" className="w-full min-w-[200px]">
+                  Daily Check-In
+                </Button>
+              </Link>
+            </div>
           </div>
         </>
       )}

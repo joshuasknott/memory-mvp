@@ -333,21 +333,21 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+          <div className="flex flex-col gap-4 pt-4">
             <Button
               type="submit"
               variant="primary"
               disabled={isSubmitting || !isValid}
-              className="flex-1 min-w-[200px]"
+              className="w-full min-w-[200px]"
               aria-label={isSubmitting ? 'Updating memory' : isValid ? 'Update memory' : 'Update memory (form is incomplete)'}
             >
-              {isSubmitting ? 'Updating...' : 'Update Memory'}
+              {isSubmitting ? 'Updating...' : 'Update This Memory'}
             </Button>
             <Button
               type="button"
               variant="secondary"
               onClick={() => router.push(`/memory/${memory.id}`)}
-              className="min-w-[200px]"
+              className="w-full min-w-[200px]"
               aria-label="Cancel and go back to memory detail"
             >
               Cancel

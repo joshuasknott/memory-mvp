@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
 export default function SaveMemoryPage() {
+  const router = useRouter();
   const createMemory = useMutation(api.memories.createMemory);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
@@ -161,14 +164,23 @@ export default function SaveMemoryPage() {
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <button
+          <div className="flex flex-col gap-4 pt-4">
+            <Button
               type="submit"
+              variant="primary"
               disabled={isSubmitting}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-500 text-white rounded-xl font-semibold text-base shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full min-w-[200px]"
             >
-              {isSubmitting ? 'Saving...' : 'Save Memory'}
-            </button>
+              {isSubmitting ? 'Saving...' : 'Save This Memory'}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => router.push('/timeline')}
+              className="w-full min-w-[200px]"
+            >
+              Cancel
+            </Button>
           </div>
         </form>
       </Card>

@@ -9,6 +9,8 @@ import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Dialog } from '@/components/ui/Dialog';
+import { useStatus } from '@/contexts/StatusContext';
 import type { Memory } from '@/types/memory';
 
 // Type for Convex memory document returned from the server
@@ -26,7 +28,9 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   const router = useRouter();
   const searchParams = useSearchParams();
   const deleteMemory = useMemoriesStore((state) => state.deleteMemory);
+  const { showSuccess: showStatusSuccess, showError } = useStatus();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [cueCard, setCueCard] = useState<string | null>(null);
   const [isLoadingCueCard, setIsLoadingCueCard] = useState(false);
   const resolvedParams = use(params);
@@ -102,21 +106,22 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
       });
   }, [memory, memoryId]);
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     if (!memory) return;
 
-    if (!confirm('Are you sure you want to delete this memory? This action cannot be undone.')) {
-      return;
-    }
-
+    setShowDeleteDialog(false);
     setIsDeleting(true);
     try {
-      deleteMemory(memory.id);
+      await deleteMemory(memory.id);
+      showStatusSuccess('Memory deleted.');
       router.push('/timeline');
     } catch (error) {
       console.error('Failed to delete memory:', error);
-      alert('Failed to delete memory. Please try again.');
-    } finally {
+      showError('Something went wrong deleting this memory. Please try again.');
       setIsDeleting(false);
     }
   };
@@ -204,7 +209,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
           </Button>
           <Button
             variant="danger"
-            onClick={handleDelete}
+            onClick={handleDeleteClick}
             disabled={isDeleting}
             aria-label={isDeleting ? 'Deleting memory' : 'Delete this memory'}
             className="w-full min-w-[200px]"
@@ -273,6 +278,18 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
           )}
         </div>
       </Card>
+
+      <Dialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        title="Delete this memory?"
+        confirmLabel="Yes, delete this memory"
+        cancelLabel="Cancel"
+        onConfirm={handleDeleteConfirm}
+        variant="destructive"
+      >
+        Are you sure you want to delete this memory? You won't be able to get it back.
+      </Dialog>
     </main>
   );
 }

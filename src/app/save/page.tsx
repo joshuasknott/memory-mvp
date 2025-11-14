@@ -1,19 +1,20 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { useAutosave } from '@/hooks/useAutosave';
+import { useStatus } from '@/contexts/StatusContext';
 
 export default function SaveMemoryPage() {
   const router = useRouter();
   const createMemory = useMutation(api.memories.createMemory);
+  const { showSuccess, showError: showStatusError } = useStatus();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSaved, setShowSaved] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -23,10 +24,24 @@ export default function SaveMemoryPage() {
     people: '',
   });
 
+  // Autosave
+  const { lastSaved, clearDraft, loadDraft } = useAutosave(formData, {
+    storageKey: 'memvella:draft:new-memory',
+    debounceMs: 2000,
+  });
+
+  // Load draft on mount
+  useEffect(() => {
+    const draft = loadDraft();
+    if (draft) {
+      setFormData(draft);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setError(null);
 
     try {
       // Gather values from state
@@ -47,7 +62,7 @@ export default function SaveMemoryPage() {
         people,
       });
 
-      // Clear form
+      // Clear form and draft
       setFormData({
         title: '',
         description: '',
@@ -55,13 +70,18 @@ export default function SaveMemoryPage() {
         importance: 'medium',
         people: '',
       });
+      clearDraft();
 
-      // Show saved message
-      setShowSaved(true);
-      setTimeout(() => setShowSaved(false), 3000);
+      // Show success message
+      showSuccess('Memory saved. You can come back and change this any time.');
+      
+      // Navigate to timeline after a short delay
+      setTimeout(() => {
+        router.push('/timeline');
+      }, 1000);
     } catch (err) {
       console.error("Error saving memory:", err);
-      setError("Failed to save memory. Please try again.");
+      showStatusError('Something went wrong saving this memory. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -73,18 +93,6 @@ export default function SaveMemoryPage() {
         ← Back to Your Memories
       </Link>
       <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Add a New Memory</h1>
-
-      {showSaved && (
-        <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl text-base">
-          Saved
-        </div>
-      )}
-
-      {error && (
-        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-base">
-          {error}
-        </div>
-      )}
 
       <Card>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -197,6 +205,11 @@ export default function SaveMemoryPage() {
             >
               Cancel
             </Button>
+            {lastSaved && (
+              <p className="text-sm text-slate-600 text-center mt-2" aria-live="polite">
+                Draft saved
+              </p>
+            )}
           </div>
         </form>
       </Card>

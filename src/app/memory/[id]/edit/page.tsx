@@ -10,6 +10,8 @@ import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import type { Importance, Memory } from '@/types/memory';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { useAutosave } from '@/hooks/useAutosave';
+import { useStatus } from '@/contexts/StatusContext';
 
 interface FormErrors {
   title?: string;
@@ -31,6 +33,7 @@ type ConvexMemory = {
 export default function EditMemoryPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const updateMemory = useMemoriesStore((state) => state.updateMemory);
+  const { showSuccess, showError: showStatusError } = useStatus();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const resolvedParams = use(params);
@@ -64,17 +67,33 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
     people: '',
   });
 
+  // Autosave
+  const { lastSaved, clearDraft, loadDraft } = useAutosave(formData, {
+    storageKey: `memvella:draft:memory:${memoryId}`,
+    debounceMs: 2000,
+    enabled: !!memory, // Only enable autosave when memory is loaded
+  });
+
   // Load memory data into form when memory is found
   useEffect(() => {
     if (memory) {
-      setFormData({
-        title: memory.title,
-        description: memory.description,
-        date: memory.date.includes('T') ? memory.date.split('T')[0] : memory.date, // Extract date part if ISO string, otherwise use as-is
-        importance: memory.importance,
-        people: memory.people.join(', '),
-      });
+      // Check for draft first, otherwise use memory data
+      const draft = loadDraft();
+      if (draft && draft.title && draft.description) {
+        // Use draft if it exists and has content
+        setFormData(draft);
+      } else {
+        // Otherwise use memory data
+        setFormData({
+          title: memory.title,
+          description: memory.description,
+          date: memory.date.includes('T') ? memory.date.split('T')[0] : memory.date, // Extract date part if ISO string, otherwise use as-is
+          importance: memory.importance,
+          people: memory.people.join(', '),
+        });
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memory]);
 
 
@@ -150,7 +169,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
         .map((p) => p.trim())
         .filter((p) => p.length > 0);
 
-      updateMemory(memory.id, {
+      await updateMemory(memory.id, {
         title: formData.title.trim(),
         description: formData.description.trim(),
         date: formData.date,
@@ -158,11 +177,17 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
         people,
       });
 
-      // Redirect back to memory detail page with success message
-      router.push(`/memory/${memory.id}?success=true`);
+      // Clear draft
+      clearDraft();
+
+      // Show success message
+      showSuccess('Memory updated.');
+
+      // Redirect back to memory detail page
+      router.push(`/memory/${memory.id}`);
     } catch (error) {
       console.error('Failed to update memory:', error);
-      alert('Failed to update memory. Please try again.');
+      showStatusError('Something went wrong saving this memory. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -376,6 +401,11 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
             >
               Cancel
             </Button>
+            {lastSaved && (
+              <p className="text-sm text-slate-600 text-center mt-2" aria-live="polite">
+                Draft saved
+              </p>
+            )}
           </div>
         </form>
       </Card>

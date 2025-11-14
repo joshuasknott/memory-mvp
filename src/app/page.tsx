@@ -11,7 +11,7 @@ export default function Home() {
   const memoryCount = memories ? memories.length : 0;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10 space-y-10">
+    <main className="max-w-3xl mx-auto px-4 py-10 space-y-10">
       <div className="text-center space-y-6">
         <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
           Welcome to Memvella
@@ -85,7 +85,7 @@ export default function Home() {
           </div>
         </>
       )}
-    </div>
+    </main>
   );
 }
 

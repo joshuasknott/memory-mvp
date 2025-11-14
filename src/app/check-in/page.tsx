@@ -2,6 +2,7 @@
 
 import { useState, FormEvent, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -114,7 +115,10 @@ export default function CheckInPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+    <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+      <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-4 inline-block">
+        ← Back to Your Memories
+      </Link>
       <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
         Daily Check-In
       </h1>
@@ -221,7 +225,7 @@ export default function CheckInPage() {
           </div>
         </form>
       </Card>
-    </div>
+    </main>
   );
 }
 

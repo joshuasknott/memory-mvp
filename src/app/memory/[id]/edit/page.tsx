@@ -171,25 +171,31 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
   // Loading state: memory is undefined
   if (memory === undefined) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+      <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+        <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-4 inline-block">
+          ← Back to Your Memories
+        </Link>
         <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
-          Edit Memory
+          Edit This Memory
         </h1>
         <Card>
           <div className="text-center py-16">
             <p className="text-lg text-slate-600">Loading memory...</p>
           </div>
         </Card>
-      </div>
+      </main>
     );
   }
 
   // Not found state: memory is null or falsy after loading
   if (memory === null || !memory) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+      <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+        <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-4 inline-block">
+          ← Back to Your Memories
+        </Link>
         <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
-          Edit Memory
+          Edit This Memory
         </h1>
         <Card>
           <div className="text-center py-16 space-y-6">
@@ -206,21 +212,24 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
             </Link>
           </div>
         </Card>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+    <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+      <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-4 inline-block">
+        ← Back to Your Memories
+      </Link>
       <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
-        Edit Memory
+        Edit This Memory
       </h1>
 
       <Card>
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           <div>
             <label htmlFor="title" className="block text-base font-medium text-slate-800 mb-3">
-              Title <span className="text-red-600" aria-label="required">*</span>
+              Memory Title <span className="text-red-600" aria-label="required">*</span>
             </label>
             <input
               type="text"
@@ -247,7 +256,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
 
           <div>
             <label htmlFor="description" className="block text-base font-medium text-slate-800 mb-3">
-              Description <span className="text-red-600" aria-label="required">*</span>
+              Describe this memory in your own words <span className="text-red-600" aria-label="required">*</span>
             </label>
             <textarea
               id="description"
@@ -257,7 +266,11 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               onChange={(e) => handleChange('description', e.target.value)}
               onBlur={() => handleBlur('description')}
               aria-invalid={touched.description && !!errors.description}
-              aria-describedby={touched.description && errors.description ? 'description-error' : undefined}
+              aria-describedby={
+                touched.description && errors.description
+                  ? 'description-error description-help'
+                  : 'description-help'
+              }
               className={`w-full px-3.5 py-2.5 text-base border rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 resize-none leading-relaxed ${
                 touched.description && errors.description
                   ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
@@ -270,6 +283,9 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
                 {errors.description}
               </p>
             )}
+            <p id="description-help" className="mt-2 text-base text-slate-700">
+              You don't need to write a lot. A few sentences is enough.
+            </p>
           </div>
 
           <div>
@@ -324,19 +340,20 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
 
           <div>
             <label htmlFor="people" className="block text-base font-medium text-slate-800 mb-3">
-              People (comma-separated)
+              Who was involved?
             </label>
             <input
               type="text"
               id="people"
               value={formData.people}
               onChange={(e) => handleChange('people', e.target.value)}
+              aria-describedby="people-help"
               className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]"
               placeholder="Alice, Bob, Charlie"
               aria-label="People involved in this memory, separated by commas"
             />
-            <p className="mt-2 text-base text-slate-700">
-              Separate multiple names with commas
+            <p id="people-help" className="mt-2 text-base text-slate-700">
+              Separate names with commas (optional).
             </p>
           </div>
 
@@ -362,7 +379,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
           </div>
         </form>
       </Card>
-    </div>
+    </main>
   );
 }
 

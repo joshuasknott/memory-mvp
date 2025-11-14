@@ -135,15 +135,10 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   // Not found state: memory is null or falsy after loading
   if (memory === null || !memory) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-        <Button
-          variant="secondary"
-          onClick={() => router.push('/timeline')}
-          aria-label="Go back to timeline"
-          className="min-w-[200px]"
-        >
-          ← Back to Timeline
-        </Button>
+      <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+        <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-4 inline-block">
+          ← Back to Your Memories
+        </Link>
         <Card>
           <div className="text-center py-16 space-y-6">
             <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
@@ -159,7 +154,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
             </Link>
           </div>
         </Card>
-      </div>
+      </main>
     );
   }
 
@@ -174,7 +169,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+    <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
       {showSuccess && (
         <Card className="bg-green-50 border-2 border-green-200">
           <div className="text-center py-4">
@@ -184,6 +179,10 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
           </div>
         </Card>
       )}
+      
+      <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-4 inline-block">
+        ← Back to Your Memories
+      </Link>
       
       <div className="flex flex-col gap-4 max-w-md">
         <Button
@@ -198,10 +197,10 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
           <Button
             variant="secondary"
             onClick={() => router.push('/timeline')}
-            aria-label="Go back to timeline"
+            aria-label="Go back to your memories"
             className="w-full min-w-[200px] font-normal"
           >
-            ← Back to Timeline
+            ← Back to Your Memories
           </Button>
           <Button
             variant="danger"
@@ -274,7 +273,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
           )}
         </div>
       </Card>
-    </div>
+    </main>
   );
 }
 

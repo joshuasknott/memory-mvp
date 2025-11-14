@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { Button } from '@/components/ui/Button';
@@ -67,8 +68,11 @@ export default function SaveMemoryPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-      <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Save Memory</h1>
+    <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+      <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-4 inline-block">
+        ← Back to Your Memories
+      </Link>
+      <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Add a New Memory</h1>
 
       {showSaved && (
         <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl text-base">
@@ -86,7 +90,7 @@ export default function SaveMemoryPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="title" className="block text-base font-medium text-slate-800 mb-3">
-              Title
+              Memory Title
             </label>
             <input
               type="text"
@@ -101,7 +105,7 @@ export default function SaveMemoryPage() {
 
           <div>
             <label htmlFor="description" className="block text-base font-medium text-slate-800 mb-3">
-              Description
+              Describe this memory in your own words
             </label>
             <textarea
               id="description"
@@ -109,9 +113,13 @@ export default function SaveMemoryPage() {
               rows={6}
               value={formData.description}
               onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+              aria-describedby="description-help"
               className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none leading-relaxed"
               placeholder="Tell me about this memory..."
             />
+            <p id="description-help" className="mt-2 text-base text-slate-700">
+              You don't need to write a lot. A few sentences is enough.
+            </p>
           </div>
 
           <div>
@@ -156,16 +164,20 @@ export default function SaveMemoryPage() {
 
           <div>
             <label htmlFor="people" className="block text-base font-medium text-slate-800 mb-3">
-              People (comma-separated)
+              Who was involved?
             </label>
             <input
               type="text"
               id="people"
               value={formData.people}
               onChange={(e) => setFormData((prev) => ({ ...prev, people: e.target.value }))}
+              aria-describedby="people-help"
               className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]"
               placeholder="Alice, Bob, Charlie"
             />
+            <p id="people-help" className="mt-2 text-base text-slate-700">
+              Separate names with commas (optional).
+            </p>
           </div>
 
           <div className="flex flex-col gap-4 pt-4">
@@ -188,7 +200,7 @@ export default function SaveMemoryPage() {
           </div>
         </form>
       </Card>
-    </div>
+    </main>
   );
 }
 

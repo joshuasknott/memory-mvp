@@ -50,36 +50,36 @@ export default function TimelinePage() {
   // Loading state
   if (memories === undefined) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-        <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Timeline</h1>
+      <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+        <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Your Memories</h1>
         <Card>
           <div className="p-8 text-center">
             <p className="text-base text-slate-700">Loading memories...</p>
           </div>
         </Card>
-      </div>
+      </main>
     );
   }
 
   // Empty state
   if (memories.length === 0) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-        <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Timeline</h1>
+      <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+        <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Your Memories</h1>
         <Card>
           <div className="p-8 text-center">
             <p className="text-base text-slate-700">No memories yet. Save your first memory to get started!</p>
           </div>
         </Card>
-      </div>
+      </main>
     );
   }
 
   // Timeline view
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+    <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
       <div className="flex flex-col gap-6">
-        <h1 className="text-3xl md:text-4xl font-semibold text-slate-900">Timeline</h1>
+        <h1 className="text-3xl md:text-4xl font-semibold text-slate-900">Your Memories</h1>
         
         <div className="max-w-md">
           <Link href="/save">
@@ -134,7 +134,7 @@ export default function TimelinePage() {
           </Link>
         ))}
       </div>
-    </div>
+    </main>
   );
 }
 

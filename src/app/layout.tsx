@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
+import { ConvexStoreInitializer } from "@/components/ConvexStoreInitializer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,6 +32,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ConvexClientProvider>
+          <ConvexStoreInitializer />
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <nav className="border-b-2 border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
               <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-10">

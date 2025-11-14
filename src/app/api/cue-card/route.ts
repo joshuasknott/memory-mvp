@@ -33,17 +33,17 @@ export async function POST(request: NextRequest) {
 
     // Build the user prompt
     const peopleStr = Array.isArray(people) && people.length > 0
-      ? `People involved: ${people.join(', ')}`
-      : 'No specific people mentioned';
+      ? people.join(', ')
+      : 'none';
 
-    const userPrompt = `Create a short reflective cue card that weaves together these memory details:
+    const userPrompt = `Here is the memory.
 
-- Date: ${formattedDate}
-- Title: ${title}
-- Description: ${description}
-- People: ${peopleStr}
+Title: ${title}
+Date: ${formattedDate}
+People: ${peopleStr}
+Description: ${description}
 
-Generate a cue card that helps someone remember this moment naturally. The output must be 120 words or fewer and must only use the information provided above. Do not invent any new events, emotions, or details.`;
+Write a cue card that follows the system rules.`;
 
     // Get the system prompt for the specified tone
     const systemPrompt = getCueCardSystemPrompt(toneUsed);
@@ -62,7 +62,7 @@ Generate a cue card that helps someone remember this moment naturally. The outpu
         },
       ],
       temperature: 0.7,
-      max_tokens: 200, // Increased to allow for up to 120 words
+      max_tokens: 150, // Allow for up to 90 words (approximately 120 tokens)
     });
 
     const text = completion.choices[0]?.message?.content?.trim() || '';

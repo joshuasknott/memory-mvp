@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Dialog } from '@/components/ui/Dialog';
 import { useStatus } from '@/contexts/StatusContext';
 import type { Memory } from '@/types/memory';
+import type { CueCardTone } from '@/lib/prompts/cueCard';
 
 // Type for Convex memory document returned from the server
 type ConvexMemory = {
@@ -33,6 +34,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [cueCard, setCueCard] = useState<string | null>(null);
   const [cueCardTone, setCueCardTone] = useState<string | null>(null);
+  const [selectedTone, setSelectedTone] = useState<CueCardTone>('gentle');
   const [isLoadingCueCard, setIsLoadingCueCard] = useState(false);
   const resolvedParams = use(params);
   const showSuccess = searchParams.get('success') === 'true';
@@ -58,62 +60,79 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
     };
   }, [convexMemory]);
 
-  // Fetch cue card when memory is loaded
+  // Load cached cue card and selected tone preference on mount
   useEffect(() => {
     if (!memory) return;
 
-    // Check if we already have a cached cue card for this memory
+    // Load cached cue card if available
     const cacheKey = `cueCard_${memoryId}`;
     const cacheKeyTone = `cueCardTone_${memoryId}`;
+    const cacheKeySelectedTone = `selectedTone_${memoryId}`;
     const cached = sessionStorage.getItem(cacheKey);
     const cachedTone = sessionStorage.getItem(cacheKeyTone);
+    const cachedSelectedTone = sessionStorage.getItem(cacheKeySelectedTone);
     
     if (cached) {
       setCueCard(cached);
       setCueCardTone(cachedTone || null);
-      return;
     }
 
-    // Fetch new cue card
-    setIsLoadingCueCard(true);
-    fetch('/api/cue-card', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title: memory.title,
-        description: memory.description,
-        date: memory.date,
-        people: memory.people,
-      }),
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error('Failed to generate cue card');
-        }
-        return res.json();
-      })
-      .then((data) => {
-        const generatedCueCard = data.text;
-        const tone = data.toneUsed;
-        setCueCard(generatedCueCard);
-        setCueCardTone(tone || null);
-        // Cache the result in sessionStorage
-        sessionStorage.setItem(cacheKey, generatedCueCard);
-        if (tone) {
-          sessionStorage.setItem(cacheKeyTone, tone);
-        }
-      })
-      .catch((error) => {
-        console.error('Error fetching cue card:', error);
-        // Fallback to empty string on error
-        setCueCard('');
-      })
-      .finally(() => {
-        setIsLoadingCueCard(false);
-      });
+    // Load selected tone preference (default to 'gentle' if not found)
+    if (cachedSelectedTone && ['gentle', 'uplifting', 'concise', 'storybook'].includes(cachedSelectedTone)) {
+      setSelectedTone(cachedSelectedTone as CueCardTone);
+    }
   }, [memory, memoryId]);
+
+  // Generate cue card function
+  const handleGenerateCueCard = async () => {
+    if (!memory) return;
+
+    setIsLoadingCueCard(true);
+    const cacheKey = `cueCard_${memoryId}`;
+    const cacheKeyTone = `cueCardTone_${memoryId}`;
+    const cacheKeySelectedTone = `selectedTone_${memoryId}`;
+
+    try {
+      const response = await fetch('/api/cue-card', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: memory.title,
+          description: memory.description,
+          date: memory.date,
+          people: memory.people,
+          tone: selectedTone,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate cue card');
+      }
+
+      const data = await response.json();
+      const generatedCueCard = data.text;
+      const tone = data.toneUsed;
+      
+      setCueCard(generatedCueCard);
+      setCueCardTone(tone || null);
+      
+      // Cache the result in sessionStorage
+      sessionStorage.setItem(cacheKey, generatedCueCard);
+      if (tone) {
+        sessionStorage.setItem(cacheKeyTone, tone);
+      }
+      // Store the selected tone preference
+      sessionStorage.setItem(cacheKeySelectedTone, selectedTone);
+    } catch (error) {
+      console.error('Error fetching cue card:', error);
+      showError('Failed to generate cue card. Please try again.');
+      setCueCard('');
+    } finally {
+      setIsLoadingCueCard(false);
+    }
+  };
 
   const handleDeleteClick = () => {
     setShowDeleteDialog(true);
@@ -265,7 +284,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
       </Card>
 
       <Card className="bg-blue-50 border-2 border-blue-200">
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div>
             <h2 className="text-2xl font-semibold text-slate-900">
               Cue Card
@@ -276,19 +295,52 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
               </p>
             )}
           </div>
-          {isLoadingCueCard ? (
-            <p className="text-base text-slate-700 italic">
-              Generating cue card…
-            </p>
-          ) : cueCard ? (
-            <p className="text-base text-slate-800 leading-relaxed">
-              {cueCard}
-            </p>
-          ) : (
-            <p className="text-base text-slate-700">
-              Unable to generate cue card. Please try refreshing the page.
-            </p>
-          )}
+
+          <div className="space-y-3">
+            <div>
+              <label htmlFor="tone-selector" className="block text-base text-slate-700 mb-2">
+                Tone
+              </label>
+              <select
+                id="tone-selector"
+                value={selectedTone}
+                onChange={(e) => setSelectedTone(e.target.value as CueCardTone)}
+                className="w-full rounded-md border border-slate-300 min-h-[44px] px-3 py-2 text-base text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+              >
+                <option value="gentle">gentle</option>
+                <option value="uplifting">uplifting</option>
+                <option value="concise">concise</option>
+                <option value="storybook">storybook</option>
+              </select>
+            </div>
+            <Button
+              variant="primary"
+              onClick={handleGenerateCueCard}
+              disabled={isLoadingCueCard}
+              className="w-full"
+              aria-label="Generate cue card"
+            >
+              {isLoadingCueCard ? 'Generating...' : 'Generate Cue Card'}
+            </Button>
+          </div>
+
+          <div>
+            {isLoadingCueCard ? (
+              <p className="text-base text-slate-700 italic">
+                Generating cue card…
+              </p>
+            ) : cueCard ? (
+              <p className="text-base text-slate-800 leading-relaxed">
+                {cueCard}
+              </p>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-base text-slate-700">
+                  No cue card yet. Choose a tone and tap 'Generate Cue Card' to create one.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </Card>
 

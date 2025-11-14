@@ -2,7 +2,7 @@
 
 import { useState, FormEvent, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useMemories } from '@/lib/useMemories';
+import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import type { Importance } from '@/types/memory';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -15,7 +15,7 @@ interface FormErrors {
 
 export default function SaveMemoryPage() {
   const router = useRouter();
-  const { addMemory } = useMemories();
+  const addMemory = useMemoriesStore((state) => state.addMemory);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 

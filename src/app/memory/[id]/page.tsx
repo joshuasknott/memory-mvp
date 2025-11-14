@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useMemories } from '@/lib/useMemories';
+import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import { generateCueCard } from '@/lib/cueCard';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -11,7 +11,9 @@ import { Badge } from '@/components/ui/Badge';
 
 export default function MemoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const { memories, deleteMemory, isLoaded } = useMemories();
+  const memories = useMemoriesStore((state) => state.memories);
+  const deleteMemory = useMemoriesStore((state) => state.deleteMemory);
+  const isLoaded = useMemoriesStore((state) => state.isLoaded);
   const [isDeleting, setIsDeleting] = useState(false);
   const resolvedParams = use(params);
   const memory = memories.find((m) => m.id === resolvedParams.id);

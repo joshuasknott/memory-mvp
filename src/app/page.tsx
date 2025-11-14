@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemories } from '@/lib/useMemories';
+import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
 export default function Home() {
-  const { memories, isLoaded } = useMemories();
+  const memories = useMemoriesStore((state) => state.memories);
+  const isLoaded = useMemoriesStore((state) => state.isLoaded);
 
   return (
     <div className="space-y-8">

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useMemories } from '@/lib/useMemories';
+import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import type { Importance } from '@/types/memory';
 import { groupMemoriesByDate, getBucketLabel, type DateBucket } from '@/lib/dateBuckets';
 import { Card } from '@/components/ui/Card';
@@ -10,7 +10,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 
 export default function TimelinePage() {
-  const { memories, isLoaded } = useMemories();
+  const memories = useMemoriesStore((state) => state.memories);
+  const isLoaded = useMemoriesStore((state) => state.isLoaded);
   const [searchQuery, setSearchQuery] = useState('');
   const [importanceFilter, setImportanceFilter] = useState<Importance | 'all'>('all');
   const [peopleFilter, setPeopleFilter] = useState('');

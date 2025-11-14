@@ -54,7 +54,7 @@ export default function TimelinePage() {
         <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Your Memories</h1>
         <Card>
           <div className="p-8 text-center">
-            <p className="text-base text-slate-700">Loading memories...</p>
+            <p className="text-base text-slate-700">Loading your memories…</p>
           </div>
         </Card>
       </main>
@@ -67,8 +67,22 @@ export default function TimelinePage() {
       <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
         <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Your Memories</h1>
         <Card>
-          <div className="p-8 text-center">
-            <p className="text-base text-slate-700">No memories yet. Save your first memory to get started!</p>
+          <div className="p-8 text-center space-y-6">
+            <div className="space-y-4">
+              <h2 className="text-2xl font-semibold text-slate-900">
+                No memories saved yet
+              </h2>
+              <p className="text-base text-slate-700 max-w-md mx-auto">
+                Start with just one important moment. Tap 'Add a New Memory' to begin.
+              </p>
+            </div>
+            <div className="max-w-md mx-auto">
+              <Link href="/save">
+                <Button variant="primary" className="w-full min-w-[200px]">
+                  Add a New Memory
+                </Button>
+              </Link>
+            </div>
           </div>
         </Card>
       </main>
@@ -78,7 +92,7 @@ export default function TimelinePage() {
   // Timeline view
   return (
     <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-      <div className="flex flex-col gap-6">
+      <div className="space-y-6">
         <h1 className="text-3xl md:text-4xl font-semibold text-slate-900">Your Memories</h1>
         
         <div className="max-w-md">

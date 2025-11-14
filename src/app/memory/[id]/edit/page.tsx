@@ -181,7 +181,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
       clearDraft();
 
       // Show success message
-      showSuccess('Memory updated.');
+      showSuccess('Memory updated. Your changes have been saved.');
 
       // Redirect back to memory detail page
       router.push(`/memory/${memory.id}`);
@@ -197,15 +197,15 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
   if (memory === undefined) {
     return (
       <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-        <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-4 inline-block">
+        <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-2 inline-block">
           ← Back to Your Memories
         </Link>
-        <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
+        <h1 className="text-3xl md:text-4xl font-semibold mb-6 text-slate-900">
           Edit This Memory
         </h1>
         <Card>
           <div className="text-center py-16">
-            <p className="text-lg text-slate-600">Loading memory...</p>
+            <p className="text-base text-slate-700">Loading this memory…</p>
           </div>
         </Card>
       </main>
@@ -216,23 +216,20 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
   if (memory === null || !memory) {
     return (
       <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-        <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-4 inline-block">
+        <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-2 inline-block">
           ← Back to Your Memories
         </Link>
-        <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
+        <h1 className="text-3xl md:text-4xl font-semibold mb-6 text-slate-900">
           Edit This Memory
         </h1>
         <Card>
           <div className="text-center py-16 space-y-6">
             <h2 className="text-3xl md:text-4xl font-semibold text-slate-900">
-              Memory not found
+              We couldn't find this memory.
             </h2>
-            <p className="text-lg text-slate-600">
-              The memory you're trying to edit doesn't exist or may have been deleted.
-            </p>
             <Link href="/timeline">
               <Button variant="primary" aria-label="View all memories in timeline" className="min-w-[200px]">
-                View All Memories
+                ← Back to Your Memories
               </Button>
             </Link>
           </div>
@@ -243,10 +240,10 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-      <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-4 inline-block">
+      <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-2 inline-block">
         ← Back to Your Memories
       </Link>
-      <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
+      <h1 className="text-3xl md:text-4xl font-semibold mb-6 text-slate-900">
         Edit This Memory
       </h1>
 
@@ -378,11 +375,11 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               aria-label="People involved in this memory, separated by commas"
             />
             <p id="people-help" className="mt-2 text-base text-slate-700">
-              Separate names with commas (optional).
+              Separate names with commas. This is optional.
             </p>
           </div>
 
-          <div className="flex flex-col gap-4 pt-4">
+          <div className="flex flex-col gap-3 pt-4">
             <Button
               type="submit"
               variant="primary"

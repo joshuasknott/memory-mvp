@@ -131,7 +131,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
     return (
       <main className="min-h-screen bg-slate-50">
         <div className="max-w-3xl mx-auto px-4 py-10">
-          <p className="text-base text-slate-700">Loading memory…</p>
+          <p className="text-base text-slate-700">Loading this memory…</p>
         </div>
       </main>
     );
@@ -141,20 +141,17 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   if (memory === null || !memory) {
     return (
       <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-        <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-4 inline-block">
+        <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-2 inline-block">
           ← Back to Your Memories
         </Link>
         <Card>
           <div className="text-center py-16 space-y-6">
             <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
-              Memory not found
+              We couldn't find this memory.
             </h1>
-            <p className="text-base text-slate-700">
-              The memory you're looking for doesn't exist or may have been deleted.
-            </p>
             <Link href="/timeline">
               <Button variant="primary" aria-label="View all memories in timeline" className="min-w-[200px]">
-                View All Memories
+                ← Back to Your Memories
               </Button>
             </Link>
           </div>
@@ -185,11 +182,11 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
         </Card>
       )}
       
-      <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-4 inline-block">
+      <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-2 inline-block">
         ← Back to Your Memories
       </Link>
       
-      <div className="flex flex-col gap-4 max-w-md">
+      <div className="flex flex-col gap-4 max-w-md mb-6">
         <Button
           variant="primary"
           onClick={() => router.push(`/memory/${memory.id}/edit`)}

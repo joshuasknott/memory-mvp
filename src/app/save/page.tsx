@@ -89,10 +89,10 @@ export default function SaveMemoryPage() {
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-      <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-4 inline-block">
+      <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-2 inline-block">
         ← Back to Your Memories
       </Link>
-      <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Add a New Memory</h1>
+      <h1 className="text-3xl md:text-4xl font-semibold mb-6 text-slate-900">Add a New Memory</h1>
 
       <Card>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -117,7 +117,6 @@ export default function SaveMemoryPage() {
             </label>
             <textarea
               id="description"
-              required
               rows={6}
               value={formData.description}
               onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
@@ -184,11 +183,11 @@ export default function SaveMemoryPage() {
               placeholder="Alice, Bob, Charlie"
             />
             <p id="people-help" className="mt-2 text-base text-slate-700">
-              Separate names with commas (optional).
+              Separate names with commas. This is optional.
             </p>
           </div>
 
-          <div className="flex flex-col gap-4 pt-4">
+          <div className="flex flex-col gap-3 pt-4">
             <Button
               type="submit"
               variant="primary"

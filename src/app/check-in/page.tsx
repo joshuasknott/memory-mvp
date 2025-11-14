@@ -123,21 +123,20 @@ export default function CheckInPage() {
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-      <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-4 inline-block">
+      <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-2 inline-block">
         ← Back to Your Memories
       </Link>
-      <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
+      <h1 className="text-3xl md:text-4xl font-semibold mb-6 text-slate-900">
         Daily Check-In
       </h1>
 
       <Card>
-        <div className="space-y-6 mb-8">
-          <p className="text-base text-slate-700 leading-relaxed">
+        <div className="space-y-6">
+          <p className="text-base text-slate-700 leading-relaxed mb-6">
             A quick way to reflect on your day and save important details.
           </p>
-        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           <div>
             <label htmlFor="mood" className="block text-base font-medium text-slate-800 mb-3">
               How are you feeling today? <span className="text-red-600" aria-label="required">*</span>
@@ -206,11 +205,11 @@ export default function CheckInPage() {
               aria-label="People you were with today, separated by commas"
             />
             <p className="mt-2 text-base text-slate-700">
-              Separate multiple names with commas (optional)
+              Separate names with commas. This is optional.
             </p>
           </div>
 
-          <div className="flex flex-col gap-4 pt-6">
+          <div className="flex flex-col gap-3 pt-4">
             <Button
               type="submit"
               variant="primary"
@@ -230,7 +229,8 @@ export default function CheckInPage() {
               Cancel
             </Button>
           </div>
-        </form>
+          </form>
+        </div>
       </Card>
     </main>
   );

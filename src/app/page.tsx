@@ -25,7 +25,7 @@ export default function Home() {
       {memories === undefined ? (
         <Card>
           <div className="text-center py-16">
-            <p className="text-base text-slate-700">Loading...</p>
+            <p className="text-base text-slate-700">Loading your memories…</p>
           </div>
         </Card>
       ) : memoryCount === 0 ? (
@@ -46,6 +46,9 @@ export default function Home() {
                   Save Your First Memory
                 </Button>
               </Link>
+              <p className="text-base text-slate-700 mt-2">
+                You can start with just one memory. It doesn't have to be perfect.
+              </p>
               <Link href="/check-in">
                 <Button variant="secondary" className="w-full min-w-[200px]">
                   Daily Check-In

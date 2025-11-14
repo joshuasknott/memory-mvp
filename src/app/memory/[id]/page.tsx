@@ -1,10 +1,9 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { use, useEffect, useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useMemoriesStore } from '@/stores/useMemoriesStore';
-import { generateCueCard } from '@/lib/cueCard';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -16,15 +15,69 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   const deleteMemory = useMemoriesStore((state) => state.deleteMemory);
   const isLoaded = useMemoriesStore((state) => state.isLoaded);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [cueCard, setCueCard] = useState<string | null>(null);
+  const [isLoadingCueCard, setIsLoadingCueCard] = useState(false);
   const resolvedParams = use(params);
   const memory = memories.find((m) => m.id === resolvedParams.id);
   const showSuccess = searchParams.get('success') === 'true';
+
+  // Memoize the memory ID to prevent unnecessary re-fetches
+  const memoryId = useMemo(() => resolvedParams.id, [resolvedParams.id]);
 
   useEffect(() => {
     if (isLoaded && !memory) {
       router.push('/timeline');
     }
   }, [isLoaded, memory, router]);
+
+  // Fetch cue card when memory is loaded
+  useEffect(() => {
+    if (!memory || !isLoaded) return;
+
+    // Check if we already have a cached cue card for this memory
+    const cacheKey = `cueCard_${memoryId}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    
+    if (cached) {
+      setCueCard(cached);
+      return;
+    }
+
+    // Fetch new cue card
+    setIsLoadingCueCard(true);
+    fetch('/api/cue-card', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: memory.title,
+        description: memory.description,
+        date: memory.date,
+        people: memory.people,
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('Failed to generate cue card');
+        }
+        return res.json();
+      })
+      .then((data) => {
+        const generatedCueCard = data.cueCard;
+        setCueCard(generatedCueCard);
+        // Cache the result in sessionStorage
+        sessionStorage.setItem(cacheKey, generatedCueCard);
+      })
+      .catch((error) => {
+        console.error('Error fetching cue card:', error);
+        // Fallback to empty string on error
+        setCueCard('');
+      })
+      .finally(() => {
+        setIsLoadingCueCard(false);
+      });
+  }, [memory, isLoaded, memoryId]);
 
   const handleDelete = async () => {
     if (!memory) return;
@@ -96,8 +149,6 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
       day: 'numeric',
     });
   };
-
-  const cueCard = generateCueCard(memory);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
@@ -183,9 +234,19 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
           <h2 className="text-2xl font-semibold text-slate-900">
             Cue Card
           </h2>
-          <p className="text-base text-slate-700 leading-relaxed">
-            {cueCard}
-          </p>
+          {isLoadingCueCard ? (
+            <p className="text-base text-slate-600 italic">
+              Generating cue card…
+            </p>
+          ) : cueCard ? (
+            <p className="text-base text-slate-700 leading-relaxed">
+              {cueCard}
+            </p>
+          ) : (
+            <p className="text-base text-slate-600">
+              Unable to generate cue card. Please try refreshing the page.
+            </p>
+          )}
         </div>
       </Card>
     </div>

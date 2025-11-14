@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import { generateCueCard } from '@/lib/cueCard';
@@ -11,12 +11,14 @@ import { Badge } from '@/components/ui/Badge';
 
 export default function MemoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const memories = useMemoriesStore((state) => state.memories);
   const deleteMemory = useMemoriesStore((state) => state.deleteMemory);
   const isLoaded = useMemoriesStore((state) => state.isLoaded);
   const [isDeleting, setIsDeleting] = useState(false);
   const resolvedParams = use(params);
   const memory = memories.find((m) => m.id === resolvedParams.id);
+  const showSuccess = searchParams.get('success') === 'true';
 
   useEffect(() => {
     if (isLoaded && !memory) {
@@ -97,6 +99,15 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
+      {showSuccess && (
+        <Card className="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800">
+          <div className="text-center py-4">
+            <p className="text-base font-semibold text-green-800 dark:text-green-200" role="alert">
+              Memory updated successfully!
+            </p>
+          </div>
+        </Card>
+      )}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <Button
           variant="secondary"
@@ -106,15 +117,25 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
         >
           ← Back to Timeline
         </Button>
-        <Button
-          variant="danger"
-          onClick={handleDelete}
-          disabled={isDeleting}
-          aria-label={isDeleting ? 'Deleting memory' : 'Delete this memory'}
-          className="min-w-[200px]"
-        >
-          {isDeleting ? 'Deleting...' : 'Delete Memory'}
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Button
+            variant="primary"
+            onClick={() => router.push(`/memory/${memory.id}/edit`)}
+            aria-label="Edit this memory"
+            className="min-w-[200px]"
+          >
+            Edit Memory
+          </Button>
+          <Button
+            variant="danger"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            aria-label={isDeleting ? 'Deleting memory' : 'Delete this memory'}
+            className="min-w-[200px]"
+          >
+            {isDeleting ? 'Deleting...' : 'Delete Memory'}
+          </Button>
+        </div>
       </div>
 
       <Card>

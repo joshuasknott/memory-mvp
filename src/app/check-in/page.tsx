@@ -137,98 +137,98 @@ export default function CheckInPage() {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-          <div>
-            <label htmlFor="mood" className="block text-base font-medium text-slate-800 mb-3">
-              How are you feeling today? <span className="text-red-600" aria-label="required">*</span>
-            </label>
-            <input
-              type="text"
-              id="mood"
-              required
-              value={formData.mood}
-              onChange={(e) => handleChange('mood', e.target.value)}
-              onBlur={() => handleBlur('mood')}
-              aria-invalid={touched.mood && !!errors.mood}
-              aria-describedby={touched.mood && errors.mood ? 'mood-error' : undefined}
-              className={`w-full px-3.5 py-2.5 text-base border rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 min-h-[44px] ${
-                touched.mood && errors.mood
-                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                  : 'border-slate-300 focus:ring-blue-500 focus:border-blue-500'
-              }`}
-              placeholder="e.g., happy, tired, excited, grateful"
-            />
-            {touched.mood && errors.mood && (
-              <p id="mood-error" className="mt-2 text-base text-red-600 font-medium" role="alert">
-                {errors.mood}
+            <div>
+              <label htmlFor="mood" className="block text-base font-medium text-slate-800 mb-3">
+                How are you feeling today? <span className="text-red-600" aria-label="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="mood"
+                required
+                value={formData.mood}
+                onChange={(e) => handleChange('mood', e.target.value)}
+                onBlur={() => handleBlur('mood')}
+                aria-invalid={touched.mood && !!errors.mood}
+                aria-describedby={touched.mood && errors.mood ? 'mood-error' : undefined}
+                className={`w-full px-3.5 py-2.5 text-base border rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 min-h-[44px] ${
+                  touched.mood && errors.mood
+                    ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                    : 'border-slate-300 focus:ring-blue-500 focus:border-blue-500'
+                }`}
+                placeholder="e.g., happy, tired, excited, grateful"
+              />
+              {touched.mood && errors.mood && (
+                <p id="mood-error" className="mt-2 text-base text-red-600 font-medium" role="alert">
+                  {errors.mood}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="events" className="block text-base font-medium text-slate-800 mb-3">
+                Did anything important happen today? <span className="text-red-600" aria-label="required">*</span>
+              </label>
+              <textarea
+                id="events"
+                required
+                rows={6}
+                value={formData.events}
+                onChange={(e) => handleChange('events', e.target.value)}
+                onBlur={() => handleBlur('events')}
+                aria-invalid={touched.events && !!errors.events}
+                aria-describedby={touched.events && errors.events ? 'events-error' : undefined}
+                className={`w-full px-3.5 py-2.5 text-base border rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 resize-none leading-relaxed ${
+                  touched.events && errors.events
+                    ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                    : 'border-slate-300 focus:ring-blue-500 focus:border-blue-500'
+                }`}
+                placeholder="Share what happened today..."
+              />
+              {touched.events && errors.events && (
+                <p id="events-error" className="mt-2 text-base text-red-600 font-medium" role="alert">
+                  {errors.events}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="people" className="block text-base font-medium text-slate-800 mb-3">
+                Who were you with?
+              </label>
+              <input
+                type="text"
+                id="people"
+                value={formData.people}
+                onChange={(e) => handleChange('people', e.target.value)}
+                className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]"
+                placeholder="Alice, Bob, Charlie"
+                aria-label="People you were with today, separated by commas"
+              />
+              <p className="mt-2 text-base text-slate-700">
+                Separate names with commas. This is optional.
               </p>
-            )}
-          </div>
+            </div>
 
-          <div>
-            <label htmlFor="events" className="block text-base font-medium text-slate-800 mb-3">
-              Did anything important happen today? <span className="text-red-600" aria-label="required">*</span>
-            </label>
-            <textarea
-              id="events"
-              required
-              rows={6}
-              value={formData.events}
-              onChange={(e) => handleChange('events', e.target.value)}
-              onBlur={() => handleBlur('events')}
-              aria-invalid={touched.events && !!errors.events}
-              aria-describedby={touched.events && errors.events ? 'events-error' : undefined}
-              className={`w-full px-3.5 py-2.5 text-base border rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 resize-none leading-relaxed ${
-                touched.events && errors.events
-                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                  : 'border-slate-300 focus:ring-blue-500 focus:border-blue-500'
-              }`}
-              placeholder="Share what happened today..."
-            />
-            {touched.events && errors.events && (
-              <p id="events-error" className="mt-2 text-base text-red-600 font-medium" role="alert">
-                {errors.events}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="people" className="block text-base font-medium text-slate-800 mb-3">
-              Who were you with?
-            </label>
-            <input
-              type="text"
-              id="people"
-              value={formData.people}
-              onChange={(e) => handleChange('people', e.target.value)}
-              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]"
-              placeholder="Alice, Bob, Charlie"
-              aria-label="People you were with today, separated by commas"
-            />
-            <p className="mt-2 text-base text-slate-700">
-              Separate names with commas. This is optional.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3 pt-4">
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={isSubmitting || !isValid}
-              className="w-full min-w-[200px]"
-              aria-label={isSubmitting ? 'Saving check-in' : isValid ? 'Save check-in' : 'Save check-in (form is incomplete)'}
-            >
-              {isSubmitting ? 'Saving...' : 'Save Check-In'}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => router.back()}
-              className="w-full min-w-[200px]"
-              aria-label="Cancel and go back"
-            >
-              Cancel
-            </Button>
-          </div>
+            <div className="flex flex-col gap-3 pt-4">
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={isSubmitting || !isValid}
+                className="w-full min-w-[200px]"
+                aria-label={isSubmitting ? 'Saving check-in' : isValid ? 'Save check-in' : 'Save check-in (form is incomplete)'}
+              >
+                {isSubmitting ? 'Saving...' : 'Save Check-In'}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => router.back()}
+                className="w-full min-w-[200px]"
+                aria-label="Cancel and go back"
+              >
+                Cancel
+              </Button>
+            </div>
           </form>
         </div>
       </Card>

@@ -70,7 +70,9 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
     if (memory === undefined) return;
     setRenderedSummary(memory?.aiSummary ?? null);
   }, [memory]);
-  const generateSummaryAction = useAction(api["actions/memories"].generateMemorySummary);
+  const generateSummaryAction = useAction(
+    api.actions.memories.generateMemorySummary
+  );
 
   const handleGenerateSummary = async () => {
     if (!memory) return;

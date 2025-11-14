@@ -8,5 +8,6 @@ export interface Memory {
   importance: Importance;
   people: string[];    // names of people involved
   createdAt: string;   // ISO string
+  aiSummary?: string | null;
 }
 

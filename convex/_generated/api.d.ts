@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as actions_memories from "../actions/memories.js";
 import type * as memories from "../memories.js";
 
 import type {
@@ -17,6 +18,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "actions/memories": typeof actions_memories;
   memories: typeof memories;
 }>;
 

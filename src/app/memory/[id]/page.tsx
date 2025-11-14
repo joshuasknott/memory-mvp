@@ -3,7 +3,7 @@
 import { use, useEffect, useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useQuery } from 'convex/react';
+import { useAction, useQuery } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
 import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import { Button } from '@/components/ui/Button';
@@ -13,6 +13,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { useStatus } from '@/contexts/StatusContext';
 import type { Memory } from '@/types/memory';
 import type { CueCardTone } from '@/lib/prompts/cueCard';
+import type { Id } from '../../../../convex/_generated/dataModel';
 
 // Type for Convex memory document returned from the server
 type ConvexMemory = {
@@ -23,6 +24,7 @@ type ConvexMemory = {
   importance: 'low' | 'medium' | 'high';
   people: string[];
   createdAt: string;
+  aiSummary?: string | null;
 };
 
 export default function MemoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -36,6 +38,9 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   const [cueCardTone, setCueCardTone] = useState<string | null>(null);
   const [selectedTone, setSelectedTone] = useState<CueCardTone>('gentle');
   const [isLoadingCueCard, setIsLoadingCueCard] = useState(false);
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [renderedSummary, setRenderedSummary] = useState<string | null>(null);
   const resolvedParams = use(params);
   const showSuccess = searchParams.get('success') === 'true';
 
@@ -57,8 +62,34 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
       importance: convexMemory.importance,
       people: convexMemory.people,
       createdAt: convexMemory.createdAt,
+      aiSummary: convexMemory.aiSummary ?? null,
     };
   }, [convexMemory]);
+
+  useEffect(() => {
+    if (memory === undefined) return;
+    setRenderedSummary(memory?.aiSummary ?? null);
+  }, [memory]);
+  const generateSummaryAction = useAction(api["actions/memories"].generateMemorySummary);
+
+  const handleGenerateSummary = async () => {
+    if (!memory) return;
+    setSummaryError(null);
+    setIsGeneratingSummary(true);
+
+    try {
+      const summary = await generateSummaryAction({
+        memoryId: memory.id as Id<'memories'>,
+      });
+      setRenderedSummary(summary);
+    } catch (error) {
+      console.error('Failed to generate AI summary:', error);
+      setSummaryError("Couldn't generate the summary. Please try again.");
+    } finally {
+      setIsGeneratingSummary(false);
+    }
+  };
+
 
   // Load cached cue card and selected tone preference on mount
   useEffect(() => {
@@ -339,6 +370,44 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
                   No cue card yet. Choose a tone and tap 'Generate Cue Card' to create one.
                 </p>
               </div>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold text-slate-900">
+                AI summary
+              </h2>
+            </div>
+            <Button
+              variant="secondary"
+              onClick={handleGenerateSummary}
+              disabled={isGeneratingSummary}
+              className="min-w-[180px]"
+            >
+              {isGeneratingSummary ? 'Generating…' : 'Generate summary'}
+            </Button>
+          </div>
+
+          {summaryError && (
+            <p className="text-sm text-rose-600" role="alert">
+              {summaryError}
+            </p>
+          )}
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            {renderedSummary ? (
+              <p className="text-base text-slate-800 leading-relaxed whitespace-pre-line">
+                {renderedSummary}
+              </p>
+            ) : (
+              <p className="text-base text-slate-600">
+                No AI summary yet. Click the button above to generate one.
+              </p>
             )}
           </div>
         </div>

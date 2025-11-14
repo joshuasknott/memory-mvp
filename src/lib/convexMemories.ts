@@ -14,6 +14,7 @@ type ConvexMemory = {
   importance: 'low' | 'medium' | 'high';
   people: string[];
   createdAt: string;
+  aiSummary?: string | null;
 };
 
 /**
@@ -28,6 +29,7 @@ function convexMemoryToMemory(convexMemory: ConvexMemory): Memory {
     importance: convexMemory.importance,
     people: convexMemory.people,
     createdAt: convexMemory.createdAt,
+    aiSummary: convexMemory.aiSummary ?? null,
   };
 }
 

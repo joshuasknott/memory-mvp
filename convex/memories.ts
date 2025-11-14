@@ -40,6 +40,7 @@ export const createMemory = mutation({
       importance: args.importance,
       people: args.people,
       createdAt: new Date().toISOString(),
+      aiSummary: null,
     });
     return memoryId;
   },
@@ -54,6 +55,7 @@ export const updateMemory = mutation({
     date: v.optional(v.string()),
     importance: v.optional(v.union(v.literal("low"), v.literal("medium"), v.literal("high"))),
     people: v.optional(v.array(v.string())),
+    aiSummary: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;

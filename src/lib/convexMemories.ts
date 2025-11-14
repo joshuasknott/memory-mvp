@@ -51,7 +51,6 @@ async function loadConvexApi(): Promise<any> {
   apiModulePromise = (async () => {
     try {
       // Dynamic import that may not exist yet - TypeScript will error but runtime handles it
-      // @ts-expect-error - Module may not exist until `npx convex dev` is run
       const module = await import('../../convex/_generated/api');
       if (module?.api) {
         apiModuleCache = module;

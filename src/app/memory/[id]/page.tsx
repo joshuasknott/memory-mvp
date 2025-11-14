@@ -32,6 +32,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [cueCard, setCueCard] = useState<string | null>(null);
+  const [cueCardTone, setCueCardTone] = useState<string | null>(null);
   const [isLoadingCueCard, setIsLoadingCueCard] = useState(false);
   const resolvedParams = use(params);
   const showSuccess = searchParams.get('success') === 'true';
@@ -63,10 +64,13 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
 
     // Check if we already have a cached cue card for this memory
     const cacheKey = `cueCard_${memoryId}`;
+    const cacheKeyTone = `cueCardTone_${memoryId}`;
     const cached = sessionStorage.getItem(cacheKey);
+    const cachedTone = sessionStorage.getItem(cacheKeyTone);
     
     if (cached) {
       setCueCard(cached);
+      setCueCardTone(cachedTone || null);
       return;
     }
 
@@ -91,10 +95,15 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
         return res.json();
       })
       .then((data) => {
-        const generatedCueCard = data.cueCard;
+        const generatedCueCard = data.text;
+        const tone = data.toneUsed;
         setCueCard(generatedCueCard);
+        setCueCardTone(tone || null);
         // Cache the result in sessionStorage
         sessionStorage.setItem(cacheKey, generatedCueCard);
+        if (tone) {
+          sessionStorage.setItem(cacheKeyTone, tone);
+        }
       })
       .catch((error) => {
         console.error('Error fetching cue card:', error);
@@ -257,9 +266,16 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
 
       <Card className="bg-blue-50 border-2 border-blue-200">
         <div className="space-y-4">
-          <h2 className="text-2xl font-semibold text-slate-900">
-            Cue Card
-          </h2>
+          <div>
+            <h2 className="text-2xl font-semibold text-slate-900">
+              Cue Card
+            </h2>
+            {cueCardTone && (
+              <p className="text-sm text-slate-500 mt-1">
+                Generated in {cueCardTone} tone
+              </p>
+            )}
+          </div>
           {isLoadingCueCard ? (
             <p className="text-base text-slate-700 italic">
               Generating cue card…

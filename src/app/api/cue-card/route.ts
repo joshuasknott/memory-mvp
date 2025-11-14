@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { getCueCardSystemPrompt, isValidTone, type CueCardTone } from '@/lib/prompts/cueCard';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -8,7 +9,7 @@ const openai = new OpenAI({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, description, date, people } = body;
+    const { title, description, date, people, tone } = body;
 
     // Validate required fields
     if (!title || !description || !date) {
@@ -17,6 +18,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Validate and set tone (default to 'gentle')
+    const toneUsed: CueCardTone = isValidTone(tone) ? tone : 'gentle';
 
     // Format the date for the prompt
     const dateObj = new Date(date);
@@ -27,19 +31,22 @@ export async function POST(request: NextRequest) {
       day: 'numeric',
     });
 
-    // Build the prompt
+    // Build the user prompt
     const peopleStr = Array.isArray(people) && people.length > 0
-      ? `People involved: ${people.join(', ')}. `
-      : '';
+      ? `People involved: ${people.join(', ')}`
+      : 'No specific people mentioned';
 
-    const prompt = `Generate a friendly, warm, 2-sentence cue card summary for a memory. The cue card should help someone remember this moment in a natural, conversational way.
+    const userPrompt = `Create a short reflective cue card that weaves together these memory details:
 
-Memory details:
 - Date: ${formattedDate}
 - Title: ${title}
 - Description: ${description}
-${peopleStr}
-Generate exactly 2 sentences that capture the essence of this memory in a friendly, easy-to-remember way.`;
+- People: ${peopleStr}
+
+Generate a cue card that helps someone remember this moment naturally. The output must be 120 words or fewer and must only use the information provided above. Do not invent any new events, emotions, or details.`;
+
+    // Get the system prompt for the specified tone
+    const systemPrompt = getCueCardSystemPrompt(toneUsed);
 
     // Call OpenAI API
     const completion = await openai.chat.completions.create({
@@ -47,27 +54,27 @@ Generate exactly 2 sentences that capture the essence of this memory in a friend
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful assistant that creates warm, friendly cue cards to help people remember important moments. Keep responses to exactly 2 sentences.',
+          content: systemPrompt,
         },
         {
           role: 'user',
-          content: prompt,
+          content: userPrompt,
         },
       ],
       temperature: 0.7,
-      max_tokens: 150,
+      max_tokens: 200, // Increased to allow for up to 120 words
     });
 
-    const cueCard = completion.choices[0]?.message?.content?.trim() || '';
+    const text = completion.choices[0]?.message?.content?.trim() || '';
 
-    if (!cueCard) {
+    if (!text) {
       return NextResponse.json(
         { error: 'Failed to generate cue card' },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({ cueCard });
+    return NextResponse.json({ text, toneUsed });
   } catch (error) {
     console.error('Error generating cue card:', error);
     

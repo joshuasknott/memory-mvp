@@ -10,29 +10,31 @@ export default function Home() {
   const isLoaded = useMemoriesStore((state) => state.isLoaded);
 
   return (
-    <div className="space-y-8">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+    <div className="space-y-10">
+      <div className="text-center space-y-6">
+        <h1 className="text-5xl font-bold text-gray-900 dark:text-gray-100">
           Memory MVP
         </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+        <p className="text-xl text-gray-700 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
           A lightweight memory companion prototype. Capture your moments, organize them in a timeline, 
           and revisit them with simple cue cards.
         </p>
       </div>
 
       {!isLoaded ? (
-        <div className="text-center py-12">
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
+        <Card>
+          <div className="text-center py-16">
+            <p className="text-lg text-gray-700 dark:text-gray-300">Loading...</p>
+          </div>
+        </Card>
       ) : memories.length === 0 ? (
         <Card>
-          <div className="text-center py-12 space-y-6">
-            <div className="space-y-2">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          <div className="text-center py-16 space-y-8">
+            <div className="space-y-4">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                 No memories yet
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+              <p className="text-lg text-gray-700 dark:text-gray-300 max-w-md mx-auto leading-relaxed">
                 Start capturing your moments by saving your first memory. You can add details, set importance, 
                 and organize them in your timeline.
               </p>
@@ -46,20 +48,22 @@ export default function Home() {
         </Card>
       ) : (
         <>
-          <div className="text-center">
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-              You currently have <span className="font-semibold text-gray-900 dark:text-gray-100">{memories.length}</span> {memories.length === 1 ? 'memory' : 'memories'}.
-            </p>
-          </div>
+          <Card>
+            <div className="text-center py-8">
+              <p className="text-xl text-gray-700 dark:text-gray-300">
+                You currently have <span className="font-bold text-gray-900 dark:text-gray-100 text-2xl">{memories.length}</span> {memories.length === 1 ? 'memory' : 'memories'}.
+              </p>
+            </div>
+          </Card>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Link href="/save">
-              <Button variant="primary" className="w-full sm:w-auto">
+              <Button variant="primary" className="w-full sm:w-auto min-w-[200px]">
                 Save a New Memory
               </Button>
             </Link>
             <Link href="/timeline">
-              <Button variant="secondary" className="w-full sm:w-auto">
+              <Button variant="secondary" className="w-full sm:w-auto min-w-[200px]">
                 View Timeline
               </Button>
             </Link>

@@ -6,15 +6,15 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 
 export function Badge({ className = '', variant = 'default', children, ...props }: BadgeProps) {
   const variantStyles = {
-    default: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
-    low: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    high: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    default: 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100',
+    low: 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100',
+    medium: 'bg-yellow-100 text-yellow-900 dark:bg-yellow-900 dark:text-yellow-100',
+    high: 'bg-red-100 text-red-900 dark:bg-red-900 dark:text-red-100',
   };
 
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${variantStyles[variant]} ${className}`}
+      className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold ${variantStyles[variant]} ${className}`}
       {...props}
     >
       {children}

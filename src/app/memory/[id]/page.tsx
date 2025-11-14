@@ -45,32 +45,35 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
 
   if (!isLoaded) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-600 dark:text-gray-400">Loading memory...</p>
-      </div>
+      <Card>
+        <div className="text-center py-16">
+          <p className="text-lg text-gray-700 dark:text-gray-300">Loading memory...</p>
+        </div>
+      </Card>
     );
   }
 
   if (!memory) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-3xl mx-auto space-y-8">
         <Button
           variant="secondary"
           onClick={() => router.push('/timeline')}
           aria-label="Go back to timeline"
+          className="min-w-[200px]"
         >
           ← Back to Timeline
         </Button>
         <Card>
-          <div className="text-center py-12 space-y-4">
-            <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          <div className="text-center py-16 space-y-6">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               Memory not found
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-lg text-gray-700 dark:text-gray-300">
               The memory you're looking for doesn't exist or may have been deleted.
             </p>
             <Link href="/timeline">
-              <Button variant="primary" aria-label="View all memories in timeline">
+              <Button variant="primary" aria-label="View all memories in timeline" className="min-w-[200px]">
                 View All Memories
               </Button>
             </Link>
@@ -93,12 +96,13 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   const cueCard = generateCueCard(memory);
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="max-w-3xl mx-auto space-y-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <Button
           variant="secondary"
           onClick={() => router.push('/timeline')}
           aria-label="Go back to timeline"
+          className="min-w-[200px]"
         >
           ← Back to Timeline
         </Button>
@@ -107,15 +111,16 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
           onClick={handleDelete}
           disabled={isDeleting}
           aria-label={isDeleting ? 'Deleting memory' : 'Delete this memory'}
+          className="min-w-[200px]"
         >
           {isDeleting ? 'Deleting...' : 'Delete Memory'}
         </Button>
       </div>
 
       <Card>
-        <div className="space-y-6">
+        <div className="space-y-8">
           <div className="flex items-start justify-between gap-4">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
               {memory.title}
             </h1>
             <Badge variant={memory.importance}>
@@ -123,43 +128,43 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
             </Badge>
           </div>
 
-          <div className="space-y-2">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="space-y-3">
+            <p className="text-base font-semibold text-gray-700 dark:text-gray-300">
               Date
             </p>
-            <p className="text-gray-900 dark:text-gray-100">
+            <p className="text-lg text-gray-900 dark:text-gray-100">
               {formatDate(memory.date)}
             </p>
           </div>
 
           {memory.people.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="space-y-3">
+              <p className="text-base font-semibold text-gray-700 dark:text-gray-300">
                 People
               </p>
-              <p className="text-gray-900 dark:text-gray-100">
+              <p className="text-lg text-gray-900 dark:text-gray-100">
                 {memory.people.join(', ')}
               </p>
             </div>
           )}
 
-          <div className="space-y-2">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="space-y-3">
+            <p className="text-base font-semibold text-gray-700 dark:text-gray-300">
               Description
             </p>
-            <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
+            <p className="text-lg text-gray-900 dark:text-gray-100 whitespace-pre-wrap leading-relaxed">
               {memory.description}
             </p>
           </div>
         </div>
       </Card>
 
-      <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+      <Card className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800">
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Cue Card
           </h2>
-          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+          <p className="text-lg text-gray-800 dark:text-gray-200 leading-relaxed">
             {cueCard}
           </p>
         </div>

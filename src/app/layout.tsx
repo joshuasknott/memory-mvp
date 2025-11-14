@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import { Button } from "@/components/ui/Button";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,37 +29,34 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="min-h-screen bg-zinc-50 dark:bg-black">
-          <nav className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between items-center h-16">
-                <Link href="/" className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          <nav className="border-b-2 border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+            <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-10">
+              <div className="flex justify-between items-center h-20">
+                <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                   Memory MVP
                 </Link>
-                <div className="flex gap-6">
-                  <Link
-                    href="/"
-                    className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
-                  >
-                    Home
+                <div className="flex gap-4">
+                  <Link href="/">
+                    <Button variant="secondary" className="text-base px-4 py-2 min-h-[44px]">
+                      Home
+                    </Button>
                   </Link>
-                  <Link
-                    href="/save"
-                    className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
-                  >
-                    Save Memory
+                  <Link href="/save">
+                    <Button variant="secondary" className="text-base px-4 py-2 min-h-[44px]">
+                      Save Memory
+                    </Button>
                   </Link>
-                  <Link
-                    href="/timeline"
-                    className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
-                  >
-                    Timeline
+                  <Link href="/timeline">
+                    <Button variant="secondary" className="text-base px-4 py-2 min-h-[44px]">
+                      Timeline
+                    </Button>
                   </Link>
                 </div>
               </div>
             </div>
           </nav>
-          <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <main className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-10 py-10">
             {children}
           </main>
         </div>

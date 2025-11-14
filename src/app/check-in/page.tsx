@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { useStatus } from '@/contexts/StatusContext';
 
 interface FormErrors {
   mood?: string;
@@ -15,6 +16,7 @@ interface FormErrors {
 export default function CheckInPage() {
   const router = useRouter();
   const addMemory = useMemoriesStore((state) => state.addMemory);
+  const { showSuccess, showError } = useStatus();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
@@ -96,7 +98,7 @@ export default function CheckInPage() {
         description += ` I was with ${people.join(', ')}.`;
       }
 
-      addMemory({
+      await addMemory({
         title: `Daily check-in – ${dateStr}`,
         description: description.trim(),
         date: today.toISOString().split('T')[0],
@@ -104,11 +106,16 @@ export default function CheckInPage() {
         people,
       });
 
-      // Redirect to timeline with success message
-      router.push('/timeline?checkin=success');
+      // Show success message
+      showSuccess('Check-in saved.');
+
+      // Redirect to timeline after a short delay
+      setTimeout(() => {
+        router.push('/timeline');
+      }, 1000);
     } catch (error) {
       console.error('Failed to save check-in:', error);
-      alert('Failed to save check-in. Please try again.');
+      showError('Something went wrong saving this check-in. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

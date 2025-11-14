@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemoriesStore } from '@/stores/useMemoriesStore';
+import { useQuery } from 'convex/react';
+import { api } from '../../convex/_generated/api';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
 export default function Home() {
-  const memories = useMemoriesStore((state) => state.memories);
-  const isLoaded = useMemoriesStore((state) => state.isLoaded);
+  const memories = useQuery(api.memories.getMemories);
+  const memoryCount = memories ? memories.length : 0;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 space-y-10">
@@ -21,13 +22,13 @@ export default function Home() {
         </p>
       </div>
 
-      {!isLoaded ? (
+      {memories === undefined ? (
         <Card>
           <div className="text-center py-16">
             <p className="text-lg text-slate-600">Loading...</p>
           </div>
         </Card>
-      ) : memories.length === 0 ? (
+      ) : memoryCount === 0 ? (
         <Card>
           <div className="text-center py-16 space-y-8">
             <div className="space-y-4">
@@ -58,7 +59,7 @@ export default function Home() {
           <Card>
             <div className="text-center py-8">
               <p className="text-xl text-slate-600">
-                You currently have <span className="font-bold text-slate-900 text-2xl">{memories.length}</span> {memories.length === 1 ? 'memory' : 'memories'}.
+                You currently have <span className="font-bold text-slate-900 text-2xl">{memoryCount}</span> {memoryCount === 1 ? 'memory' : 'memories'}.
               </p>
             </div>
           </Card>

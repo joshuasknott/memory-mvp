@@ -3,36 +3,59 @@
 import { use, useEffect, useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useQuery } from 'convex/react';
+import { api } from '../../../../convex/_generated/api';
 import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import type { Memory } from '@/types/memory';
+
+// Type for Convex memory document returned from the server
+type ConvexMemory = {
+  _id: string;
+  title: string;
+  description: string;
+  date: string;
+  importance: 'low' | 'medium' | 'high';
+  people: string[];
+  createdAt: string;
+};
 
 export default function MemoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const memories = useMemoriesStore((state) => state.memories);
   const deleteMemory = useMemoriesStore((state) => state.deleteMemory);
-  const isLoaded = useMemoriesStore((state) => state.isLoaded);
   const [isDeleting, setIsDeleting] = useState(false);
   const [cueCard, setCueCard] = useState<string | null>(null);
   const [isLoadingCueCard, setIsLoadingCueCard] = useState(false);
   const resolvedParams = use(params);
-  const memory = memories.find((m) => m.id === resolvedParams.id);
   const showSuccess = searchParams.get('success') === 'true';
 
   // Memoize the memory ID to prevent unnecessary re-fetches
   const memoryId = useMemo(() => resolvedParams.id, [resolvedParams.id]);
 
-  useEffect(() => {
-    if (isLoaded && !memory) {
-      router.push('/timeline');
-    }
-  }, [isLoaded, memory, router]);
+  // Fetch memory using useQuery
+  const convexMemory = useQuery(api.memories.getMemoryById, { id: memoryId as any });
+
+  // Convert ConvexMemory to Memory format when available
+  const memory: Memory | null | undefined = useMemo(() => {
+    if (convexMemory === undefined) return undefined;
+    if (convexMemory === null) return null;
+    return {
+      id: convexMemory._id,
+      title: convexMemory.title,
+      description: convexMemory.description,
+      date: convexMemory.date,
+      importance: convexMemory.importance,
+      people: convexMemory.people,
+      createdAt: convexMemory.createdAt,
+    };
+  }, [convexMemory]);
 
   // Fetch cue card when memory is loaded
   useEffect(() => {
-    if (!memory || !isLoaded) return;
+    if (!memory) return;
 
     // Check if we already have a cached cue card for this memory
     const cacheKey = `cueCard_${memoryId}`;
@@ -77,7 +100,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
       .finally(() => {
         setIsLoadingCueCard(false);
       });
-  }, [memory, isLoaded, memoryId]);
+  }, [memory, memoryId]);
 
   const handleDelete = async () => {
     if (!memory) return;
@@ -98,19 +121,19 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
     }
   };
 
-  if (!isLoaded) {
+  // Loading state: memory is undefined
+  if (memory === undefined) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-        <Card>
-          <div className="text-center py-16">
-            <p className="text-lg text-slate-600">Loading memory...</p>
-          </div>
-        </Card>
-      </div>
+      <main className="min-h-screen bg-slate-50">
+        <div className="max-w-3xl mx-auto px-4 py-10">
+          <p className="text-slate-600">Loading memory…</p>
+        </div>
+      </main>
     );
   }
 
-  if (!memory) {
+  // Not found state: memory is null or falsy after loading
+  if (memory === null || !memory) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
         <Button

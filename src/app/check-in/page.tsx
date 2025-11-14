@@ -121,7 +121,7 @@ export default function CheckInPage() {
 
       <Card>
         <div className="space-y-6 mb-8">
-          <p className="text-base text-slate-600 leading-relaxed">
+          <p className="text-base text-slate-700 leading-relaxed">
             A quick way to reflect on your day and save important details.
           </p>
         </div>
@@ -194,17 +194,17 @@ export default function CheckInPage() {
               placeholder="Alice, Bob, Charlie"
               aria-label="People you were with today, separated by commas"
             />
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-base text-slate-700">
               Separate multiple names with commas (optional)
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-6">
+          <div className="flex flex-col gap-4 pt-6">
             <Button
               type="submit"
               variant="primary"
               disabled={isSubmitting || !isValid}
-              className="flex-1 min-w-[200px] font-semibold"
+              className="w-full min-w-[200px]"
               aria-label={isSubmitting ? 'Saving check-in' : isValid ? 'Save check-in' : 'Save check-in (form is incomplete)'}
             >
               {isSubmitting ? 'Saving...' : 'Save Check-In'}
@@ -213,7 +213,7 @@ export default function CheckInPage() {
               type="button"
               variant="secondary"
               onClick={() => router.back()}
-              className="min-w-[200px] font-normal"
+              className="w-full min-w-[200px]"
               aria-label="Cancel and go back"
             >
               Cancel

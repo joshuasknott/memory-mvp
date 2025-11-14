@@ -126,7 +126,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
     return (
       <main className="min-h-screen bg-slate-50">
         <div className="max-w-3xl mx-auto px-4 py-10">
-          <p className="text-slate-600">Loading memory…</p>
+          <p className="text-base text-slate-700">Loading memory…</p>
         </div>
       </main>
     );
@@ -149,7 +149,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
             <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
               Memory not found
             </h1>
-            <p className="text-lg text-slate-600">
+            <p className="text-base text-slate-700">
               The memory you're looking for doesn't exist or may have been deleted.
             </p>
             <Link href="/timeline">
@@ -260,15 +260,15 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
             Cue Card
           </h2>
           {isLoadingCueCard ? (
-            <p className="text-base text-slate-600 italic">
+            <p className="text-base text-slate-700 italic">
               Generating cue card…
             </p>
           ) : cueCard ? (
-            <p className="text-base text-slate-700 leading-relaxed">
+            <p className="text-base text-slate-800 leading-relaxed">
               {cueCard}
             </p>
           ) : (
-            <p className="text-base text-slate-600">
+            <p className="text-base text-slate-700">
               Unable to generate cue card. Please try refreshing the page.
             </p>
           )}

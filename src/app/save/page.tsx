@@ -127,7 +127,7 @@ export default function SaveMemoryPage() {
               aria-describedby="date-help"
               className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-text min-h-[44px]"
             />
-            <p id="date-help" className="mt-2 text-base text-slate-600">
+            <p id="date-help" className="mt-2 text-base text-slate-700">
               Approximate dates are okay.
             </p>
           </div>
@@ -146,7 +146,7 @@ export default function SaveMemoryPage() {
                   importance: e.target.value as 'low' | 'medium' | 'high',
                 }))
               }
-              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]"
             >
               <option value="low">Low</option>
               <option value="medium">Medium</option>
@@ -163,7 +163,7 @@ export default function SaveMemoryPage() {
               id="people"
               value={formData.people}
               onChange={(e) => setFormData((prev) => ({ ...prev, people: e.target.value }))}
-              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]"
               placeholder="Alice, Bob, Charlie"
             />
           </div>

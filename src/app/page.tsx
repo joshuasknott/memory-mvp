@@ -16,7 +16,7 @@ export default function Home() {
         <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
           Welcome to Memvella
         </h1>
-        <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-lg text-slate-700 max-w-2xl mx-auto leading-relaxed">
           A lightweight memory companion prototype. Capture your moments, organize them in a timeline, 
           and revisit them with simple cue cards.
         </p>
@@ -25,7 +25,7 @@ export default function Home() {
       {memories === undefined ? (
         <Card>
           <div className="text-center py-16">
-            <p className="text-lg text-slate-600">Loading...</p>
+            <p className="text-base text-slate-700">Loading...</p>
           </div>
         </Card>
       ) : memoryCount === 0 ? (
@@ -35,7 +35,7 @@ export default function Home() {
               <h2 className="text-3xl md:text-4xl font-semibold text-slate-900">
                 No memories yet
               </h2>
-              <p className="text-lg text-slate-600 max-w-md mx-auto leading-relaxed">
+              <p className="text-base text-slate-700 max-w-md mx-auto leading-relaxed">
                 Start capturing your moments by saving your first memory. You can add details, set importance, 
                 and organize them in your timeline.
               </p>
@@ -58,7 +58,7 @@ export default function Home() {
         <>
           <Card>
             <div className="text-center py-8">
-              <p className="text-xl text-slate-600">
+              <p className="text-lg text-slate-700">
                 You currently have <span className="font-bold text-slate-900 text-2xl">{memoryCount}</span> {memoryCount === 1 ? 'memory' : 'memories'}.
               </p>
             </div>

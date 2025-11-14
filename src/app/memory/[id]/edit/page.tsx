@@ -300,7 +300,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
                 {errors.date}
               </p>
             )}
-            <p id="date-help" className="mt-2 text-base text-slate-600">
+            <p id="date-help" className="mt-2 text-base text-slate-700">
               Approximate dates are okay.
             </p>
           </div>
@@ -335,7 +335,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               placeholder="Alice, Bob, Charlie"
               aria-label="People involved in this memory, separated by commas"
             />
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-base text-slate-700">
               Separate multiple names with commas
             </p>
           </div>

@@ -54,7 +54,7 @@ export default function TimelinePage() {
         <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Timeline</h1>
         <Card>
           <div className="p-8 text-center">
-            <p className="text-lg text-slate-600">Loading memories...</p>
+            <p className="text-base text-slate-700">Loading memories...</p>
           </div>
         </Card>
       </div>
@@ -68,7 +68,7 @@ export default function TimelinePage() {
         <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Timeline</h1>
         <Card>
           <div className="p-8 text-center">
-            <p className="text-lg text-slate-600">No memories yet. Save your first memory to get started!</p>
+            <p className="text-base text-slate-700">No memories yet. Save your first memory to get started!</p>
           </div>
         </Card>
       </div>
@@ -125,7 +125,7 @@ export default function TimelinePage() {
 
                 {/* People */}
                 {memory.people.length > 0 && (
-                  <div className="text-base text-slate-500">
+                  <div className="text-base text-slate-700">
                     With {memory.people.join(', ')}
                   </div>
                 )}

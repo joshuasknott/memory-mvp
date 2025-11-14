@@ -116,7 +116,7 @@ export default function SaveMemoryPage() {
 
           <div>
             <label htmlFor="date" className="block text-base font-medium text-slate-800 mb-3">
-              Date
+              When did this happen?
             </label>
             <input
               type="date"
@@ -124,8 +124,12 @@ export default function SaveMemoryPage() {
               required
               value={formData.date}
               onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
-              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              aria-describedby="date-help"
+              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-text min-h-[44px]"
             />
+            <p id="date-help" className="mt-2 text-base text-slate-600">
+              Approximate dates are okay.
+            </p>
           </div>
 
           <div>

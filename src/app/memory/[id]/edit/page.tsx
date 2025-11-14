@@ -274,7 +274,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
 
           <div>
             <label htmlFor="date" className="block text-base font-medium text-slate-800 mb-3">
-              Date
+              When did this happen?
             </label>
             <input
               type="date"
@@ -283,9 +283,13 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               onChange={(e) => handleChange('date', e.target.value)}
               onBlur={() => handleBlur('date')}
               aria-invalid={touched.date && !!errors.date}
-              aria-describedby={touched.date && errors.date ? 'date-error' : undefined}
+              aria-describedby={
+                touched.date && errors.date
+                  ? 'date-error date-help'
+                  : 'date-help'
+              }
               max={new Date().toISOString().split('T')[0]}
-              className={`w-full px-3.5 py-2.5 text-base border rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 min-h-[44px] ${
+              className={`w-full px-3.5 py-2.5 text-base border rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 cursor-text min-h-[44px] ${
                 touched.date && errors.date
                   ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                   : 'border-slate-300 focus:ring-blue-500 focus:border-blue-500'
@@ -296,6 +300,9 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
                 {errors.date}
               </p>
             )}
+            <p id="date-help" className="mt-2 text-base text-slate-600">
+              Approximate dates are okay.
+            </p>
           </div>
 
           <div>

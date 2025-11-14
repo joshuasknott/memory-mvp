@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useQuery } from 'convex/react';
 import type { ConvexReactClient } from 'convex/react';
 import type { Memory } from '@/types/memory';
@@ -30,32 +31,80 @@ function convexMemoryToMemory(convexMemory: ConvexMemory): Memory {
   };
 }
 
+// Cache for the dynamically imported API module
+let apiModuleCache: any = null;
+let apiModulePromise: Promise<any> | null = null;
+
+/**
+ * Safely loads the Convex API module using dynamic import
+ * Returns null if the module doesn't exist yet
+ */
+async function loadConvexApi(): Promise<any> {
+  if (apiModuleCache) {
+    return apiModuleCache;
+  }
+  
+  if (apiModulePromise) {
+    return apiModulePromise;
+  }
+  
+  apiModulePromise = (async () => {
+    try {
+      // Dynamic import that may not exist yet - TypeScript will error but runtime handles it
+      // @ts-expect-error - Module may not exist until `npx convex dev` is run
+      const module = await import('../../convex/_generated/api');
+      if (module?.api) {
+        apiModuleCache = module;
+        return module;
+      }
+      return null;
+    } catch {
+      // API not generated yet - this is expected during initial setup
+      return null;
+    }
+  })();
+  
+  return apiModulePromise;
+}
+
 /**
  * Hook to subscribe to all memories from Convex
  * Returns memories sorted by createdAt descending
  * 
  * Note: This requires the Convex API to be generated (run `npx convex dev`)
  * The api import will be available once Convex is connected
+ * 
+ * If the API is not available, returns an empty array without crashing
+ * 
+ * NOTE: This hook is currently not used in the codebase. The app uses
+ * the Zustand store (useMemoriesStore) instead, which handles missing
+ * Convex API more gracefully. This hook is kept for potential future use.
  */
 export function useConvexMemories(): Memory[] {
-  // Try to import the API - if it doesn't exist, return empty array
-  // This allows the code to compile even if Convex isn't set up yet
-  let convexMemories: ConvexMemory[] | undefined = undefined;
+  const [apiLoaded, setApiLoaded] = useState(false);
+  const [queryFunction, setQueryFunction] = useState<any>(null);
   
-  // Use a dynamic import pattern that works with TypeScript
-  // We'll use a type assertion to handle the case where the API might not exist
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const apiModule = require('../../convex/_generated/api');
-    if (apiModule?.api?.memories?.getMemories) {
-      convexMemories = useQuery(apiModule.api.memories.getMemories) as ConvexMemory[] | undefined;
-    }
-  } catch {
-    // API not generated yet - this is expected during initial setup
-    // Return empty array so the app can still render
+  // Load the API module on mount
+  useEffect(() => {
+    loadConvexApi().then((module) => {
+      if (module?.api?.memories?.getMemories) {
+        setQueryFunction(module.api.memories.getMemories);
+        setApiLoaded(true);
+      }
+    });
+  }, []);
+  
+  // Always call useQuery to satisfy React hooks rules
+  // If queryFunction is null, useQuery may throw or return undefined
+  // We handle both cases by checking the result
+  const queryResult = useQuery(queryFunction || (() => undefined)) as ConvexMemory[] | undefined;
+  
+  // Return empty array if API not loaded or query result is undefined/null
+  if (!apiLoaded || !queryFunction || queryResult === undefined || queryResult === null) {
+    return [];
   }
   
-  return (convexMemories ?? []).map(convexMemoryToMemory);
+  return queryResult.map(convexMemoryToMemory);
 }
 
 /**
@@ -66,9 +115,12 @@ export async function fetchAllMemories(
   convexClient: ConvexReactClient
 ): Promise<Memory[]> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { api } = require('../../convex/_generated/api');
-    const convexMemories = (await convexClient.query(api.memories.getMemories)) as ConvexMemory[] | undefined;
+    const apiModule = await loadConvexApi();
+    if (!apiModule?.api?.memories?.getMemories) {
+      console.warn('Convex API not available yet. Run `npx convex dev` to generate it.');
+      return [];
+    }
+    const convexMemories = (await convexClient.query(apiModule.api.memories.getMemories)) as ConvexMemory[] | undefined;
     return (convexMemories ?? []).map(convexMemoryToMemory);
   } catch (error) {
     console.error('Failed to fetch memories from Convex:', error);
@@ -84,9 +136,12 @@ export async function fetchMemoryById(
   id: string
 ): Promise<Memory | null> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { api } = require('../../convex/_generated/api');
-    const convexMemory = (await convexClient.query(api.memories.getMemoryById, {
+    const apiModule = await loadConvexApi();
+    if (!apiModule?.api?.memories?.getMemoryById) {
+      console.warn('Convex API not available yet. Run `npx convex dev` to generate it.');
+      return null;
+    }
+    const convexMemory = (await convexClient.query(apiModule.api.memories.getMemoryById, {
       id,
     })) as ConvexMemory | null | undefined;
     return convexMemory ? convexMemoryToMemory(convexMemory) : null;
@@ -105,9 +160,11 @@ export async function createMemoryOnServer(
   memory: Omit<Memory, 'id' | 'createdAt'>
 ): Promise<Memory> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { api } = require('../../convex/_generated/api');
-    const memoryId = (await convexClient.mutation(api.memories.createMemory, {
+    const apiModule = await loadConvexApi();
+    if (!apiModule?.api?.memories?.createMemory) {
+      throw new Error('Convex API not available yet. Run `npx convex dev` to generate it.');
+    }
+    const memoryId = (await convexClient.mutation(apiModule.api.memories.createMemory, {
       title: memory.title,
       description: memory.description,
       date: memory.date,
@@ -136,9 +193,11 @@ export async function updateMemoryOnServer(
   updates: Partial<Omit<Memory, 'id' | 'createdAt'>>
 ): Promise<void> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { api } = require('../../convex/_generated/api');
-    await convexClient.mutation(api.memories.updateMemory, {
+    const apiModule = await loadConvexApi();
+    if (!apiModule?.api?.memories?.updateMemory) {
+      throw new Error('Convex API not available yet. Run `npx convex dev` to generate it.');
+    }
+    await convexClient.mutation(apiModule.api.memories.updateMemory, {
       id,
       ...updates,
     });
@@ -156,9 +215,11 @@ export async function deleteMemoryOnServer(
   id: string
 ): Promise<void> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { api } = require('../../convex/_generated/api');
-    await convexClient.mutation(api.memories.deleteMemory, {
+    const apiModule = await loadConvexApi();
+    if (!apiModule?.api?.memories?.deleteMemory) {
+      throw new Error('Convex API not available yet. Run `npx convex dev` to generate it.');
+    }
+    await convexClient.mutation(apiModule.api.memories.deleteMemory, {
       id,
     });
   } catch (error) {

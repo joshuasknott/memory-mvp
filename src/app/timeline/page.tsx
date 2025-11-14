@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useMemoriesStore } from '@/stores/useMemoriesStore';
@@ -10,14 +10,29 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 
-export default function TimelinePage() {
+function CheckInSuccessBanner() {
   const searchParams = useSearchParams();
+  const showCheckInSuccess = searchParams.get('checkin') === 'success';
+  
+  if (!showCheckInSuccess) return null;
+  
+  return (
+    <Card className="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800">
+      <div className="text-center py-4">
+        <p className="text-base font-semibold text-green-800 dark:text-green-200" role="alert">
+          Daily check-in saved successfully!
+        </p>
+      </div>
+    </Card>
+  );
+}
+
+export default function TimelinePage() {
   const memories = useMemoriesStore((state) => state.memories);
   const isLoaded = useMemoriesStore((state) => state.isLoaded);
   const [searchQuery, setSearchQuery] = useState('');
   const [importanceFilter, setImportanceFilter] = useState<Importance | 'all'>('all');
   const [peopleFilter, setPeopleFilter] = useState('');
-  const showCheckInSuccess = searchParams.get('checkin') === 'success';
 
   const filteredMemories = useMemo(() => {
     let filtered = memories;
@@ -77,15 +92,9 @@ export default function TimelinePage() {
 
   return (
     <div className="space-y-8">
-      {showCheckInSuccess && (
-        <Card className="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800">
-          <div className="text-center py-4">
-            <p className="text-base font-semibold text-green-800 dark:text-green-200" role="alert">
-              Daily check-in saved successfully!
-            </p>
-          </div>
-        </Card>
-      )}
+      <Suspense fallback={null}>
+        <CheckInSuccessBanner />
+      </Suspense>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
           Timeline

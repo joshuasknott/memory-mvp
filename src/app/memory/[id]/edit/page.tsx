@@ -4,8 +4,10 @@ import { useState, FormEvent, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { use } from 'react';
 import Link from 'next/link';
+import { useQuery } from 'convex/react';
+import { api } from '../../../../../convex/_generated/api';
 import { useMemoriesStore } from '@/stores/useMemoriesStore';
-import type { Importance } from '@/types/memory';
+import type { Importance, Memory } from '@/types/memory';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
@@ -15,15 +17,44 @@ interface FormErrors {
   date?: string;
 }
 
+// Type for Convex memory document returned from the server
+type ConvexMemory = {
+  _id: string;
+  title: string;
+  description: string;
+  date: string;
+  importance: 'low' | 'medium' | 'high';
+  people: string[];
+  createdAt: string;
+};
+
 export default function EditMemoryPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const memories = useMemoriesStore((state) => state.memories);
   const updateMemory = useMemoriesStore((state) => state.updateMemory);
-  const isLoaded = useMemoriesStore((state) => state.isLoaded);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const resolvedParams = use(params);
-  const memory = memories.find((m) => m.id === resolvedParams.id);
+  
+  // Memoize the memory ID to prevent unnecessary re-fetches
+  const memoryId = useMemo(() => resolvedParams.id, [resolvedParams.id]);
+
+  // Fetch memory using useQuery
+  const convexMemory = useQuery(api.memories.getMemoryById, { id: memoryId as any });
+
+  // Convert ConvexMemory to Memory format when available
+  const memory: Memory | null | undefined = useMemo(() => {
+    if (convexMemory === undefined) return undefined;
+    if (convexMemory === null) return null;
+    return {
+      id: convexMemory._id,
+      title: convexMemory.title,
+      description: convexMemory.description,
+      date: convexMemory.date,
+      importance: convexMemory.importance,
+      people: convexMemory.people,
+      createdAt: convexMemory.createdAt,
+    };
+  }, [convexMemory]);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -46,12 +77,6 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
     }
   }, [memory]);
 
-  // Redirect if memory not found after store is loaded
-  useEffect(() => {
-    if (isLoaded && !memory) {
-      // Don't redirect immediately - let the component render the "not found" message
-    }
-  }, [isLoaded, memory]);
 
   const errors = useMemo<FormErrors>(() => {
     const errs: FormErrors = {};
@@ -143,7 +168,8 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
     }
   };
 
-  if (!isLoaded) {
+  // Loading state: memory is undefined
+  if (memory === undefined) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
         <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
@@ -158,7 +184,8 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
     );
   }
 
-  if (!memory) {
+  // Not found state: memory is null or falsy after loading
+  if (memory === null || !memory) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
         <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">

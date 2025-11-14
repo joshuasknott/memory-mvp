@@ -39,11 +39,18 @@ export default function Home() {
                 and organize them in your timeline.
               </p>
             </div>
-            <Link href="/save">
-              <Button variant="primary" className="w-full sm:w-auto">
-                Save Your First Memory
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/check-in">
+                <Button variant="primary" className="w-full sm:w-auto min-w-[200px]">
+                  Daily Check-In
+                </Button>
+              </Link>
+              <Link href="/save">
+                <Button variant="secondary" className="w-full sm:w-auto min-w-[200px]">
+                  Save Your First Memory
+                </Button>
+              </Link>
+            </div>
           </div>
         </Card>
       ) : (
@@ -57,8 +64,13 @@ export default function Home() {
           </Card>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Link href="/save">
+            <Link href="/check-in">
               <Button variant="primary" className="w-full sm:w-auto min-w-[200px]">
+                Daily Check-In
+              </Button>
+            </Link>
+            <Link href="/save">
+              <Button variant="secondary" className="w-full sm:w-auto min-w-[200px]">
                 Save a New Memory
               </Button>
             </Link>

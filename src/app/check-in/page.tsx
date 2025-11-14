@@ -114,16 +114,13 @@ export default function CheckInPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
-      <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+    <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+      <h1 className="text-3xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
         Daily Check-In
       </h1>
 
       <Card>
         <div className="space-y-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Daily Check-In
-          </h2>
           <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed">
             A quick way to reflect on your day and save important details.
           </p>
@@ -202,12 +199,12 @@ export default function CheckInPage() {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row gap-4 pt-6">
             <Button
               type="submit"
               variant="primary"
               disabled={isSubmitting || !isValid}
-              className="flex-1 min-w-[200px]"
+              className="flex-1 min-w-[200px] font-semibold shadow-md hover:shadow-lg"
               aria-label={isSubmitting ? 'Saving check-in' : isValid ? 'Save check-in' : 'Save check-in (form is incomplete)'}
             >
               {isSubmitting ? 'Saving...' : 'Save Check-In'}
@@ -216,7 +213,7 @@ export default function CheckInPage() {
               type="button"
               variant="secondary"
               onClick={() => router.back()}
-              className="min-w-[200px]"
+              className="min-w-[200px] font-normal"
               aria-label="Cancel and go back"
             >
               Cancel

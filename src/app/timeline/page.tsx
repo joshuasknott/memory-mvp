@@ -2,6 +2,7 @@
 
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
+import Link from 'next/link';
 
 // Type for Convex memory document returned from the server
 type ConvexMemory = {
@@ -47,8 +48,8 @@ export default function TimelinePage() {
   // Loading state
   if (memories === undefined) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
-        <h1 className="text-3xl font-bold text-gray-100">Timeline</h1>
+      <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+        <h1 className="text-3xl font-semibold mb-4 text-gray-100">Timeline</h1>
         <div className="p-8 text-center">
           <p className="text-lg text-gray-300">Loading memories...</p>
         </div>
@@ -59,8 +60,8 @@ export default function TimelinePage() {
   // Empty state
   if (memories.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
-        <h1 className="text-3xl font-bold text-gray-100">Timeline</h1>
+      <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+        <h1 className="text-3xl font-semibold mb-4 text-gray-100">Timeline</h1>
         <div className="p-8 text-center">
           <p className="text-lg text-gray-300">No memories yet. Save your first memory to get started!</p>
         </div>
@@ -70,48 +71,51 @@ export default function TimelinePage() {
 
   // Timeline view
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold text-gray-100">Timeline</h1>
+    <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+      <h1 className="text-3xl font-semibold mb-4 text-gray-100">Timeline</h1>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         {memories.map((memory: ConvexMemory) => (
-          <div
+          <Link
             key={memory._id}
-            className="p-6 border border-gray-600 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
+            href={`/memory/${memory._id}`}
+            className="block"
           >
-            <div className="space-y-3">
-              {/* Header: Date, Title, Importance Badge */}
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="text-sm text-gray-400 mb-1">
-                    {formatDate(memory.date)}
+            <div className="p-6 border border-gray-600 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all shadow hover:shadow-md">
+              <div className="space-y-4">
+                {/* Header: Date, Title, Importance Badge */}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="text-xs text-gray-400 mb-2 uppercase tracking-wide">
+                      {formatDate(memory.date)}
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-100 mb-2">
+                      {memory.title}
+                    </h2>
                   </div>
-                  <h2 className="text-xl font-bold text-gray-100">
-                    {memory.title}
-                  </h2>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${getImportanceBadgeColor(
+                      memory.importance
+                    )}`}
+                  >
+                    {memory.importance}
+                  </span>
                 </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${getImportanceBadgeColor(
-                    memory.importance
-                  )}`}
-                >
-                  {memory.importance}
-                </span>
+
+                {/* Truncated Description */}
+                <p className="text-base text-gray-300 leading-relaxed">
+                  {truncateDescription(memory.description)}
+                </p>
+
+                {/* People */}
+                {memory.people.length > 0 && (
+                  <div className="text-sm text-gray-500 italic">
+                    With {memory.people.join(', ')}
+                  </div>
+                )}
               </div>
-
-              {/* Truncated Description */}
-              <p className="text-gray-300 leading-relaxed">
-                {truncateDescription(memory.description)}
-              </p>
-
-              {/* People */}
-              {memory.people.length > 0 && (
-                <div className="text-sm text-gray-400">
-                  {memory.people.join(', ')}
-                </div>
-              )}
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

@@ -10,9 +10,9 @@ export default function Home() {
   const isLoaded = useMemoriesStore((state) => state.isLoaded);
 
   return (
-    <div className="space-y-10">
+    <div className="max-w-3xl mx-auto px-4 py-10 space-y-10">
       <div className="text-center space-y-6">
-        <h1 className="text-5xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="text-3xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
           Memory MVP
         </h1>
         <p className="text-xl text-gray-700 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
@@ -63,7 +63,7 @@ export default function Home() {
             </div>
           </Card>
 
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
             <Link href="/check-in">
               <Button variant="primary" className="w-full sm:w-auto min-w-[200px]">
                 Daily Check-In

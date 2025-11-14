@@ -57,7 +57,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
 
   if (!memory) {
     return (
-      <div className="max-w-3xl mx-auto space-y-8">
+      <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
         <Button
           variant="secondary"
           onClick={() => router.push('/timeline')}
@@ -68,7 +68,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
         </Button>
         <Card>
           <div className="text-center py-16 space-y-6">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-3xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
               Memory not found
             </h1>
             <p className="text-lg text-gray-700 dark:text-gray-300">
@@ -98,7 +98,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   const cueCard = generateCueCard(memory);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
+    <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
       {showSuccess && (
         <Card className="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800">
           <div className="text-center py-4">
@@ -113,7 +113,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
           variant="secondary"
           onClick={() => router.push('/timeline')}
           aria-label="Go back to timeline"
-          className="min-w-[200px]"
+          className="min-w-[200px] font-normal"
         >
           ← Back to Timeline
         </Button>
@@ -138,24 +138,20 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
-      <Card>
+      <Card className="mx-auto">
         <div className="space-y-8">
           <div className="flex items-start justify-between gap-4">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
-              {memory.title}
-            </h1>
+            <div className="flex-1">
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                {formatDate(memory.date)}
+              </div>
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+                {memory.title}
+              </h1>
+            </div>
             <Badge variant={memory.importance}>
               {memory.importance}
             </Badge>
-          </div>
-
-          <div className="space-y-3">
-            <p className="text-base font-semibold text-gray-700 dark:text-gray-300">
-              Date
-            </p>
-            <p className="text-lg text-gray-900 dark:text-gray-100">
-              {formatDate(memory.date)}
-            </p>
           </div>
 
           {memory.people.length > 0 && (

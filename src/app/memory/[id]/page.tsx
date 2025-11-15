@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { use, useEffect, useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useAction, useQuery } from 'convex/react';
+import { useAction, useQuery, useMutation } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
-import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -27,10 +26,10 @@ type ConvexMemory = {
   aiSummary?: string | null;
 };
 
-export default function MemoryDetailPage({ params }: { params: { id: string } }) {
+export default function MemoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const deleteMemory = useMemoriesStore((state) => state.deleteMemory);
+  const deleteMemory = useMutation(api.memories.deleteMemory);
   const { showSuccess: showStatusSuccess, showError } = useStatus();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -42,9 +41,8 @@ export default function MemoryDetailPage({ params }: { params: { id: string } })
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [renderedSummary, setRenderedSummary] = useState<string | null>(null);
   const showSuccess = searchParams.get('success') === 'true';
-
-  // Memory ID from route params
-  const memoryId = params.id;
+  const resolvedParams = use(params);
+  const memoryId = resolvedParams.id;
 
   // Fetch memory using useQuery
   const convexMemory = useQuery(api.memories.getMemoryById, { id: memoryId as any });
@@ -176,7 +174,7 @@ export default function MemoryDetailPage({ params }: { params: { id: string } })
     setShowDeleteDialog(false);
     setIsDeleting(true);
     try {
-      await deleteMemory(memory.id);
+      await deleteMemory({ id: memory.id as Id<'memories'> });
       showStatusSuccess('Memory deleted.');
       router.push('/timeline');
     } catch (error) {

@@ -55,6 +55,11 @@ export default function RootLayout({
                         Save Memory
                       </Button>
                     </Link>
+                    <Link href="/today" className="w-full sm:w-auto">
+                      <Button variant="secondary" className="text-base px-4 py-2 min-h-[44px] w-full sm:w-auto">
+                        Today
+                      </Button>
+                    </Link>
                     <Link href="/timeline" className="w-full sm:w-auto">
                       <Button variant="secondary" className="text-base px-4 py-2 min-h-[44px] w-full sm:w-auto">
                         Timeline

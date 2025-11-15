@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import Link from 'next/link';
@@ -19,7 +20,8 @@ type ConvexMemory = {
 };
 
 export default function TimelinePage() {
-  const memories = useQuery(api.memories.getMemories) ?? [];
+  const memories = useQuery(api.memories.getMemories);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -48,6 +50,27 @@ export default function TimelinePage() {
     }
   };
 
+  const filteredMemories = useMemo(() => {
+    if (!memories) return [];
+    if (!searchQuery.trim()) return memories;
+
+    const query = searchQuery.toLowerCase();
+
+    return memories.filter((memory: ConvexMemory) => {
+      const combined = [
+        memory.title,
+        memory.description,
+        memory.aiSummary ?? '',
+      ]
+        .join(' ')
+        .toLowerCase();
+
+      return combined.includes(query);
+    });
+  }, [memories, searchQuery]);
+
+  const resolvedMemories = memories ?? [];
+
   // Loading state
   if (memories === undefined) {
     return (
@@ -63,7 +86,7 @@ export default function TimelinePage() {
   }
 
   // Empty state
-  if (memories.length === 0) {
+  if (resolvedMemories.length === 0) {
     return (
       <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
         <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">Your Memories</h1>
@@ -105,8 +128,31 @@ export default function TimelinePage() {
         </div>
       </div>
 
-      <div className="space-y-6">
-        {memories.map((memory: ConvexMemory) => {
+      <div className="space-y-3">
+        <label htmlFor="timeline-search" className="block text-base font-medium text-slate-800">
+          Search memories
+        </label>
+        <input
+          id="timeline-search"
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by title, description, or summary…"
+          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-base text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      {filteredMemories.length === 0 ? (
+        <Card>
+          <div className="p-8 text-center space-y-2">
+            <p className="text-base text-slate-700">
+              No memories match your search yet.
+            </p>
+          </div>
+        </Card>
+      ) : (
+        <div className="space-y-6">
+        {filteredMemories.map((memory: ConvexMemory) => {
           const aiSummary = memory.aiSummary?.trim();
           const hasAiSummary = Boolean(aiSummary);
           const previewText = hasAiSummary ? aiSummary! : truncateDescription(memory.description);
@@ -162,6 +208,7 @@ export default function TimelinePage() {
           );
         })}
       </div>
+      )}
     </main>
   );
 }

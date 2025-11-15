@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAction, useQuery } from 'convex/react';
@@ -27,7 +27,7 @@ type ConvexMemory = {
   aiSummary?: string | null;
 };
 
-export default function MemoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function MemoryDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const deleteMemory = useMemoriesStore((state) => state.deleteMemory);
@@ -41,11 +41,10 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [renderedSummary, setRenderedSummary] = useState<string | null>(null);
-  const resolvedParams = use(params);
   const showSuccess = searchParams.get('success') === 'true';
 
-  // Memoize the memory ID to prevent unnecessary re-fetches
-  const memoryId = useMemo(() => resolvedParams.id, [resolvedParams.id]);
+  // Memory ID from route params
+  const memoryId = params.id;
 
   // Fetch memory using useQuery
   const convexMemory = useQuery(api.memories.getMemoryById, { id: memoryId as any });

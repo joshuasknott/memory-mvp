@@ -2,7 +2,6 @@
 
 import { useState, FormEvent, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { use } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '../../../../../convex/_generated/api';
@@ -30,16 +29,15 @@ type ConvexMemory = {
   createdAt: string;
 };
 
-export default function EditMemoryPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditMemoryPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const updateMemory = useMemoriesStore((state) => state.updateMemory);
   const { showSuccess, showError: showStatusError } = useStatus();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const resolvedParams = use(params);
   
-  // Memoize the memory ID to prevent unnecessary re-fetches
-  const memoryId = useMemo(() => resolvedParams.id, [resolvedParams.id]);
+  // Memory ID from route params
+  const memoryId = params.id;
 
   // Fetch memory using useQuery
   const convexMemory = useQuery(api.memories.getMemoryById, { id: memoryId as any });

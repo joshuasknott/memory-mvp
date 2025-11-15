@@ -15,6 +15,7 @@ type ConvexMemory = {
   importance: 'low' | 'medium' | 'high';
   people: string[];
   createdAt: string;
+  aiSummary?: string | null;
 };
 
 export default function TimelinePage() {
@@ -105,48 +106,61 @@ export default function TimelinePage() {
       </div>
 
       <div className="space-y-6">
-        {memories.map((memory: ConvexMemory) => (
-          <Link
-            key={memory._id}
-            href={`/memory/${memory._id}`}
-            className="block cursor-pointer"
-            aria-label={`View memory: ${memory.title}`}
-          >
-            <Card className="hover:shadow-lg transition-shadow">
-              <div className="space-y-4">
-                {/* Single column layout: Date, Title, Importance, Description, People */}
-                <div className="text-base text-slate-700 mb-1">
-                  {formatDate(memory.date)}
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <h2 className="text-2xl font-semibold text-slate-900 flex-1">
-                    {memory.title}
-                  </h2>
-                  <span
-                    className={`rounded-full px-3 py-1 text-sm font-medium flex-shrink-0 ${getImportanceBadgeColor(
-                      memory.importance
-                    )}`}
-                  >
-                    {memory.importance}
-                  </span>
-                </div>
+        {memories.map((memory: ConvexMemory) => {
+          const aiSummary = memory.aiSummary?.trim();
+          const hasAiSummary = Boolean(aiSummary);
+          const previewText = hasAiSummary ? aiSummary! : truncateDescription(memory.description);
 
-                {/* Truncated Description */}
-                <p className="text-base text-slate-600 leading-relaxed">
-                  {truncateDescription(memory.description)}
-                </p>
-
-                {/* People */}
-                {memory.people.length > 0 && (
-                  <div className="text-base text-slate-700">
-                    With {memory.people.join(', ')}
+          return (
+            <Link
+              key={memory._id}
+              href={`/memory/${memory._id}`}
+              className="block cursor-pointer"
+              aria-label={`View memory: ${memory.title}`}
+            >
+              <Card className="hover:shadow-lg transition-shadow">
+                <div className="space-y-4">
+                  {/* Single column layout: Date, Title, Importance, Description, People */}
+                  <div className="text-base text-slate-700 mb-1">
+                    {formatDate(memory.date)}
                   </div>
-                )}
-              </div>
-            </Card>
-          </Link>
-        ))}
+                  
+                  <div className="flex items-start gap-3">
+                    <h2 className="text-2xl font-semibold text-slate-900 flex-1">
+                      {memory.title}
+                    </h2>
+                    <span
+                      className={`rounded-full px-3 py-1 text-sm font-medium flex-shrink-0 ${getImportanceBadgeColor(
+                        memory.importance
+                      )}`}
+                    >
+                      {memory.importance}
+                    </span>
+                  </div>
+
+                  {/* Preview text */}
+                  <div className="space-y-1">
+                    <p className="text-base text-slate-600 leading-relaxed">
+                      {previewText}
+                    </p>
+                    {hasAiSummary && (
+                      <p className="text-sm text-slate-500">
+                        From AI summary
+                      </p>
+                    )}
+                  </div>
+
+                  {/* People */}
+                  {memory.people.length > 0 && (
+                    <div className="text-base text-slate-700">
+                      With {memory.people.join(', ')}
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </Link>
+          );
+        })}
       </div>
     </main>
   );

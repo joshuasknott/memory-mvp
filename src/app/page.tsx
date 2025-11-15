@@ -11,82 +11,64 @@ export default function Home() {
   const memoryCount = memories ? memories.length : 0;
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-10 space-y-10">
-      <div className="text-center space-y-6">
-        <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
-          Welcome to Memvella
-        </h1>
-        <p className="text-lg text-slate-700 max-w-2xl mx-auto leading-relaxed">
-          A lightweight memory companion prototype. Capture your moments, organize them in a timeline, 
-          and revisit them with simple cue cards.
-        </p>
-      </div>
-
+    <main className="max-w-3xl mx-auto px-4 py-10">
       {memories === undefined ? (
         <Card>
-          <div className="text-center py-16">
-            <p className="text-base text-slate-700">Loading your memories…</p>
+          <div className="text-center space-y-4 py-16 px-6">
+            <h1 className="text-3xl md:text-4xl font-semibold text-slate-900">
+              Memvella
+            </h1>
+            <p className="text-base text-slate-700">
+              Loading your memories…
+            </p>
           </div>
         </Card>
       ) : memoryCount === 0 ? (
         <Card>
-          <div className="text-center py-16 space-y-8">
-            <div className="space-y-4">
-              <h2 className="text-3xl md:text-4xl font-semibold text-slate-900">
-                No memories yet
-              </h2>
-              <p className="text-base text-slate-700 max-w-md mx-auto leading-relaxed">
-                Start capturing your moments by saving your first memory. You can add details, set importance, 
-                and organize them in your timeline.
-              </p>
-            </div>
-            <div className="flex flex-col gap-4 max-w-md mx-auto">
+          <div className="text-center space-y-6 py-16 px-6">
+            <h1 className="text-3xl md:text-4xl font-semibold text-slate-900">
+              Welcome to Memvella
+            </h1>
+            <p className="text-lg text-slate-700 leading-relaxed max-w-2xl mx-auto">
+              Memvella helps you save important moments and turn them into simple summaries
+              that are easier to revisit on busy or foggy days.
+            </p>
+            <div className="max-w-sm mx-auto space-y-3">
               <Link href="/save">
                 <Button variant="primary" className="w-full min-w-[200px]">
-                  Save Your First Memory
+                  Add your first memory
                 </Button>
               </Link>
-              <p className="text-base text-slate-700 mt-2">
-                You can start with just one memory. It doesn't have to be perfect.
+              <p className="text-base text-slate-600">
+                You can always return here to see your growing timeline.
               </p>
-              <Link href="/check-in">
+            </div>
+          </div>
+        </Card>
+      ) : (
+        <Card>
+          <div className="text-center space-y-6 py-16 px-6">
+            <h1 className="text-3xl md:text-4xl font-semibold text-slate-900">
+              Welcome back
+            </h1>
+            <p className="text-lg text-slate-700 leading-relaxed max-w-2xl mx-auto">
+              You’ve saved {memoryCount} {memoryCount === 1 ? 'memory' : 'memories'} so far.
+              Add a new memory or revisit your timeline whenever you need a gentle reminder.
+            </p>
+            <div className="flex flex-col gap-3 max-w-md mx-auto">
+              <Link href="/save">
+                <Button variant="primary" className="w-full min-w-[200px]">
+                  Add memory
+                </Button>
+              </Link>
+              <Link href="/timeline">
                 <Button variant="secondary" className="w-full min-w-[200px]">
-                  Daily Check-In
+                  View your timeline
                 </Button>
               </Link>
             </div>
           </div>
         </Card>
-      ) : (
-        <>
-          <Card>
-            <div className="text-center py-8">
-              <p className="text-lg text-slate-700">
-                You currently have <span className="font-bold text-slate-900 text-2xl">{memoryCount}</span> {memoryCount === 1 ? 'memory' : 'memories'}.
-              </p>
-            </div>
-          </Card>
-
-          <div className="flex flex-col gap-4 max-w-md mx-auto">
-            <Link href="/timeline">
-              <Button variant="primary" className="w-full min-w-[200px]">
-                View Your Memories
-              </Button>
-            </Link>
-            <div className="flex flex-col gap-3 pt-2">
-              <Link href="/save">
-                <Button variant="secondary" className="w-full min-w-[200px]">
-                  Save a New Memory
-                </Button>
-              </Link>
-              <Link href="/check-in">
-                <Button variant="secondary" className="w-full min-w-[200px]">
-                  Daily Check-In
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </>
       )}
     </main>
   );

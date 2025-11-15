@@ -243,47 +243,47 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
         </Card>
       )}
       
-      <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-2 inline-block">
-        ← Back to Your Memories
-      </Link>
-      
-      <div className="flex flex-col gap-4 max-w-md mb-6">
-        <Button
-          variant="primary"
-          onClick={() => router.push(`/memory/${memory.id}/edit`)}
-          aria-label="Edit this memory"
-          className="w-full min-w-[200px]"
-        >
-          Edit This Memory
-        </Button>
-        <div className="flex flex-col gap-3">
+      <div className="space-y-4">
+        <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 inline-block">
+          ← Back to Your Memories
+        </Link>
+        <div className="flex flex-col gap-3 max-w-md">
           <Button
-            variant="secondary"
-            onClick={() => router.push('/timeline')}
-            aria-label="Go back to your memories"
-            className="w-full min-w-[200px] font-normal"
-          >
-            ← Back to Your Memories
-          </Button>
-          <Button
-            variant="danger"
-            onClick={handleDeleteClick}
-            disabled={isDeleting}
-            aria-label={isDeleting ? 'Deleting memory' : 'Delete this memory'}
+            variant="primary"
+            onClick={() => router.push(`/memory/${memory.id}/edit`)}
+            aria-label="Edit this memory"
             className="w-full min-w-[200px]"
           >
-            {isDeleting ? 'Deleting...' : 'Delete This Memory'}
+            Edit This Memory
           </Button>
+          <div className="flex flex-col gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => router.push('/timeline')}
+              aria-label="Go back to your memories"
+              className="w-full min-w-[200px] font-normal"
+            >
+              ← Back to Your Memories
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleDeleteClick}
+              disabled={isDeleting}
+              aria-label={isDeleting ? 'Deleting memory' : 'Delete this memory'}
+              className="w-full min-w-[200px]"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete This Memory'}
+            </Button>
+          </div>
         </div>
       </div>
 
       <Card>
         <div className="space-y-8">
-          {/* Single column layout: Date, Title, Importance */}
-          <div className="space-y-3">
-            <div className="text-base text-slate-700">
+          <div className="space-y-2">
+            <p className="text-sm uppercase tracking-wide text-slate-500">
               {formatDate(memory.date)}
-            </div>
+            </p>
             <div className="flex items-start gap-3">
               <h1 className="text-3xl md:text-4xl font-semibold text-slate-900 flex-1">
                 {memory.title}
@@ -295,7 +295,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
           </div>
 
           {memory.people.length > 0 && (
-            <div className="space-y-3">
+            <div className="space-y-2">
               <p className="text-lg font-semibold text-slate-800">
                 People
               </p>
@@ -305,7 +305,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
             </div>
           )}
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <p className="text-lg font-semibold text-slate-800">
               Description
             </p>
@@ -318,12 +318,15 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
 
       <Card className="bg-blue-50 border-2 border-blue-200">
         <div className="space-y-6">
-          <div>
+          <div className="space-y-1">
             <h2 className="text-2xl font-semibold text-slate-900">
               Cue Card
             </h2>
+            <p className="text-sm text-slate-600">
+              Short narrative to help you revisit this memory.
+            </p>
             {cueCardTone && (
-              <p className="text-sm text-slate-500 mt-1">
+              <p className="text-sm text-slate-500">
                 Generated in {cueCardTone} tone
               </p>
             )}
@@ -380,11 +383,9 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
       <Card>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold text-slate-900">
-                AI summary
-              </h2>
-            </div>
+            <h2 className="text-2xl font-semibold text-slate-900">
+              AI summary
+            </h2>
             <Button
               variant="secondary"
               onClick={handleGenerateSummary}
@@ -407,7 +408,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
                 {renderedSummary}
               </p>
             ) : (
-              <p className="text-base text-slate-600">
+              <p className="text-base text-slate-600 leading-relaxed">
                 No AI summary yet. Click the button above to generate one.
               </p>
             )}

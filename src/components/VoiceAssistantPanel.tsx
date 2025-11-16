@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useMutation } from 'convex/react';
+import { api } from '../../convex/_generated/api';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import type { AssistantMode, AssistantResponse } from '@/types/assistant';
+import type { AssistantMode, AssistantResponse, AssistantSuggestedMemory } from '@/types/assistant';
 
 type Mode = AssistantMode;
 
@@ -29,9 +31,12 @@ export function VoiceAssistantPanel() {
   const [assistantText, setAssistantText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const [pendingMemory, setPendingMemory] = useState<AssistantSuggestedMemory | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isListeningRef = useRef(false);
   const [speechSupported, setSpeechSupported] = useState(true);
+  
+  const createMemory = useMutation(api.memories.createMemory);
 
   // Setup speech recognition instance (created once)
   useEffect(() => {
@@ -149,6 +154,62 @@ export function VoiceAssistantPanel() {
     setTranscript('');
     setAssistantText('');
     setErrorText(null);
+    setPendingMemory(null);
+  };
+
+  const resolveDate = (dateLabel?: string): string => {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    if (!dateLabel) {
+      return todayStr;
+    }
+    
+    switch (dateLabel.toLowerCase()) {
+      case 'today':
+        return todayStr;
+      case 'yesterday': {
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        return yesterday.toISOString().split('T')[0];
+      }
+      case 'this week':
+      case 'not sure':
+      default:
+        return todayStr;
+    }
+  };
+
+  const handleSavePendingMemory = async () => {
+    if (!pendingMemory) return;
+
+    const trimmedTranscript = transcript.trim();
+    const importance = pendingMemory.importance ?? 'medium';
+    const date = resolveDate(pendingMemory.dateLabel);
+
+    setIsProcessing(true);
+    setErrorText(null);
+
+    try {
+      await createMemory({
+        title: pendingMemory.title,
+        description: pendingMemory.description,
+        date,
+        importance,
+        people: pendingMemory.people ?? [],
+        origin: 'voice',
+        voiceTranscript: trimmedTranscript || undefined,
+      });
+
+      setAssistantText("I've saved this as a memory for you.");
+      setPendingMemory(null);
+    } catch (error) {
+      console.error('Error saving memory:', error);
+      setAssistantText("I couldn't save this memory just now. You can try again in a moment.");
+      // Don't clear pendingMemory so user can retry
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const callAssistant = async () => {
@@ -173,7 +234,13 @@ export function VoiceAssistantPanel() {
 
       const data = (await res.json()) as AssistantResponse;
       setAssistantText(data.assistantSpeech);
-      // For now, ignore data.action / data.memory / data.safetyFlag.
+      
+      // Handle pending memory if assistant suggests creating one
+      if (data.action === 'create_memory' && data.memory) {
+        setPendingMemory(data.memory);
+      } else {
+        setPendingMemory(null);
+      }
     } catch (error) {
       console.error('Error calling assistant', error);
       setErrorText(
@@ -221,6 +288,46 @@ export function VoiceAssistantPanel() {
                   <p className="text-lg leading-relaxed text-[var(--mv-text)]">
                     {assistantText}
                   </p>
+                </div>
+              )}
+              {pendingMemory && (
+                <div className="rounded-lg bg-[var(--mv-card-soft)] p-4 space-y-3">
+                  <p className="text-lg font-semibold text-[var(--mv-primary)]">
+                    Save this memory?
+                  </p>
+                  <div className="space-y-1.5">
+                    <p className="text-base text-[var(--mv-text)]">
+                      {pendingMemory.title}
+                    </p>
+                    {pendingMemory.dateLabel && (
+                      <p className="text-sm text-[var(--mv-text-muted)]">
+                        When: {pendingMemory.dateLabel === 'not sure' ? 'not sure' : pendingMemory.dateLabel}
+                      </p>
+                    )}
+                    {pendingMemory.people && pendingMemory.people.length > 0 && (
+                      <p className="text-sm text-[var(--mv-text-muted)]">
+                        With: {pendingMemory.people.join(', ')}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button
+                      variant="primary"
+                      onClick={handleSavePendingMemory}
+                      disabled={isProcessing}
+                      className="w-full sm:w-auto"
+                    >
+                      Save this memory
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setPendingMemory(null)}
+                      disabled={isProcessing}
+                      className="w-full sm:w-auto"
+                    >
+                      Dismiss
+                    </Button>
+                  </div>
                 </div>
               )}
               {transcript && (

@@ -71,7 +71,7 @@ You must respond with ONLY a valid JSON object matching this structure, and noth
     "description": "Memory description",
     "dateLabel": "today" | "yesterday" | "this week" | "not sure" (optional),
     "people": ["Name1", "Name2"] (optional),
-    "importance": "low" | "normal" | "high" (optional)
+    "importance": "low" | "medium" | "high" (optional)
   } (only include if action is "create_memory"),
   "safetyFlag": "none" | "distress" (optional, only include if "distress")
 }

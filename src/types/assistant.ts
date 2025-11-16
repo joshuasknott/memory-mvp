@@ -2,7 +2,7 @@ export type AssistantMode = 'auto' | 'add' | 'recall' | 'ground';
 
 export type AssistantAction = 'none' | 'create_memory' | 'recall_memory';
 
-export type AssistantImportance = 'low' | 'normal' | 'high';
+export type AssistantImportance = 'low' | 'medium' | 'high';
 
 export interface AssistantRequest {
   mode: AssistantMode;

@@ -5,22 +5,24 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 
-type Mode = 'add' | 'recall' | 'ground';
+type Mode = 'auto' | 'add' | 'recall' | 'ground';
 
 const MODE_LABELS: Record<Mode, string> = {
+  auto: 'Auto',
   add: 'Add memory',
   recall: 'Recall memory',
   ground: 'Grounding',
 };
 
 const MODE_MESSAGES: Record<Mode, string> = {
+  auto: "We're in Auto mode. I'll choose whether to save, recall, or ground based on what you say.",
   add: "We're in Add memory mode. I'll help you save something new.",
   recall: "We're in Recall memory mode. I'll help you find a past memory.",
   ground: "We're in Grounding mode. I can help you feel oriented and calm.",
 };
 
 export function VoiceAssistantPanel() {
-  const [mode, setMode] = useState<Mode>('add');
+  const [mode, setMode] = useState<Mode>('auto');
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [assistantText, setAssistantText] = useState('');
@@ -38,11 +40,8 @@ export function VoiceAssistantPanel() {
     }
   };
 
-  const handleModeChange = () => {
-    const modeOrder: Mode[] = ['add', 'recall', 'ground'];
-    const currentIndex = modeOrder.indexOf(mode);
-    const nextIndex = (currentIndex + 1) % modeOrder.length;
-    const nextMode = modeOrder[nextIndex];
+  const handleModeSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const nextMode = event.target.value as Mode;
     setMode(nextMode);
     setAssistantText(MODE_MESSAGES[nextMode]);
   };
@@ -68,7 +67,7 @@ export function VoiceAssistantPanel() {
               id="voice-assistant-heading"
               className="text-xl font-semibold text-[var(--mv-primary)] sm:text-2xl"
             >
-              Memvella assistant
+              Memvella Voice Assistant
             </h2>
             <p className="text-sm text-[var(--mv-text-muted)] sm:text-base">
               Tap the microphone and I&apos;ll help you save or recall memories using your voice.
@@ -120,14 +119,21 @@ export function VoiceAssistantPanel() {
           >
             {isListening ? 'Stop listening' : 'Start listening'}
           </Button>
-          <Button
-            variant="secondary"
-            onClick={handleModeChange}
-            aria-label="Change assistant mode"
-            className="w-full sm:w-auto"
+          <label className="sr-only" htmlFor="voice-assistant-mode">
+            Choose assistant mode
+          </label>
+          <select
+            id="voice-assistant-mode"
+            value={mode}
+            onChange={handleModeSelect}
+            className="w-full sm:w-auto rounded-full border border-[var(--mv-border)] bg-[var(--mv-card-soft)] px-4 py-2 text-sm text-[var(--mv-text)] focus:outline-none focus:ring-2 focus:ring-[var(--mv-primary)]"
+            aria-label="Choose assistant mode"
           >
-            Mode
-          </Button>
+            <option value="auto">Auto</option>
+            <option value="add">Add memory</option>
+            <option value="recall">Recall memory</option>
+            <option value="ground">Grounding</option>
+          </select>
           <Button
             variant="secondary"
             onClick={handleClear}

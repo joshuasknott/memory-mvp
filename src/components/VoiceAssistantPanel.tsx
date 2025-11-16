@@ -38,6 +38,7 @@ export function VoiceAssistantPanel() {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isListeningRef = useRef(false);
   const [speechSupported, setSpeechSupported] = useState(true);
+  const [ttsEnabled, setTtsEnabled] = useState(false);
   
   const createMemory = useMutation(api.memories.createMemory);
 
@@ -112,6 +113,48 @@ export function VoiceAssistantPanel() {
       }
     };
   }, []);
+
+  // Hydrate TTS preference from localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const stored = window.localStorage.getItem('memvella_tts_enabled');
+      if (stored === 'on') {
+        setTtsEnabled(true);
+      } else if (stored === 'off') {
+        setTtsEnabled(false);
+      }
+    } catch (e) {
+      console.error('Failed to read TTS preference from localStorage', e);
+    }
+  }, []);
+
+  // TTS effect: speak assistantText when enabled
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!('speechSynthesis' in window)) return;
+
+    // Always cancel any in-progress speech first
+    window.speechSynthesis.cancel();
+
+    if (!ttsEnabled) return;
+
+    const text = assistantText.trim();
+    if (!text) return;
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-GB';
+    utterance.rate = 1;
+    utterance.pitch = 1;
+
+    window.speechSynthesis.speak(utterance);
+
+    return () => {
+      // Cleanup: stop any speech when component unmounts or dependencies change
+      window.speechSynthesis.cancel();
+    };
+  }, [assistantText, ttsEnabled]);
 
   const handleMicToggle = () => {
     const newListeningState = !isListening;
@@ -510,6 +553,28 @@ export function VoiceAssistantPanel() {
           >
             Clear
           </Button>
+        </div>
+        <div className="mt-2 flex items-center gap-2 text-xs text-[var(--mv-text-muted)]">
+          <input
+            id="tts-toggle"
+            type="checkbox"
+            className="h-4 w-4 rounded border-[var(--mv-border-soft)]"
+            checked={ttsEnabled}
+            onChange={(e) => {
+              const enabled = e.target.checked;
+              setTtsEnabled(enabled);
+              if (typeof window !== 'undefined') {
+                try {
+                  window.localStorage.setItem('memvella_tts_enabled', enabled ? 'on' : 'off');
+                } catch (err) {
+                  console.error('Failed to persist TTS preference', err);
+                }
+              }
+            }}
+          />
+          <label htmlFor="tts-toggle" className="cursor-pointer select-none">
+            Read replies out loud
+          </label>
         </div>
         {errorText && (
           <p className="mt-2 text-sm text-[var(--mv-danger)]">

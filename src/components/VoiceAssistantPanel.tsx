@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { useMemorySearch } from '@/hooks/useMemorySearch';
+import { useConversationStore } from '@/stores/useConversationStore';
 import type { AssistantMode, AssistantResponse, AssistantSuggestedMemory, AskMemvellaResponse } from '@/types/assistant';
 
 type Mode = AssistantMode;
@@ -28,9 +29,10 @@ const MODE_MESSAGES: Record<Mode, string> = {
 
 interface VoiceAssistantPanelProps {
   variant?: 'default' | 'compact';
+  onAssistantActivity?: () => void;
 }
 
-export function VoiceAssistantPanel({ variant = 'default' }: VoiceAssistantPanelProps) {
+export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }: VoiceAssistantPanelProps) {
   const [mode, setMode] = useState<Mode>('auto');
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -43,8 +45,10 @@ export function VoiceAssistantPanel({ variant = 'default' }: VoiceAssistantPanel
   const isListeningRef = useRef(false);
   const [speechSupported, setSpeechSupported] = useState(true);
   const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
   
   const createMemory = useMutation(api.memories.createMemory);
+  const addConversationMessage = useConversationStore((s) => s.addMessage);
 
   // Use memory search for recall mode
   const {
@@ -202,6 +206,16 @@ export function VoiceAssistantPanel({ variant = 'default' }: VoiceAssistantPanel
           "I've stopped listening. Later, I'll use what you said to help with your memories."
         );
       }
+      
+      // Auto-trigger assistant when stopping if there's a transcript (compact variant only)
+      if (variant === 'compact' && transcript.trim().length > 0 && !isProcessing) {
+        // Small delay to ensure transcript is finalized
+        setTimeout(() => {
+          if (transcript.trim().length > 0 && !isProcessing) {
+            callAssistant();
+          }
+        }, 300);
+      }
     }
   };
 
@@ -263,8 +277,16 @@ export function VoiceAssistantPanel({ variant = 'default' }: VoiceAssistantPanel
         voiceTranscript: trimmedTranscript || undefined,
       });
 
-      setAssistantText("I've saved this as a memory for you.");
+      const newText = "I've saved this as a memory for you.";
+      setAssistantText(newText);
       setPendingMemory(null);
+      
+      addConversationMessage({
+        role: 'assistant',
+        content: newText,
+        source: 'voice',
+      });
+      onAssistantActivity?.();
     } catch (error) {
       console.error('Error saving memory:', error);
       setAssistantText("I couldn't save this memory just now. You can try again in a moment.");
@@ -277,6 +299,14 @@ export function VoiceAssistantPanel({ variant = 'default' }: VoiceAssistantPanel
   const callAssistant = async () => {
     const trimmed = transcript.trim();
     if (!trimmed || isProcessing) return;
+
+    if (trimmed) {
+      addConversationMessage({
+        role: 'user',
+        content: trimmed,
+        source: 'voice',
+      });
+    }
 
     setIsProcessing(true);
     setErrorText(null);
@@ -315,6 +345,16 @@ export function VoiceAssistantPanel({ variant = 'default' }: VoiceAssistantPanel
         setAssistantText(data.answer);
         setPendingMemory(null); // recall mode does not auto-create memories
         setUsedMemoryIds(data.usedMemoryIds ?? []);
+        
+        if (data.answer?.trim()) {
+          addConversationMessage({
+            role: 'assistant',
+            content: data.answer.trim(),
+            source: 'voice',
+            usedMemoryIds: data.usedMemoryIds ?? undefined,
+          });
+          onAssistantActivity?.();
+        }
       } else {
         // All other modes (auto, add, ground) use /api/assistant
         const res = await fetch('/api/assistant', {
@@ -357,6 +397,17 @@ export function VoiceAssistantPanel({ variant = 'default' }: VoiceAssistantPanel
             setAssistantText(askData.answer);
             setPendingMemory(null);
             setUsedMemoryIds(askData.usedMemoryIds ?? []);
+            
+            if (askData.answer?.trim()) {
+              addConversationMessage({
+                role: 'assistant',
+                content: askData.answer.trim(),
+                source: 'voice',
+                usedMemoryIds: askData.usedMemoryIds ?? undefined,
+              });
+              onAssistantActivity?.();
+            }
+            
             setIsProcessing(false);
             return;
           }
@@ -367,6 +418,15 @@ export function VoiceAssistantPanel({ variant = 'default' }: VoiceAssistantPanel
         // Default behavior: use assistant speech
         setAssistantText(data.assistantSpeech);
         setUsedMemoryIds([]);
+        
+        if (data.assistantSpeech?.trim()) {
+          addConversationMessage({
+            role: 'assistant',
+            content: data.assistantSpeech.trim(),
+            source: 'voice',
+          });
+          onAssistantActivity?.();
+        }
         
         // Handle pending memory if assistant suggests creating one
         if (data.action === 'create_memory' && data.memory) {
@@ -386,6 +446,7 @@ export function VoiceAssistantPanel({ variant = 'default' }: VoiceAssistantPanel
   };
 
   const hasContent = assistantText || transcript;
+  const hasVisibleContent = hasContent || isProcessing;
 
   if (variant === 'default') {
     return (
@@ -626,210 +687,83 @@ export function VoiceAssistantPanel({ variant = 'default' }: VoiceAssistantPanel
     <div
       role="group"
       aria-labelledby="voice-assistant-heading"
-      className="flex flex-col gap-4 sm:gap-5 rounded-2xl border border-[var(--mv-border-soft)] bg-[var(--mv-card)] p-4 sm:p-5"
+      className="flex flex-col h-full min-h-0 max-h-full"
     >
-      {/* Header */}
-      <div className="space-y-1">
-        <h2
-          id="voice-assistant-heading"
-          className="text-lg font-semibold text-[var(--mv-primary)] sm:text-xl"
-        >
-          Memvella voice companion
-        </h2>
-        <p
-          id="voice-assistant-description"
-          className="text-sm text-[var(--mv-text-muted)]"
-        >
-          Talk to me to save memories, remember things, or feel more grounded.
-        </p>
-      </div>
+      {/* Conversation area - minimal, only show if there's content */}
+      {hasContent && (
+        <div className="shrink-0 max-h-[20vh] overflow-y-auto pr-1 space-y-3 mb-4">
+          {/* Screen-reader-only aria-live region for assistant responses */}
+          {assistantText && (
+            <div aria-live="polite" role="status" className="sr-only">
+              {assistantText}
+            </div>
+          )}
 
-      {/* Conversation area */}
-      <div className="flex-1 min-h-[160px] space-y-3">
-        {hasContent ? (
-          <>
-            {assistantText && (
-              <div aria-live="polite" role="status" className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--mv-text-muted-strong)]">
-                  Assistant
+          {pendingMemory && (
+            <div className="rounded-lg bg-[var(--mv-card-soft)] p-3 space-y-2">
+              <p className="text-sm font-semibold text-[var(--mv-primary)]">
+                Save this memory?
+              </p>
+              <div className="space-y-1">
+                <p className="text-sm text-[var(--mv-text)]">
+                  {pendingMemory.title}
                 </p>
-                <p className="text-base sm:text-lg leading-relaxed text-[var(--mv-text)]">
-                  {assistantText}
-                </p>
-
-                {usedRecallMemories.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    <p className="text-xs font-medium tracking-wide text-[var(--mv-text-muted)]">
-                      I looked at:
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {usedRecallMemories.map((mem) => (
-                        <Link
-                          key={mem._id}
-                          href={`/memory/${mem._id}`}
-                          aria-label={`View memory: ${mem.title || 'Untitled memory'}`}
-                          className="inline-flex items-center gap-1 rounded-full border border-[var(--mv-border-soft)] bg-[var(--mv-card-soft, rgba(255,255,255,0.02))] px-3 py-1 text-xs text-[var(--mv-text-muted)] hover:border-[var(--mv-primary)] hover:text-[var(--mv-primary)]"
-                        >
-                          <span className="font-medium">
-                            {mem.title || 'Untitled memory'}
-                          </span>
-                          {mem.date && (
-                            <span className="opacity-70">
-                              {new Date(mem.date).toLocaleDateString()}
-                            </span>
-                          )}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
+                {pendingMemory.dateLabel && (
+                  <p className="text-xs text-[var(--mv-text-muted)]">
+                    When: {pendingMemory.dateLabel === 'not sure' ? 'not sure' : pendingMemory.dateLabel}
+                  </p>
+                )}
+                {pendingMemory.people && pendingMemory.people.length > 0 && (
+                  <p className="text-xs text-[var(--mv-text-muted)]">
+                    With: {pendingMemory.people.join(', ')}
+                  </p>
                 )}
               </div>
-            )}
-
-            {pendingMemory && (
-              <div className="rounded-lg bg-[var(--mv-card-soft)] p-3 space-y-2">
-                <p className="text-sm font-semibold text-[var(--mv-primary)]">
-                  Save this memory?
-                </p>
-                <div className="space-y-1">
-                  <p className="text-sm text-[var(--mv-text)]">
-                    {pendingMemory.title}
-                  </p>
-                  {pendingMemory.dateLabel && (
-                    <p className="text-xs text-[var(--mv-text-muted)]">
-                      When: {pendingMemory.dateLabel === 'not sure' ? 'not sure' : pendingMemory.dateLabel}
-                    </p>
-                  )}
-                  {pendingMemory.people && pendingMemory.people.length > 0 && (
-                    <p className="text-xs text-[var(--mv-text-muted)]">
-                      With: {pendingMemory.people.join(', ')}
-                    </p>
-                  )}
-                </div>
-                <div className="flex flex-col gap-1.5 sm:flex-row">
-                  <Button
-                    variant="primary"
-                    onClick={handleSavePendingMemory}
-                    disabled={isProcessing}
-                    className="w-full sm:w-auto"
-                  >
-                    Save this memory
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => setPendingMemory(null)}
-                    disabled={isProcessing}
-                    className="w-full sm:w-auto"
-                  >
-                    Dismiss
-                  </Button>
-                </div>
+              <div className="flex flex-col gap-1.5 sm:flex-row">
+                <Button
+                  variant="primary"
+                  onClick={handleSavePendingMemory}
+                  disabled={isProcessing}
+                  className="w-full sm:w-auto"
+                >
+                  Save this memory
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => setPendingMemory(null)}
+                  disabled={isProcessing}
+                  className="w-full sm:w-auto"
+                >
+                  Dismiss
+                </Button>
               </div>
-            )}
+            </div>
+          )}
+        </div>
+      )}
 
-            {transcript && (
-              <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--mv-text-muted-strong)]">
-                  You said
-                </p>
-                <p className="text-sm sm:text-base leading-relaxed text-[var(--mv-text)]">
-                  {transcript}
-                </p>
-              </div>
-            )}
-          </>
-        ) : (
-          <p className="text-sm sm:text-base leading-relaxed text-[var(--mv-text-muted)]">
-            Tap the microphone and tell me about a moment you&apos;d like to remember.
-          </p>
-        )}
-      </div>
-
-      {/* Controls: big mic + basic actions */}
-      <div className="space-y-3">
-        <div className="flex flex-col items-center gap-2">
+      {/* Controls: big mic as primary focus */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 min-h-0">
+        <div className="rounded-3xl bg-gradient-to-r from-[var(--mv-gradient-start)]/10 via-[var(--mv-gradient-mid)]/10 to-[var(--mv-gradient-end)]/10 px-8 py-8 sm:px-10 sm:py-10 flex flex-col items-center gap-4">
           <button
             type="button"
             onClick={handleMicToggle}
             aria-pressed={isListening}
             aria-label={isListening ? 'Stop listening' : 'Start listening'}
-            className="h-16 w-16 rounded-full border border-[var(--mv-border-soft)] bg-[var(--mv-accent-soft)] text-xs font-medium flex items-center justify-center shadow-sm"
+            className="h-32 w-32 sm:h-36 sm:w-36 lg:h-44 lg:w-44 rounded-full border border-[var(--mv-border-soft)] bg-[var(--mv-card)] text-base font-medium flex items-center justify-center shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-[var(--mv-accent-soft)]"
           >
             {isListening ? 'Listening…' : 'Tap to talk'}
           </button>
-          <p
-            className="text-xs text-[var(--mv-text-muted)]"
-            aria-live="polite"
-            role="status"
-          >
-            {isListening ? 'Listening…' : 'Not listening'}
+          <p className="text-sm text-[var(--mv-text-muted)] text-center" aria-live="polite" role="status">
+            Tap to talk to Memvella.
           </p>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <Button
-            variant="secondary"
-            onClick={callAssistant}
-            disabled={isProcessing || !transcript.trim()}
-            className="w-full sm:w-auto"
-          >
-            {isProcessing ? 'Processing…' : 'Ask assistant'}
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={handleClear}
-            className="w-full sm:w-auto"
-          >
-            Clear
-          </Button>
-        </div>
-
-        {/* Optional: keep mode selector and TTS toggle in a low-visual-weight row */}
-        <div className="flex flex-col gap-2 pt-1 text-xs text-[var(--mv-text-muted)]">
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <label className="sr-only" htmlFor="voice-assistant-mode-compact">
-              Choose assistant mode
-            </label>
-            <select
-              id="voice-assistant-mode-compact"
-              value={mode}
-              onChange={handleModeSelect}
-              className="w-full sm:w-auto rounded-full border border-[var(--mv-border)] bg-[var(--mv-card-soft)] px-3 py-1.5 text-xs text-[var(--mv-text)] focus:outline-none focus:ring-2 focus:ring-[var(--mv-primary)]"
-            >
-              <option value="auto">Auto</option>
-              <option value="add">Add</option>
-              <option value="recall">Recall</option>
-              <option value="ground">Ground</option>
-            </select>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              id="tts-toggle-compact"
-              type="checkbox"
-              className="h-3.5 w-3.5 rounded border-[var(--mv-border-soft)]"
-              checked={ttsEnabled}
-              onChange={(e) => {
-                const enabled = e.target.checked;
-                setTtsEnabled(enabled);
-                if (typeof window !== 'undefined') {
-                  try {
-                    window.localStorage.setItem('memvella_tts_enabled', enabled ? 'on' : 'off');
-                  } catch (err) {
-                    console.error('Failed to persist TTS preference', err);
-                  }
-                }
-              }}
-            />
-            <label htmlFor="tts-toggle-compact" className="cursor-pointer select-none">
-              Read replies out loud
-            </label>
-          </div>
-        </div>
       </div>
 
       {/* Error */}
       {errorText && (
-        <p className="text-xs text-[var(--mv-danger)]" role="alert">
+        <p className="text-xs text-[var(--mv-danger)] mt-2" role="alert">
           {errorText}
         </p>
       )}

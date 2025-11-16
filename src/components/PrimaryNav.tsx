@@ -4,11 +4,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from './ui/Button';
 
-const navItems = [
-  { href: '/', label: 'Home' },
-  { href: '/timeline', label: 'Timeline' },
-  { href: '/save', label: 'Save a memory' },
-];
+// TODO: For future caregiver navigation, restore these routes:
+// { href: '/timeline', label: 'Timeline' },
+// { href: '/save', label: 'Save a memory' },
+// Caregiver navigation will live elsewhere (e.g. /care) later.
+// For patient-facing app, no nav pills are shown - just the logo.
+const navItems: Array<{ href: string; label: string }> = [];
 
 export function PrimaryNav() {
   const pathname = usePathname();

@@ -185,3 +185,21 @@ export const removeMemoryImage = mutation({
   },
 });
 
+// Mutation: Update the AI summary of a memory
+export const updateMemoryAiSummary = mutation({
+  args: {
+    id: v.id('memories'),
+    aiSummary: v.union(v.string(), v.null()),
+  },
+  handler: async (ctx, args) => {
+    const memory = await ctx.db.get(args.id);
+    if (!memory) {
+      throw new Error('Memory not found');
+    }
+
+    await ctx.db.patch(args.id, {
+      aiSummary: args.aiSummary ?? undefined,
+    });
+  },
+});
+

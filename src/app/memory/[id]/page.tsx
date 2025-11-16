@@ -3,8 +3,9 @@
 import { use, useEffect, useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useQuery } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
+import type { Id } from '../../../../convex/_generated/dataModel';
 import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -23,6 +24,7 @@ type ConvexMemory = {
   importance: 'low' | 'medium' | 'high';
   people: string[];
   createdAt: string;
+  aiSummary?: string | null;
 };
 
 export default function MemoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -43,7 +45,8 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   const memoryId = useMemo(() => resolvedParams.id, [resolvedParams.id]);
 
   // Fetch memory using useQuery
-  const convexMemory = useQuery(api.memories.getMemoryById, { id: memoryId as any });
+  const convexMemory = useQuery(api.memories.getMemoryById, { id: memoryId as Id<'memories'> });
+  const updateAiSummary = useMutation(api.memories.updateMemoryAiSummary);
 
   // Convert ConvexMemory to Memory format when available
   const memory: Memory | null | undefined = useMemo(() => {
@@ -58,6 +61,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
       people: convexMemory.people,
       createdAt: convexMemory.createdAt,
       imageUrl: convexMemory.imageUrl ?? null,
+      aiSummary: convexMemory.aiSummary ?? null,
     };
   }, [convexMemory]);
 
@@ -76,13 +80,17 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
     if (cached) {
       setCueCard(cached);
       setCueCardTone(cachedTone || null);
+    } else if (convexMemory?.aiSummary) {
+      // If no cached cue card but DB has aiSummary, use that
+      setCueCard(convexMemory.aiSummary);
+      setCueCardTone(null); // We don't know which tone was used
     }
 
     // Load selected tone preference (default to 'gentle' if not found)
     if (cachedSelectedTone && ['gentle', 'uplifting', 'concise', 'storybook'].includes(cachedSelectedTone)) {
       setSelectedTone(cachedSelectedTone as CueCardTone);
     }
-  }, [memory, memoryId]);
+  }, [memory, memoryId, convexMemory?.aiSummary]);
 
   // Generate cue card function
   const handleGenerateCueCard = async () => {
@@ -130,6 +138,17 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
       }
       // Store the selected tone preference
       sessionStorage.setItem(cacheKeySelectedTone, selectedTone);
+
+      // Persist to Convex
+      try {
+        await updateAiSummary({
+          id: memoryId as Id<'memories'>,
+          aiSummary: generatedCueCard,
+        });
+      } catch (err) {
+        console.error('Failed to save AI summary', err);
+        // Non-blocking: UI already shows the summary, this is just persistence
+      }
     } catch (error) {
       console.error('Error fetching cue card:', error);
       showError('Failed to generate memory summary. Please try again.');

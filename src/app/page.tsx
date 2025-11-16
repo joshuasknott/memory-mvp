@@ -27,6 +27,7 @@ export default function Home() {
         people: rawHighlightMemory.people,
         createdAt: rawHighlightMemory.createdAt,
         imageUrl: rawHighlightMemory.imageUrl ?? null,
+        aiSummary: rawHighlightMemory.aiSummary ?? null,
       }
     : null;
 
@@ -67,6 +68,7 @@ export default function Home() {
     people: string[];
     createdAt: string;
     imageUrl?: string | null;
+    aiSummary?: string | null;
   };
 
   // Convert Convex memory format to Memory type for rendering
@@ -79,6 +81,7 @@ export default function Home() {
     people: memory.people,
     createdAt: memory.createdAt,
     imageUrl: memory.imageUrl ?? null,
+    aiSummary: memory.aiSummary ?? null,
   });
 
   // Render a memory card (reused from timeline page pattern)

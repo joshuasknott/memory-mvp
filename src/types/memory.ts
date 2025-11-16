@@ -9,5 +9,6 @@ export interface Memory {
   people: string[];    // names of people involved
   createdAt: string;   // ISO string
   imageUrl?: string | null;
+  aiSummary?: string | null;
 }
 

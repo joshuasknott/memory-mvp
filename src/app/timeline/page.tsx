@@ -19,6 +19,7 @@ type ConvexMemory = {
   people: string[];
   createdAt: string;
   imageUrl?: string | null;
+  aiSummary?: string | null;
 };
 
 export default function TimelinePage() {
@@ -33,6 +34,7 @@ export default function TimelinePage() {
     people: memory.people,
     createdAt: memory.createdAt,
     imageUrl: memory.imageUrl ?? null,
+    aiSummary: memory.aiSummary ?? null,
   }));
 
   const bucketedMemories =

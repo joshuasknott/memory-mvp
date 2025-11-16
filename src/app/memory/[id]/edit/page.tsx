@@ -6,7 +6,7 @@ import { use } from 'react';
 import Link from 'next/link';
 import { useQuery, useAction, useMutation } from 'convex/react';
 import { api } from '../../../../../convex/_generated/api';
-import type { Doc } from '../../../../../convex/_generated/dataModel';
+import type { Doc, Id } from '../../../../../convex/_generated/dataModel';
 import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import type { Importance, Memory } from '@/types/memory';
 import { Button } from '@/components/ui/Button';
@@ -42,7 +42,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
   const memoryId = useMemo(() => resolvedParams.id, [resolvedParams.id]);
 
   // Fetch memory using useQuery
-  const convexMemory = useQuery(api.memories.getMemoryById, { id: memoryId as any });
+  const convexMemory = useQuery(api.memories.getMemoryById, { id: memoryId as Id<'memories'> });
 
   // Convert ConvexMemory to Memory format when available
   const memory: Memory | null | undefined = useMemo(() => {
@@ -56,6 +56,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
       importance: convexMemory.importance,
       people: convexMemory.people,
       createdAt: convexMemory.createdAt,
+      aiSummary: convexMemory.aiSummary ?? null,
     };
   }, [convexMemory]);
 

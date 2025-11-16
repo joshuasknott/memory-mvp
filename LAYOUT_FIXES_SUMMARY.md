@@ -18,7 +18,6 @@ This commit implements single-column layouts and clear primary actions across al
 - Secondary actions grouped below primary with reduced visual weight
 
 ### Button Clutter Reduction
-- **Before**: 3 buttons in horizontal row (Daily Check-In, Save Memory, View Timeline) - all equal weight
 - **After**: 1 primary button at top, 2 secondary buttons stacked below
 - Removed responsive breakpoint that changed layout between mobile/desktop (now consistent single-column)
 

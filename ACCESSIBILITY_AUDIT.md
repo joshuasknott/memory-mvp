@@ -22,7 +22,6 @@
 ### 1. HOME PAGE (`src/app/page.tsx`)
 
 **Issues:**
-- **Multiple buttons in horizontal row** - Three buttons (Daily Check-In, Save a New Memory, View Timeline) displayed side-by-side on larger screens can create cognitive overload
 - **No clear primary action** - All buttons have equal visual weight, making it unclear what the main action should be
 - **Inconsistent button placement** - Buttons change from vertical stack (mobile) to horizontal row (desktop), which can be disorienting
 - **Missing semantic landmarks** - No `<main>` tag or ARIA landmarks to help screen readers navigate

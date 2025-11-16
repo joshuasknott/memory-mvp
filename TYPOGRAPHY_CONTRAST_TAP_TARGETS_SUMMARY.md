@@ -91,22 +91,6 @@ This commit improves text readability, contrast, and tap target sizes across all
 
 ---
 
-### 6. DAILY CHECK-IN PAGE (`src/app/check-in/page.tsx`)
-
-**Text Size Changes:**
-- Description text: `text-slate-600` → `text-slate-700` (better contrast, already `text-base`)
-- People helper text: `text-sm text-slate-500` → `text-base text-slate-700` (larger size, much better contrast)
-
-**Contrast Improvements:**
-- Description text: `text-slate-600` → `text-slate-700` (better contrast)
-- People helper text: `text-slate-500` → `text-slate-700` (much better contrast)
-
-**Tap Targets:**
-- Buttons: Changed from `flex-row` to `flex-col` with `w-full` (consistent with other forms)
-- All inputs already have `min-h-[44px]` (good)
-
----
-
 ### 7. BADGE COMPONENT (`src/components/ui/Badge.tsx`)
 
 **Text Size Changes:**

@@ -4,8 +4,9 @@ import { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import type { AssistantMode, AssistantResponse } from '@/types/assistant';
 
-type Mode = 'auto' | 'add' | 'recall' | 'ground';
+type Mode = AssistantMode;
 
 const MODE_LABELS: Record<Mode, string> = {
   auto: 'Auto',
@@ -26,6 +27,8 @@ export function VoiceAssistantPanel() {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [assistantText, setAssistantText] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [errorText, setErrorText] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isListeningRef = useRef(false);
   const [speechSupported, setSpeechSupported] = useState(true);
@@ -145,6 +148,40 @@ export function VoiceAssistantPanel() {
   const handleClear = () => {
     setTranscript('');
     setAssistantText('');
+    setErrorText(null);
+  };
+
+  const callAssistant = async () => {
+    const trimmed = transcript.trim();
+    if (!trimmed || isProcessing) return;
+
+    setIsProcessing(true);
+    setErrorText(null);
+
+    try {
+      const res = await fetch('/api/assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode, transcript: trimmed }),
+      });
+
+      if (!res.ok) {
+        setErrorText("Something went wrong. Please try again in a moment.");
+        setIsProcessing(false);
+        return;
+      }
+
+      const data = (await res.json()) as AssistantResponse;
+      setAssistantText(data.assistantSpeech);
+      // For now, ignore data.action / data.memory / data.safetyFlag.
+    } catch (error) {
+      console.error('Error calling assistant', error);
+      setErrorText(
+        "I couldn't reach the assistant just now. Please check your connection and try again."
+      );
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const hasContent = assistantText || transcript;
@@ -232,6 +269,15 @@ export function VoiceAssistantPanel() {
           </select>
           <Button
             variant="secondary"
+            onClick={callAssistant}
+            disabled={isProcessing || !transcript.trim()}
+            aria-label="Ask assistant"
+            className="w-full sm:w-auto"
+          >
+            {isProcessing ? 'Processing...' : 'Ask assistant'}
+          </Button>
+          <Button
+            variant="secondary"
             onClick={handleClear}
             aria-label="Clear assistant text"
             className="w-full sm:w-auto"
@@ -239,6 +285,11 @@ export function VoiceAssistantPanel() {
             Clear
           </Button>
         </div>
+        {errorText && (
+          <p className="mt-2 text-sm text-[var(--mv-danger)]">
+            {errorText}
+          </p>
+        )}
       </div>
     </Card>
   );

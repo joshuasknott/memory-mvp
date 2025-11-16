@@ -41,7 +41,6 @@ export default function RootLayout({
                   >
                     <div>
                       <p className="mv-logo-text text-2xl font-semibold tracking-tight">Memvella</p>
-                      <p className="text-lg text-[var(--mv-text-muted)]">Calm memory companion</p>
                     </div>
                   </Link>
                   <PrimaryNav />

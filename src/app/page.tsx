@@ -45,7 +45,7 @@ export default function Home() {
           when you need grounding.
         </p>
         <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
-          <Button asChild>
+          <Button asChild variant="secondary">
             <Link href="/save" className="no-underline">
               Save a memory
             </Link>
@@ -77,11 +77,11 @@ export default function Home() {
                 You currently have {memoryCount}{' '}
                 {memoryCount === 1 ? 'memory' : 'memories'}.
               </h2>
-              <p className="text-lg text-[var(--mv-text-muted)]">
-                Revisit one today or add something recent while it&apos;s still vivid.
+              <p className="mt-2 text-lg text-[var(--mv-text-muted)]">
+                You can look back at a saved memory, or add a new moment you&apos;d like to remember.
               </p>
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <Button asChild variant="primary" className="w-full sm:w-auto">
+              <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <Button asChild variant="secondary" className="w-full sm:w-auto">
                   <Link href="/timeline" className="no-underline">
                     View your memories
                   </Link>
@@ -113,7 +113,7 @@ export default function Home() {
               <p className="text-lg leading-relaxed text-[var(--mv-text)]">
                 {getHighlightSnippet(highlightMemory.description)}
               </p>
-              <Button asChild variant="secondary" className="w-full sm:w-auto">
+              <Button asChild variant="secondary" className="mt-4 w-full sm:w-auto">
                 <Link href={`/memory/${highlightMemory._id}`} className="no-underline">
                   Open memory
                 </Link>

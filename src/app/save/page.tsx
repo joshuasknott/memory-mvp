@@ -224,7 +224,7 @@ export default function SaveMemoryPage() {
           <div className="flex flex-col gap-3 pt-4">
             <Button
               type="submit"
-              variant="primary"
+              variant="secondary"
               disabled={isSubmitting}
               className="w-full min-w-[200px]"
             >

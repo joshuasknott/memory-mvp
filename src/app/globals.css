@@ -118,7 +118,7 @@ select:focus-visible {
 .mv-section-label {
   display: inline-flex;
   align-items: center;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;

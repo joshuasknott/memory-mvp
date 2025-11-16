@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import type { Memory } from '@/types/memory';
+import { groupMemoriesByDate, getBucketLabel, type DateBucket } from '@/lib/dateBuckets';
 
 // Type for Convex memory document returned from the server
 type ConvexMemory = {
@@ -19,7 +21,26 @@ type ConvexMemory = {
 };
 
 export default function TimelinePage() {
-  const memories = useQuery(api.memories.getMemories) ?? [];
+  const memories = useQuery(api.memories.getMemories);
+
+  const normalizedMemories: Memory[] | undefined = memories?.map((memory: ConvexMemory) => ({
+    id: memory._id,
+    title: memory.title,
+    description: memory.description,
+    date: memory.date,
+    importance: memory.importance,
+    people: memory.people,
+    createdAt: memory.createdAt,
+  }));
+
+  const bucketedMemories =
+    normalizedMemories === undefined
+      ? undefined
+      : normalizedMemories.length === 0
+        ? new Map<DateBucket, Memory[]>()
+        : groupMemoriesByDate(normalizedMemories);
+
+  const bucketOrder: DateBucket[] = ['today', 'thisWeek', 'earlier'];
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -29,6 +50,44 @@ export default function TimelinePage() {
       year: 'numeric',
     });
   };
+
+  const renderMemoryCard = (memory: Memory) => (
+    <Link
+      key={memory.id}
+      href={`/memory/${memory.id}`}
+      className="block no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+      aria-label={`View memory: ${memory.title}`}
+    >
+      <Card className="hover:-translate-y-0.5">
+        <div className="space-y-5">
+          <p className="text-base font-medium text-[var(--mv-text-muted)]">{formatDate(memory.date)}</p>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <h2 className="text-[1.4rem] font-semibold text-[var(--mv-primary)]">{memory.title}</h2>
+            <Badge variant={memory.importance} className="self-start capitalize sm:self-end sm:text-right">
+              {memory.importance}
+            </Badge>
+          </div>
+
+          <p
+            className="text-lg leading-relaxed text-[var(--mv-text)]"
+            style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            {memory.description}
+          </p>
+
+          {memory.people.length > 0 && (
+            <p className="text-base font-medium text-[var(--mv-text-muted)]">With {memory.people.join(', ')}</p>
+          )}
+        </div>
+      </Card>
+    </Link>
+  );
 
   // Loading state
   if (memories === undefined) {
@@ -67,7 +126,7 @@ export default function TimelinePage() {
             <p className="text-lg text-[var(--mv-text-muted)]">
               You can save your first memory and return to add more detail later.
             </p>
-            <Button asChild className="w-full sm:w-auto">
+            <Button asChild variant="secondary" className="w-full sm:w-auto">
               <Link href="/save" className="no-underline">
                 Add a new memory
               </Link>
@@ -90,7 +149,7 @@ export default function TimelinePage() {
           </p>
         </div>
         <div className="space-y-3">
-          <Button asChild className="w-full sm:w-auto">
+          <Button asChild variant="secondary" className="w-full sm:w-auto">
             <Link href="/save" className="no-underline">
               Add a new memory
             </Link>
@@ -101,53 +160,22 @@ export default function TimelinePage() {
         </div>
       </section>
 
-      <div className="space-y-6 md:space-y-8">
-        {memories.map((memory: ConvexMemory) => (
-          <Link
-            key={memory._id}
-            href={`/memory/${memory._id}`}
-            className="block no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
-            aria-label={`View memory: ${memory.title}`}
-          >
-            <Card className="hover:-translate-y-0.5">
-              <div className="space-y-5">
-                <p className="text-base font-medium text-[var(--mv-text-muted)]">
-                  {formatDate(memory.date)}
-                </p>
+      <div className="space-y-8">
+        {bucketOrder.map((bucketKey) => {
+          const bucketMemories = bucketedMemories?.get(bucketKey) ?? [];
+          if (bucketMemories.length === 0) {
+            return null;
+          }
 
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <h2 className="text-[1.4rem] font-semibold text-[var(--mv-primary)]">
-                    {memory.title}
-                  </h2>
-                  <Badge
-                    variant={memory.importance}
-                    className="self-start capitalize sm:self-end sm:text-right"
-                  >
-                    {memory.importance}
-                  </Badge>
-                </div>
-
-                <p
-                  className="text-lg leading-relaxed text-[var(--mv-text)]"
-                  style={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {memory.description}
-                </p>
-
-                {memory.people.length > 0 && (
-                  <p className="text-base font-medium text-[var(--mv-text-muted)]">
-                    With {memory.people.join(', ')}
-                  </p>
-                )}
+          return (
+            <section key={bucketKey} className="space-y-3">
+              <p className="mv-section-label mb-1">{getBucketLabel(bucketKey)}</p>
+              <div className="space-y-6 md:space-y-8">
+                {bucketMemories.map((memory) => renderMemoryCard(memory))}
               </div>
-            </Card>
-          </Link>
-        ))}
+            </section>
+          );
+        })}
       </div>
     </div>
   );

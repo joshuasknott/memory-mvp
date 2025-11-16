@@ -40,7 +40,7 @@ export default function HomeV2Page() {
           aria-labelledby="memvella-home-v2-heading"
         >
           {/* Header section */}
-          <section className="space-y-2 sm:space-y-3">
+          <section className="space-y-2 sm:space-y-2.5">
             <h1
               id="memvella-home-v2-heading"
               className="text-[1.8rem] sm:text-[2rem] font-semibold leading-snug text-white"
@@ -53,8 +53,8 @@ export default function HomeV2Page() {
           </section>
 
           {/* Conversation / assistant section */}
-          <section className="mt-2 sm:mt-3 flex-1 min-h-0">
-            <div className="h-full bg-[var(--mv-card)]/70 backdrop-blur-sm rounded-2xl p-4 sm:p-6">
+          <section className="mt-1.5 sm:mt-2 flex-1 min-h-0">
+            <div className="h-full bg-[var(--mv-card)]/70 backdrop-blur-sm rounded-2xl p-4 sm:p-5">
               <VoiceAssistantPanel variant="compact" onAssistantActivity={handleAssistantActivity} />
             </div>
           </section>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { useMemorySearch } from '@/hooks/useMemorySearch';
 import { useConversationStore } from '@/stores/useConversationStore';
+import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import { groupMemoriesByDate, getBucketLabel, type DateBucket } from '@/lib/dateBuckets';
 import type { Memory } from '@/types/memory';
 
@@ -47,10 +48,15 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
   const [expandedMemoryId, setExpandedMemoryId] = useState<string | null>(null);
   const [savingMemoryId, setSavingMemoryId] = useState<string | null>(null);
   const [dismissedActionButtons, setDismissedActionButtons] = useState<Set<string>>(new Set());
+  const [activeMemoryForm, setActiveMemoryForm] = useState<null | { type: 'create' | 'edit'; memory?: Memory }>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSavingMemory, setIsSavingMemory] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
   
   const addConversationMessage = useConversationStore((s) => s.addMessage);
   const messages = useConversationStore((s) => s.messages);
   const createMemory = useMutation(api.memories.createMemory);
+  const updateMemory = useMemoriesStore((s) => s.updateMemory);
   const allMemories = useQuery(api.memories.getMemories);
 
   // Use memory search with the current question
@@ -131,6 +137,20 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
     } finally {
       setSavingMemoryId(null);
     }
+  };
+
+  // Handle Enter/Shift+Enter in textarea
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (!isLoading && question.trim()) {
+        // Trigger form submission
+        if (formRef.current) {
+          formRef.current.requestSubmit();
+        }
+      }
+    }
+    // Shift+Enter will naturally insert a newline, so we don't need to handle it
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -239,6 +259,95 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
 
   const bucketOrder: DateBucket[] = ['today', 'thisWeek', 'earlier'];
 
+  // Handle create memory form
+  const handleCreateMemory = async (formData: {
+    title: string;
+    description: string;
+    date: string;
+    importance: 'low' | 'medium' | 'high';
+    people: string;
+  }) => {
+    const trimmedTitle = formData.title.trim();
+    const trimmedDescription = formData.description.trim();
+
+    if (!trimmedTitle && !trimmedDescription) {
+      setFormError('Please add a title or a short description before saving this memory.');
+      return;
+    }
+
+    setIsSavingMemory(true);
+    setFormError(null);
+
+    try {
+      // Parse people from comma-separated string
+      const people = formData.people
+        .split(',')
+        .map((p) => p.trim())
+        .filter(Boolean);
+
+      await createMemory({
+        title: trimmedTitle,
+        description: trimmedDescription,
+        date: formData.date,
+        importance: formData.importance,
+        people,
+        origin: 'manual',
+      });
+
+      // Close form on success
+      setActiveMemoryForm(null);
+    } catch (err) {
+      console.error('Error saving memory:', err);
+      setFormError('Something went wrong saving this memory. Please try again.');
+    } finally {
+      setIsSavingMemory(false);
+    }
+  };
+
+  // Handle edit memory form
+  const handleEditMemory = async (memoryId: string, formData: {
+    title: string;
+    description: string;
+    date: string;
+    importance: 'low' | 'medium' | 'high';
+    people: string;
+  }) => {
+    const trimmedTitle = formData.title.trim();
+    const trimmedDescription = formData.description.trim();
+
+    if (!trimmedTitle || !trimmedDescription) {
+      setFormError('Title and description are required.');
+      return;
+    }
+
+    setIsSavingMemory(true);
+    setFormError(null);
+
+    try {
+      // Parse people from comma-separated string
+      const people = formData.people
+        .split(',')
+        .map((p) => p.trim())
+        .filter(Boolean);
+
+      await updateMemory(memoryId, {
+        title: trimmedTitle,
+        description: trimmedDescription,
+        date: formData.date,
+        importance: formData.importance,
+        people,
+      });
+
+      // Close form on success
+      setActiveMemoryForm(null);
+    } catch (err) {
+      console.error('Error updating memory:', err);
+      setFormError('Something went wrong updating this memory. Please try again.');
+    } finally {
+      setIsSavingMemory(false);
+    }
+  };
+
   // Render memory card
   const renderMemoryCard = (memory: Memory) => (
     <div
@@ -288,10 +397,15 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
                   </p>
                 )}
                 <div className="pt-2">
-                  <Button asChild variant="secondary" className="w-full sm:w-auto text-sm">
-                    <Link href={`/memory/${memory.id}/edit`} className="no-underline">
-                      Edit
-                    </Link>
+                  <Button
+                    variant="secondary"
+                    className="w-full sm:w-auto text-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveMemoryForm({ type: 'edit', memory });
+                    }}
+                  >
+                    Edit
                   </Button>
                 </div>
               </div>
@@ -477,6 +591,7 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
 
             {/* Form */}
             <form
+              ref={formRef}
               onSubmit={handleSubmit}
               className="pt-3 space-y-3 border-t border-[var(--mv-border-soft)] shrink-0"
               aria-describedby="ask-memvella-description"
@@ -489,6 +604,7 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
                   id="ask-memvella-question"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   placeholder="e.g., What did I do with Sarah last month?"
                   rows={3}
                   disabled={isLoading}
@@ -510,10 +626,12 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
           <div className="flex-1 min-h-0 overflow-y-auto space-y-6 pr-1">
             {/* Add memory entrypoint */}
             <div className="pb-2">
-              <Button asChild variant="primary" className="w-full sm:w-auto">
-                <Link href="/save" className="no-underline">
-                  Save a new memory
-                </Link>
+              <Button
+                variant="primary"
+                className="w-full sm:w-auto"
+                onClick={() => setActiveMemoryForm({ type: 'create' })}
+              >
+                Save a new memory
               </Button>
             </div>
 
@@ -552,7 +670,207 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
           </div>
         )}
       </div>
+
+      {/* Memory form overlay */}
+      {activeMemoryForm && (
+        <MemoryFormOverlay
+          type={activeMemoryForm.type}
+          memory={activeMemoryForm.memory}
+          onClose={() => {
+            setActiveMemoryForm(null);
+            setFormError(null);
+          }}
+          onSubmit={activeMemoryForm.type === 'create' 
+            ? handleCreateMemory 
+            : (formData) => activeMemoryForm.memory && handleEditMemory(activeMemoryForm.memory.id, formData)
+          }
+          error={formError}
+          isSaving={isSavingMemory}
+        />
+      )}
     </Card>
+  );
+}
+
+// Memory form overlay component
+function MemoryFormOverlay({
+  type,
+  memory,
+  onClose,
+  onSubmit,
+  error,
+  isSaving,
+}: {
+  type: 'create' | 'edit';
+  memory?: Memory;
+  onClose: () => void;
+  onSubmit: (formData: {
+    title: string;
+    description: string;
+    date: string;
+    importance: 'low' | 'medium' | 'high';
+    people: string;
+  }) => void;
+  error: string | null;
+  isSaving: boolean;
+}) {
+  const today = new Date().toISOString().split('T')[0];
+  const [formData, setFormData] = useState({
+    title: memory?.title || '',
+    description: memory?.description || '',
+    date: memory?.date ? (memory.date.includes('T') ? memory.date.split('T')[0] : memory.date) : today,
+    importance: (memory?.importance || 'medium') as 'low' | 'medium' | 'high',
+    people: memory?.people.join(', ') || '',
+  });
+
+  // Reset form data when memory changes
+  useEffect(() => {
+    if (memory) {
+      setFormData({
+        title: memory.title,
+        description: memory.description,
+        date: memory.date.includes('T') ? memory.date.split('T')[0] : memory.date,
+        importance: memory.importance,
+        people: memory.people.join(', '),
+      });
+    } else {
+      setFormData({
+        title: '',
+        description: '',
+        date: today,
+        importance: 'medium',
+        people: '',
+      });
+    }
+  }, [memory, today]);
+
+  const fieldClasses =
+    'w-full rounded-[18px] border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-base text-[var(--mv-text)] shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] placeholder:text-[var(--mv-text-muted)]/70';
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <div className="absolute inset-0 bg-[var(--mv-bg)]/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="space-y-4 p-4">
+          <div className="flex items-start justify-between">
+            <h3 className="text-lg font-semibold text-[var(--mv-primary)]">
+              {type === 'create' ? 'Save a new memory' : 'Edit memory'}
+            </h3>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-sm text-[var(--mv-text-muted)] hover:text-[var(--mv-primary)]"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
+
+          {error && (
+            <p className="text-sm text-[var(--mv-danger)]" role="alert">
+              {error}
+            </p>
+          )}
+
+          <div>
+            <label htmlFor="memory-title" className="block text-sm font-medium text-[var(--mv-primary)] mb-1">
+              Title
+            </label>
+            <input
+              type="text"
+              id="memory-title"
+              value={formData.title}
+              onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+              className={fieldClasses}
+              placeholder="What would you call this moment?"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="memory-description" className="block text-sm font-medium text-[var(--mv-primary)] mb-1">
+              Description
+            </label>
+            <textarea
+              id="memory-description"
+              rows={4}
+              value={formData.description}
+              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+              className={`${fieldClasses} resize-none`}
+              placeholder="Tell me about this memory..."
+            />
+          </div>
+
+          <div>
+            <label htmlFor="memory-date" className="block text-sm font-medium text-[var(--mv-primary)] mb-1">
+              Date
+            </label>
+            <input
+              type="date"
+              id="memory-date"
+              value={formData.date}
+              onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
+              className={fieldClasses}
+              max={today}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="memory-importance" className="block text-sm font-medium text-[var(--mv-primary)] mb-1">
+              Importance
+            </label>
+            <select
+              id="memory-importance"
+              value={formData.importance}
+              onChange={(e) => setFormData((prev) => ({ ...prev, importance: e.target.value as 'low' | 'medium' | 'high' }))}
+              className={`${fieldClasses} cursor-pointer`}
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="memory-people" className="block text-sm font-medium text-[var(--mv-primary)] mb-1">
+              People (optional)
+            </label>
+            <input
+              type="text"
+              id="memory-people"
+              value={formData.people}
+              onChange={(e) => setFormData((prev) => ({ ...prev, people: e.target.value }))}
+              className={fieldClasses}
+              placeholder="Alice, Bob, Charlie"
+            />
+            <p className="mt-1 text-xs text-[var(--mv-text-muted)]">Separate names with commas</p>
+          </div>
+
+          <div className="flex flex-col gap-2 pt-2">
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isSaving}
+              className="w-full"
+            >
+              {isSaving ? 'Saving...' : type === 'create' ? 'Save' : 'Save changes'}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={onClose}
+              disabled={isSaving}
+              className="w-full"
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Card>
+    </div>
   );
 }
 

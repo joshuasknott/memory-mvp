@@ -15,6 +15,8 @@ export default function SaveMemoryPage() {
   const createMemory = useMutation(api.memories.createMemory);
   const { showSuccess, showError: showStatusError } = useStatus();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const fieldClasses =
+    'w-full rounded-[18px] border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-lg text-[var(--mv-text)] shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] placeholder:text-[var(--mv-text-muted)]/70';
 
   const [formData, setFormData] = useState({
     title: '',
@@ -88,17 +90,34 @@ export default function SaveMemoryPage() {
   };
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-      <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-2 inline-block">
-        ← Back to Your Memories
+    <div className="space-y-8 bg-[var(--mv-bg)]">
+      <Link
+        href="/timeline"
+        className="inline-flex items-center gap-2 text-lg font-semibold text-[var(--mv-primary)] no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+      >
+        ← Back to your memories
       </Link>
-      <h1 className="text-3xl md:text-4xl font-semibold mb-6 text-slate-900">Add a New Memory</h1>
+      <div className="space-y-3">
+        <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)] md:text-[2.25rem]">
+          Add a new memory
+        </h1>
+        <p className="text-lg text-[var(--mv-text-muted)]">
+          Take your time. You can save a lightweight note and return later if you want to add more
+          detail.
+        </p>
+      </div>
 
       <Card>
         <form onSubmit={handleSubmit} className="space-y-6">
+          <p className="text-lg font-semibold text-[var(--mv-text-muted)]">
+            Save this memory. You can edit it later.
+          </p>
           <div>
-            <label htmlFor="title" className="block text-base font-medium text-slate-800 mb-3">
-              Memory Title
+            <label
+              htmlFor="title"
+              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+            >
+              Memory title
             </label>
             <input
               type="text"
@@ -106,13 +125,19 @@ export default function SaveMemoryPage() {
               required
               value={formData.title}
               onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="What happened?"
+              className={fieldClasses}
+              placeholder="What would you call this moment?"
             />
+            <p className="mt-2 text-base text-[var(--mv-text-muted)]">
+              A title helps you find this memory quickly later on.
+            </p>
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-base font-medium text-slate-800 mb-3">
+            <label
+              htmlFor="description"
+              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+            >
               Describe this memory in your own words
             </label>
             <textarea
@@ -121,16 +146,19 @@ export default function SaveMemoryPage() {
               value={formData.description}
               onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
               aria-describedby="description-help"
-              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none leading-relaxed"
+              className={`${fieldClasses} min-h-[160px] resize-none leading-relaxed`}
               placeholder="Tell me about this memory..."
             />
-            <p id="description-help" className="mt-2 text-base text-slate-700">
-              You don't need to write a lot. A few sentences is enough.
+            <p id="description-help" className="mt-2 text-base text-[var(--mv-text-muted)]">
+              You don&apos;t need to write a lot. A few sentences is enough.
             </p>
           </div>
 
           <div>
-            <label htmlFor="date" className="block text-base font-medium text-slate-800 mb-3">
+            <label
+              htmlFor="date"
+              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+            >
               When did this happen?
             </label>
             <input
@@ -140,15 +168,18 @@ export default function SaveMemoryPage() {
               value={formData.date}
               onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
               aria-describedby="date-help"
-              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-text min-h-[44px]"
+              className={`${fieldClasses} cursor-text`}
             />
-            <p id="date-help" className="mt-2 text-base text-slate-700">
+            <p id="date-help" className="mt-2 text-base text-[var(--mv-text-muted)]">
               Approximate dates are okay.
             </p>
           </div>
 
           <div>
-            <label htmlFor="importance" className="block text-base font-medium text-slate-800 mb-3">
+            <label
+              htmlFor="importance"
+              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+            >
               Importance
             </label>
             <select
@@ -161,7 +192,7 @@ export default function SaveMemoryPage() {
                   importance: e.target.value as 'low' | 'medium' | 'high',
                 }))
               }
-              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]"
+              className={`${fieldClasses} cursor-pointer`}
             >
               <option value="low">Low</option>
               <option value="medium">Medium</option>
@@ -170,7 +201,10 @@ export default function SaveMemoryPage() {
           </div>
 
           <div>
-            <label htmlFor="people" className="block text-base font-medium text-slate-800 mb-3">
+            <label
+              htmlFor="people"
+              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+            >
               Who was involved?
             </label>
             <input
@@ -179,10 +213,10 @@ export default function SaveMemoryPage() {
               value={formData.people}
               onChange={(e) => setFormData((prev) => ({ ...prev, people: e.target.value }))}
               aria-describedby="people-help"
-              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]"
+              className={fieldClasses}
               placeholder="Alice, Bob, Charlie"
             />
-            <p id="people-help" className="mt-2 text-base text-slate-700">
+            <p id="people-help" className="mt-2 text-base text-[var(--mv-text-muted)]">
               Separate names with commas. This is optional.
             </p>
           </div>
@@ -194,25 +228,25 @@ export default function SaveMemoryPage() {
               disabled={isSubmitting}
               className="w-full min-w-[200px]"
             >
-              {isSubmitting ? 'Saving...' : 'Save This Memory'}
+              {isSubmitting ? 'Saving...' : 'Save this memory'}
             </Button>
             <Button
               type="button"
-              variant="secondary"
+              variant="subtle"
               onClick={() => router.push('/timeline')}
-              className="w-full min-w-[200px]"
+              className="justify-start text-left text-lg"
             >
               Cancel
             </Button>
             {lastSaved && (
-              <p className="text-sm text-slate-600 text-center mt-2" aria-live="polite">
+              <p className="mt-2 text-left text-base text-[var(--mv-text-muted)]" aria-live="polite">
                 Draft saved
               </p>
             )}
           </div>
         </form>
       </Card>
-    </main>
+    </div>
   );
 }
 

@@ -221,7 +221,7 @@ export default function CheckInPage() {
               </Button>
               <Button
                 type="button"
-                variant="secondary"
+                variant="subtle"
                 onClick={() => router.back()}
                 className="w-full min-w-[200px]"
                 aria-label="Cancel and go back"

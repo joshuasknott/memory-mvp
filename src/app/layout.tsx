@@ -1,20 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import Link from "next/link";
-import { Button } from "@/components/ui/Button";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { ConvexStoreInitializer } from "@/components/ConvexStoreInitializer";
 import { StatusProvider } from "@/contexts/StatusContext";
+import { PrimaryNav } from "@/components/PrimaryNav";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -30,44 +26,31 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} antialiased bg-[var(--mv-bg)] text-[var(--mv-text)]`}
       >
         <ConvexClientProvider>
           <ConvexStoreInitializer />
           <StatusProvider>
-            <div className="min-h-screen bg-slate-50">
-            <nav className="border-b border-slate-200 bg-white">
-              <div className="max-w-5xl mx-auto px-4 py-3">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <Link href="/" className="flex items-center">
-                    <span className="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-500 bg-clip-text text-transparent text-xl font-semibold">
-                      Memvella
-                    </span>
+            <div className="min-h-screen bg-[var(--mv-bg)]">
+              <header className="border-b border-[var(--mv-border)] bg-[var(--mv-bg)]/95 backdrop-blur-sm">
+                <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-4 px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
+                  <Link
+                    href="/"
+                    className="flex items-center gap-3 text-left no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+                    aria-label="Memvella home"
+                  >
+                    <div>
+                      <p className="mv-logo-text text-2xl font-semibold tracking-tight">Memvella</p>
+                      <p className="text-lg text-[var(--mv-text-muted)]">Calm memory companion</p>
+                    </div>
                   </Link>
-                  <div className="flex flex-col gap-2 w-full sm:flex-row sm:gap-3 sm:w-auto">
-                    <Link href="/" className="w-full sm:w-auto">
-                      <Button variant="secondary" className="text-base px-4 py-2 min-h-[44px] w-full sm:w-auto">
-                        Home
-                      </Button>
-                    </Link>
-                    <Link href="/save" className="w-full sm:w-auto">
-                      <Button variant="secondary" className="text-base px-4 py-2 min-h-[44px] w-full sm:w-auto">
-                        Save Memory
-                      </Button>
-                    </Link>
-                    <Link href="/timeline" className="w-full sm:w-auto">
-                      <Button variant="secondary" className="text-base px-4 py-2 min-h-[44px] w-full sm:w-auto">
-                        Timeline
-                      </Button>
-                    </Link>
-                  </div>
+                  <PrimaryNav />
                 </div>
-              </div>
-            </nav>
-            <main className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-10 py-10">
-              {children}
-            </main>
-          </div>
+              </header>
+              <main className="mx-auto w-full max-w-[960px] px-6 py-12 sm:px-8 lg:px-10">
+                {children}
+              </main>
+            </div>
           </StatusProvider>
         </ConvexClientProvider>
       </body>

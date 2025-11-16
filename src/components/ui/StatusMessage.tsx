@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, ReactNode } from 'react';
+import { useEffect } from 'react';
 
 interface StatusMessageProps {
   message: string | null;
@@ -17,36 +17,27 @@ export function StatusMessage({
   autoDismiss = false,
   autoDismissDelay = 5000,
 }: StatusMessageProps) {
-  const [isVisible, setIsVisible] = useState(false);
-
   useEffect(() => {
-    if (message) {
-      setIsVisible(true);
-      if (autoDismiss && onDismiss) {
-        const timer = setTimeout(() => {
-          setIsVisible(false);
-          setTimeout(() => onDismiss(), 300); // Wait for fade out
-        }, autoDismissDelay);
-        return () => clearTimeout(timer);
-      }
-    } else {
-      setIsVisible(false);
-    }
+    if (!message || !autoDismiss || !onDismiss) return;
+    const timer = setTimeout(() => {
+      onDismiss();
+    }, autoDismissDelay);
+    return () => clearTimeout(timer);
   }, [message, autoDismiss, autoDismissDelay, onDismiss]);
 
   if (!message) return null;
 
-  const bgColor = type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-rose-50 border-rose-200 text-rose-800';
-  const borderColor = type === 'success' ? 'border-green-200' : 'border-rose-200';
+  const styles =
+    type === 'success'
+      ? 'border-[#9cc9ad] bg-[#e6f3ec] text-[#1f4e32]'
+      : 'border-[#f0b7bf] bg-[#f9e3e6] text-[#6c2a36]';
 
   return (
     <div
       role="status"
       aria-live="polite"
       aria-atomic="true"
-      className={`p-4 border rounded-xl text-base transition-opacity duration-300 ${
-        isVisible ? 'opacity-100' : 'opacity-0'
-      } ${bgColor} ${borderColor}`}
+      className={`rounded-[18px] border px-5 py-4 text-lg font-semibold shadow-[var(--mv-shadow-soft)] ${styles}`}
     >
       {message}
     </div>

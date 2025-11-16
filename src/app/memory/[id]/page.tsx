@@ -157,34 +157,41 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   // Loading state: memory is undefined
   if (memory === undefined) {
     return (
-      <main className="min-h-screen bg-slate-50">
-        <div className="max-w-3xl mx-auto px-4 py-10">
-          <p className="text-base text-slate-700">Loading this memory…</p>
-        </div>
-      </main>
+      <div className="space-y-4 bg-[var(--mv-bg)]">
+        <p className="mv-section-label">Memory details</p>
+        <Card>
+          <div className="p-8 text-lg text-[var(--mv-primary)]">Loading this memory...</div>
+        </Card>
+      </div>
     );
   }
 
   // Not found state: memory is null or falsy after loading
   if (memory === null || !memory) {
     return (
-      <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-        <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-2 inline-block">
-          ← Back to Your Memories
+      <div className="space-y-6 bg-[var(--mv-bg)]">
+        <Link
+          href="/timeline"
+          className="inline-flex items-center gap-2 text-lg font-semibold text-[var(--mv-primary)] no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+        >
+          ← Back to your memories
         </Link>
         <Card>
-          <div className="text-center py-16 space-y-6">
-            <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
-              We couldn't find this memory.
+          <div className="space-y-5 text-center">
+            <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)]">
+              We couldn&apos;t find this memory.
             </h1>
-            <Link href="/timeline">
-              <Button variant="primary" aria-label="View all memories in timeline" className="min-w-[200px]">
-                ← Back to Your Memories
-              </Button>
-            </Link>
+            <p className="text-lg text-[var(--mv-text-muted)]">
+              It may have been removed or the link expired. Please return to your timeline.
+            </p>
+            <Button asChild aria-label="View all memories in timeline">
+              <Link href="/timeline" className="no-underline">
+                Back to your memories
+              </Link>
+            </Button>
           </div>
         </Card>
-      </main>
+      </div>
     );
   }
 
@@ -198,99 +205,88 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
     });
   };
 
+  const toneSelectClasses =
+    'w-full rounded-[18px] border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-lg text-[var(--mv-text)] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] cursor-pointer';
+
   return (
-    <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+    <div className="space-y-8 bg-[var(--mv-bg)]">
       {showSuccess && (
-        <Card className="bg-green-50 border-2 border-green-200">
-          <div className="text-center py-4">
-            <p className="text-base font-semibold text-green-800" role="alert">
-              Memory updated successfully!
-            </p>
+        <Card className="border border-[var(--mv-border-strong)] bg-[var(--mv-card)]">
+          <div className="text-center text-lg font-semibold text-[var(--mv-primary)]" role="alert">
+            Memory updated successfully.
           </div>
         </Card>
       )}
-      
-      <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-2 inline-block">
-        ← Back to Your Memories
+
+      <Link
+        href="/timeline"
+        className="inline-flex items-center gap-2 text-lg font-semibold text-[var(--mv-primary)] no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+      >
+        ← Back to your memories
       </Link>
-      
-      <div className="flex flex-col gap-4 max-w-md mb-6">
-        <Button
-          variant="primary"
-          onClick={() => router.push(`/memory/${memory.id}/edit`)}
-          aria-label="Edit this memory"
-          className="w-full min-w-[200px]"
-        >
-          Edit This Memory
-        </Button>
-        <div className="flex flex-col gap-3">
-          <Button
-            variant="secondary"
-            onClick={() => router.push('/timeline')}
-            aria-label="Go back to your memories"
-            className="w-full min-w-[200px] font-normal"
-          >
-            ← Back to Your Memories
+
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button asChild variant="secondary" className="w-full sm:w-auto">
+            <Link href={`/memory/${memory.id}/edit`} className="no-underline">
+              Edit this memory
+            </Link>
           </Button>
-          <Button
-            variant="danger"
-            onClick={handleDeleteClick}
-            disabled={isDeleting}
-            aria-label={isDeleting ? 'Deleting memory' : 'Delete this memory'}
-            className="w-full min-w-[200px]"
-          >
-            {isDeleting ? 'Deleting...' : 'Delete This Memory'}
+          <Button asChild variant="subtle" className="w-full sm:w-auto">
+            <Link href="/timeline" className="no-underline">
+              Timeline
+            </Link>
           </Button>
         </div>
+        <Button
+          variant="danger"
+          onClick={handleDeleteClick}
+          disabled={isDeleting}
+          aria-label={isDeleting ? 'Deleting memory' : 'Delete this memory'}
+          className="w-full text-base md:w-auto md:self-start"
+        >
+          {isDeleting ? 'Deleting...' : 'Delete this memory'}
+        </Button>
       </div>
 
       <Card>
         <div className="space-y-8">
-          {/* Single column layout: Date, Title, Importance */}
           <div className="space-y-3">
-            <div className="text-base text-slate-700">
+            <p className="text-base font-medium text-[var(--mv-text-muted)]">
               {formatDate(memory.date)}
-            </div>
-            <div className="flex items-start gap-3">
-              <h1 className="text-3xl md:text-4xl font-semibold text-slate-900 flex-1">
+            </p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <h1 className="text-[1.75rem] font-semibold text-[var(--mv-primary)]">
                 {memory.title}
               </h1>
-              <Badge variant={memory.importance} className="flex-shrink-0">
+              <Badge variant={memory.importance} className="capitalize">
                 {memory.importance}
               </Badge>
             </div>
           </div>
 
           {memory.people.length > 0 && (
-            <div className="space-y-3">
-              <p className="text-lg font-semibold text-slate-800">
-                People
-              </p>
-              <p className="text-base text-slate-900">
-                {memory.people.join(', ')}
-              </p>
+            <div className="space-y-2">
+              <p className="text-lg font-semibold text-[var(--mv-primary)]">People</p>
+              <p className="text-lg text-[var(--mv-text)]">{memory.people.join(', ')}</p>
             </div>
           )}
 
           <div className="space-y-3">
-            <p className="text-lg font-semibold text-slate-800">
-              Description
-            </p>
-            <p className="text-base text-slate-900 whitespace-pre-wrap leading-relaxed">
+            <p className="text-lg font-semibold text-[var(--mv-primary)]">Description</p>
+            <p className="whitespace-pre-wrap text-lg leading-relaxed text-[var(--mv-text)]">
               {memory.description}
             </p>
           </div>
         </div>
       </Card>
 
-      <Card className="bg-blue-50 border-2 border-blue-200">
+      <Card className="border-[var(--mv-border-strong)] bg-[var(--mv-card)]">
         <div className="space-y-6">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-900">
-              Cue Card
-            </h2>
+            <h2 className="text-[1.5rem] font-semibold text-[var(--mv-primary)]">Cue card</h2>
             {cueCardTone && (
-              <p className="text-sm text-slate-500 mt-1">
+              <p className="mt-1 text-lg text-[var(--mv-text-muted)]">
                 Generated in {cueCardTone} tone
               </p>
             )}
@@ -298,14 +294,14 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
 
           <div className="space-y-3">
             <div>
-              <label htmlFor="tone-selector" className="block text-base text-slate-700 mb-2">
+              <label htmlFor="tone-selector" className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]">
                 Tone
               </label>
               <select
                 id="tone-selector"
                 value={selectedTone}
                 onChange={(e) => setSelectedTone(e.target.value as CueCardTone)}
-                className="w-full rounded-md border border-slate-300 min-h-[44px] px-3 py-2 text-base text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+                className={toneSelectClasses}
               >
                 <option value="gentle">gentle</option>
                 <option value="uplifting">uplifting</option>
@@ -320,25 +316,21 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
               className="w-full"
               aria-label="Generate cue card"
             >
-              {isLoadingCueCard ? 'Generating...' : 'Generate Cue Card'}
+              {isLoadingCueCard ? 'Generating...' : 'Generate cue card'}
             </Button>
           </div>
 
-          <div>
+          <div className="rounded-2xl bg-white/90 p-5 shadow-inner">
             {isLoadingCueCard ? (
-              <p className="text-base text-slate-700 italic">
-                Generating cue card…
+              <p className="text-lg font-semibold text-[var(--mv-primary)]">
+                Generating your cue card...
               </p>
             ) : cueCard ? (
-              <p className="text-base text-slate-800 leading-relaxed">
-                {cueCard}
-              </p>
+              <p className="text-lg leading-relaxed text-[var(--mv-text)]">{cueCard}</p>
             ) : (
-              <div className="space-y-2">
-                <p className="text-base text-slate-700">
-                  No cue card yet. Choose a tone and tap 'Generate Cue Card' to create one.
-                </p>
-              </div>
+              <p className="text-lg text-[var(--mv-text-muted)]">
+                No cue card yet. Choose a tone and tap the Generate cue card button for a gentle prompt.
+              </p>
             )}
           </div>
         </div>
@@ -353,9 +345,9 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
         onConfirm={handleDeleteConfirm}
         variant="destructive"
       >
-        Are you sure you want to delete this memory? You won't be able to get it back.
+        Are you sure you want to delete this memory? You will not be able to get it back.
       </Dialog>
-    </main>
+    </div>
   );
 }
 

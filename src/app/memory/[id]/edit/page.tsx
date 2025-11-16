@@ -66,6 +66,14 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
     importance: 'medium' as Importance,
     people: '',
   });
+  const baseFieldClasses =
+    'w-full rounded-2xl border bg-white/95 px-4 py-3 text-base text-[var(--mv-text-dark)] shadow-sm transition-colors focus-visible:outline-none placeholder:text-[var(--mv-text-dark)]/45';
+  const safeFieldClasses =
+    'border-[var(--mv-border)] focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)]';
+  const errorFieldClasses =
+    'border-[#b42318] focus-visible:ring-2 focus-visible:ring-[#b42318]';
+  const getFieldClasses = (hasError?: boolean) =>
+    `${baseFieldClasses} ${hasError ? errorFieldClasses : safeFieldClasses}`;
 
   // Autosave
   const { lastSaved, clearDraft, loadDraft } = useAutosave(formData, {
@@ -196,62 +204,81 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
   // Loading state: memory is undefined
   if (memory === undefined) {
     return (
-      <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-        <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-2 inline-block">
-          ← Back to Your Memories
+      <div className="space-y-6">
+        <Link
+          href="/timeline"
+          className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+        >
+          ← Back to your memories
         </Link>
-        <h1 className="text-3xl md:text-4xl font-semibold mb-6 text-slate-900">
-          Edit This Memory
+        <h1 className="text-3xl md:text-4xl font-semibold text-[var(--mv-primary)]">
+          Edit this memory
         </h1>
         <Card>
-          <div className="text-center py-16">
-            <p className="text-base text-slate-700">Loading this memory…</p>
+          <div className="p-10 text-center text-base text-[var(--mv-primary)]">
+            Loading this memory…
           </div>
         </Card>
-      </main>
+      </div>
     );
   }
 
   // Not found state: memory is null or falsy after loading
   if (memory === null || !memory) {
     return (
-      <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-        <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-2 inline-block">
-          ← Back to Your Memories
+      <div className="space-y-6">
+        <Link
+          href="/timeline"
+          className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+        >
+          ← Back to your memories
         </Link>
-        <h1 className="text-3xl md:text-4xl font-semibold mb-6 text-slate-900">
-          Edit This Memory
+        <h1 className="text-3xl md:text-4xl font-semibold text-[var(--mv-primary)]">
+          Edit this memory
         </h1>
         <Card>
-          <div className="text-center py-16 space-y-6">
-            <h2 className="text-3xl md:text-4xl font-semibold text-slate-900">
-              We couldn't find this memory.
+          <div className="space-y-4 text-center">
+            <h2 className="text-3xl font-semibold text-[var(--mv-primary)]">
+              We couldn’t find this memory.
             </h2>
-            <Link href="/timeline">
-              <Button variant="primary" aria-label="View all memories in timeline" className="min-w-[200px]">
-                ← Back to Your Memories
-              </Button>
-            </Link>
+            <p className="text-base text-[var(--mv-text-dark)]/75">
+              It may have been removed or the link is incomplete.
+            </p>
+            <Button asChild aria-label="View all memories in timeline">
+              <Link href="/timeline">Back to your memories</Link>
+            </Button>
           </div>
         </Card>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-      <Link href="/timeline" className="text-base text-slate-700 hover:text-slate-900 mb-2 inline-block">
-        ← Back to Your Memories
+    <div className="space-y-8">
+      <Link
+        href="/timeline"
+        className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+      >
+        ← Back to your memories
       </Link>
-      <h1 className="text-3xl md:text-4xl font-semibold mb-6 text-slate-900">
-        Edit This Memory
-      </h1>
+      <div className="space-y-3">
+        <h1 className="text-3xl md:text-4xl font-semibold text-[var(--mv-primary)]">
+          Edit this memory
+        </h1>
+        <p className="text-base text-[var(--mv-text-dark)]/75">
+          Update the context, adjust the importance, or correct any details. Changes are saved to the
+          timeline immediately.
+        </p>
+      </div>
 
       <Card>
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           <div>
-            <label htmlFor="title" className="block text-base font-medium text-slate-800 mb-3">
-              Memory Title <span className="text-red-600" aria-label="required">*</span>
+            <label
+              htmlFor="title"
+              className="mb-2 block text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)]"
+            >
+              Memory title <span className="text-[#b42318]" aria-label="required">*</span>
             </label>
             <input
               type="text"
@@ -262,23 +289,22 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               onBlur={() => handleBlur('title')}
               aria-invalid={touched.title && !!errors.title}
               aria-describedby={touched.title && errors.title ? 'title-error' : undefined}
-              className={`w-full px-3.5 py-2.5 text-base border rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 min-h-[44px] ${
-                touched.title && errors.title
-                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                  : 'border-slate-300 focus:ring-blue-500 focus:border-blue-500'
-              }`}
+              className={getFieldClasses(touched.title && !!errors.title)}
               placeholder="What happened?"
             />
             {touched.title && errors.title && (
-              <p id="title-error" className="mt-2 text-base text-red-600 font-medium" role="alert">
+              <p id="title-error" className="mt-2 text-sm font-medium text-[#b42318]" role="alert">
                 {errors.title}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-base font-medium text-slate-800 mb-3">
-              Describe this memory in your own words <span className="text-red-600" aria-label="required">*</span>
+            <label
+              htmlFor="description"
+              className="mb-2 block text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)]"
+            >
+              Describe this memory <span className="text-[#b42318]" aria-label="required">*</span>
             </label>
             <textarea
               id="description"
@@ -293,25 +319,28 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
                   ? 'description-error description-help'
                   : 'description-help'
               }
-              className={`w-full px-3.5 py-2.5 text-base border rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 resize-none leading-relaxed ${
-                touched.description && errors.description
-                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                  : 'border-slate-300 focus:ring-blue-500 focus:border-blue-500'
-              }`}
+              className={`${getFieldClasses(touched.description && !!errors.description)} resize-none leading-relaxed`}
               placeholder="Tell me about this memory..."
             />
             {touched.description && errors.description && (
-              <p id="description-error" className="mt-2 text-base text-red-600 font-medium" role="alert">
+              <p
+                id="description-error"
+                className="mt-2 text-sm font-medium text-[#b42318]"
+                role="alert"
+              >
                 {errors.description}
               </p>
             )}
-            <p id="description-help" className="mt-2 text-base text-slate-700">
-              You don't need to write a lot. A few sentences is enough.
+            <p id="description-help" className="mt-2 text-sm text-[var(--mv-text-dark)]/65">
+              A few sentences are enough. You can return to expand anytime.
             </p>
           </div>
 
           <div>
-            <label htmlFor="date" className="block text-base font-medium text-slate-800 mb-3">
+            <label
+              htmlFor="date"
+              className="mb-2 block text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)]"
+            >
               When did this happen?
             </label>
             <input
@@ -327,31 +356,30 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
                   : 'date-help'
               }
               max={new Date().toISOString().split('T')[0]}
-              className={`w-full px-3.5 py-2.5 text-base border rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 cursor-text min-h-[44px] ${
-                touched.date && errors.date
-                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                  : 'border-slate-300 focus:ring-blue-500 focus:border-blue-500'
-              }`}
+              className={`${getFieldClasses(touched.date && !!errors.date)} cursor-text`}
             />
             {touched.date && errors.date && (
-              <p id="date-error" className="mt-2 text-base text-red-600 font-medium" role="alert">
+              <p id="date-error" className="mt-2 text-sm font-medium text-[#b42318]" role="alert">
                 {errors.date}
               </p>
             )}
-            <p id="date-help" className="mt-2 text-base text-slate-700">
+            <p id="date-help" className="mt-2 text-sm text-[var(--mv-text-dark)]/65">
               Approximate dates are okay.
             </p>
           </div>
 
           <div>
-            <label htmlFor="importance" className="block text-base font-medium text-slate-800 mb-3">
+            <label
+              htmlFor="importance"
+              className="mb-2 block text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)]"
+            >
               Importance
             </label>
             <select
               id="importance"
               value={formData.importance}
               onChange={(e) => handleChange('importance', e.target.value as Importance)}
-              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]"
+              className={`${baseFieldClasses} ${safeFieldClasses} cursor-pointer`}
               aria-label="Select importance level"
             >
               <option value="low">Low</option>
@@ -361,7 +389,10 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
           </div>
 
           <div>
-            <label htmlFor="people" className="block text-base font-medium text-slate-800 mb-3">
+            <label
+              htmlFor="people"
+              className="mb-2 block text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)]"
+            >
               Who was involved?
             </label>
             <input
@@ -370,11 +401,11 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               value={formData.people}
               onChange={(e) => handleChange('people', e.target.value)}
               aria-describedby="people-help"
-              className="w-full px-3.5 py-2.5 text-base border border-slate-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]"
+              className={`${baseFieldClasses} ${safeFieldClasses}`}
               placeholder="Alice, Bob, Charlie"
               aria-label="People involved in this memory, separated by commas"
             />
-            <p id="people-help" className="mt-2 text-base text-slate-700">
+            <p id="people-help" className="mt-2 text-sm text-[var(--mv-text-dark)]/65">
               Separate names with commas. This is optional.
             </p>
           </div>
@@ -385,13 +416,15 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               variant="primary"
               disabled={isSubmitting || !isValid}
               className="w-full min-w-[200px]"
-              aria-label={isSubmitting ? 'Updating memory' : isValid ? 'Update memory' : 'Update memory (form is incomplete)'}
+              aria-label={
+                isSubmitting ? 'Updating memory' : isValid ? 'Update memory' : 'Complete the form to update this memory'
+              }
             >
-              {isSubmitting ? 'Updating...' : 'Update This Memory'}
+              {isSubmitting ? 'Updating…' : 'Update this memory'}
             </Button>
             <Button
               type="button"
-              variant="secondary"
+              variant="subtle"
               onClick={() => router.push(`/memory/${memory.id}`)}
               className="w-full min-w-[200px]"
               aria-label="Cancel and go back to memory detail"
@@ -399,14 +432,14 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               Cancel
             </Button>
             {lastSaved && (
-              <p className="text-sm text-slate-600 text-center mt-2" aria-live="polite">
+              <p className="mt-2 text-center text-sm text-[var(--mv-text-dark)]/65" aria-live="polite">
                 Draft saved
               </p>
             )}
           </div>
         </form>
       </Card>
-    </main>
+    </div>
   );
 }
 

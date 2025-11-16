@@ -100,26 +100,26 @@ export function Dialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 text-[var(--mv-text)]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="dialog-title"
       onClick={handleBackdropClick}
     >
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+      <div className="fixed inset-0 bg-[rgba(17,22,52,0.6)] backdrop-blur-sm" aria-hidden="true" />
 
       {/* Dialog */}
       <div
         ref={dialogRef}
-        className="relative bg-white rounded-xl shadow-lg max-w-md w-full p-6 space-y-6 z-10"
+        className="relative z-10 w-full max-w-md space-y-6 rounded-[28px] border border-[var(--mv-border)] bg-[var(--mv-card)] p-8 shadow-[var(--mv-shadow-soft)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="dialog-title" className="text-2xl font-semibold text-slate-900">
+        <h2 id="dialog-title" className="text-[1.8rem] font-semibold tracking-tight text-[var(--mv-primary)]">
           {title}
         </h2>
 
-        <div className="text-base text-slate-700 leading-relaxed">
+        <div className="text-lg leading-relaxed text-[var(--mv-text)]">
           {children}
         </div>
 
@@ -132,11 +132,7 @@ export function Dialog({
           >
             {confirmLabel}
           </Button>
-          <Button
-            variant="secondary"
-            onClick={onClose}
-            className="w-full min-w-[200px]"
-          >
+          <Button variant="subtle" onClick={onClose} className="w-full min-w-[200px]">
             {cancelLabel}
           </Button>
         </div>

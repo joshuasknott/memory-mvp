@@ -11,84 +11,69 @@ export default function Home() {
   const memoryCount = memories ? memories.length : 0;
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-10 space-y-10">
-      <div className="text-center space-y-6">
-        <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-slate-900">
-          Welcome to Memvella
+    <div className="space-y-12 bg-[var(--mv-bg)]">
+      <section className="space-y-5">
+        <p className="mv-section-label">Gentle beta</p>
+        <h1 className="text-[2rem] font-semibold leading-snug text-[var(--mv-primary)] sm:text-[2.25rem]">
+          A calm space to save what matters.
         </h1>
-        <p className="text-lg text-slate-700 max-w-2xl mx-auto leading-relaxed">
-          A lightweight memory companion prototype. Capture your moments, organize them in a timeline, 
-          and revisit them with simple cue cards.
+        <p className="max-w-2xl text-lg text-[var(--mv-text-muted)]">
+          Memvella helps you note memories without pressure. Keep them organised and revisit them
+          when you need grounding.
         </p>
-      </div>
+        <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
+          <Button asChild>
+            <Link href="/save" className="no-underline">
+              Save a memory
+            </Link>
+          </Button>
+          <Button asChild variant="secondary">
+            <Link href="/timeline" className="no-underline">
+              Open your timeline
+            </Link>
+          </Button>
+        </div>
+      </section>
 
-      {memories === undefined ? (
-        <Card>
-          <div className="text-center py-16">
-            <p className="text-base text-slate-700">Loading your memories…</p>
-          </div>
-        </Card>
-      ) : memoryCount === 0 ? (
-        <Card>
-          <div className="text-center py-16 space-y-8">
-            <div className="space-y-4">
-              <h2 className="text-3xl md:text-4xl font-semibold text-slate-900">
-                No memories yet
-              </h2>
-              <p className="text-base text-slate-700 max-w-md mx-auto leading-relaxed">
-                Start capturing your moments by saving your first memory. You can add details, set importance, 
-                and organize them in your timeline.
+      <section>
+        {memories === undefined ? (
+          <Card className="p-8">
+            <div className="space-y-2">
+              <p className="text-lg font-semibold text-[var(--mv-primary)]">
+                Loading your memories...
               </p>
-            </div>
-            <div className="flex flex-col gap-4 max-w-md mx-auto">
-              <Link href="/save">
-                <Button variant="primary" className="w-full min-w-[200px]">
-                  Save Your First Memory
-                </Button>
-              </Link>
-              <p className="text-base text-slate-700 mt-2">
-                You can start with just one memory. It doesn't have to be perfect.
-              </p>
-              <Link href="/check-in">
-                <Button variant="secondary" className="w-full min-w-[200px]">
-                  Daily Check-In
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </Card>
-      ) : (
-        <>
-          <Card>
-            <div className="text-center py-8">
-              <p className="text-lg text-slate-700">
-                You currently have <span className="font-bold text-slate-900 text-2xl">{memoryCount}</span> {memoryCount === 1 ? 'memory' : 'memories'}.
+              <p className="text-lg text-[var(--mv-text-muted)]">
+                This usually takes just a moment.
               </p>
             </div>
           </Card>
-
-          <div className="flex flex-col gap-4 max-w-md mx-auto">
-            <Link href="/timeline">
-              <Button variant="primary" className="w-full min-w-[200px]">
-                View Your Memories
-              </Button>
-            </Link>
-            <div className="flex flex-col gap-3 pt-2">
-              <Link href="/save">
-                <Button variant="secondary" className="w-full min-w-[200px]">
-                  Save a New Memory
+        ) : (
+          <Card className="p-8">
+            <div className="space-y-4">
+              <h2 className="text-[1.75rem] font-semibold text-[var(--mv-primary)]">
+                You currently have {memoryCount}{' '}
+                {memoryCount === 1 ? 'memory' : 'memories'}.
+              </h2>
+              <p className="text-lg text-[var(--mv-text-muted)]">
+                Revisit one today or add something recent while it&apos;s still vivid.
+              </p>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <Button asChild variant="primary" className="w-full sm:w-auto">
+                  <Link href="/timeline" className="no-underline">
+                    View your memories
+                  </Link>
                 </Button>
-              </Link>
-              <Link href="/check-in">
-                <Button variant="secondary" className="w-full min-w-[200px]">
-                  Daily Check-In
+                <Button asChild variant="secondary" className="w-full sm:w-auto">
+                  <Link href="/save" className="no-underline">
+                    Save something new
+                  </Link>
                 </Button>
-              </Link>
+              </div>
             </div>
-          </div>
-        </>
-      )}
-    </main>
+          </Card>
+        )}
+      </section>
+    </div>
   );
 }
 

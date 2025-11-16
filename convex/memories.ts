@@ -50,8 +50,18 @@ export const searchMemories = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const term = args.term.trim().toLowerCase();
-    if (!term) {
+    const raw = args.term.trim().toLowerCase();
+    if (!raw) {
+      return [];
+    }
+
+    // Split into tokens and filter out short words (length < 3) to avoid noise
+    const tokens = raw
+      .split(/\s+/)
+      .map((t) => t.trim())
+      .filter((t) => t.length >= 3);
+
+    if (tokens.length === 0) {
       return [];
     }
 
@@ -59,15 +69,17 @@ export const searchMemories = query({
     const all = await ctx.db.query("memories").collect();
 
     const matches = all.filter((memory) => {
-      const title = memory.title.toLowerCase();
-      const description = memory.description.toLowerCase();
-      const people = (memory.people ?? []).map((p) => p.toLowerCase());
+      // Build combined text from title, description, and people
+      const combined = [
+        memory.title ?? '',
+        memory.description ?? '',
+        ...(memory.people ?? []),
+      ]
+        .join(' ')
+        .toLowerCase();
 
-      return (
-        title.includes(term) ||
-        description.includes(term) ||
-        people.some((p) => p.includes(term))
-      );
+      // Match if any token is contained in the combined text
+      return tokens.some((token) => combined.includes(token));
     });
 
     const limit = args.limit ?? 5;

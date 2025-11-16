@@ -273,6 +273,39 @@ export function VoiceAssistantPanel() {
         }
 
         const data = (await res.json()) as AssistantResponse;
+        
+        // For auto mode, if assistant wants to recall, use /api/ask-memvella with search results
+        if (mode === 'auto' && data.action === 'recall_memory') {
+          // Build simplified memories array from search results
+          const memories = recallSearchResults.map((mem) => ({
+            id: mem._id,
+            title: mem.title,
+            date: mem.date || null,
+            description: mem.description,
+            people: mem.people,
+            importance: mem.importance || null,
+          }));
+
+          const askRes = await fetch('/api/ask-memvella', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              question: trimmed,
+              memories,
+            }),
+          });
+
+          if (askRes.ok) {
+            const askData = (await askRes.json()) as AskMemvellaResponse;
+            setAssistantText(askData.answer);
+            setPendingMemory(null);
+            setIsProcessing(false);
+            return;
+          }
+          // If /api/ask-memvella fails, fall back to original assistant response
+        }
+        
+        // Default behavior: use assistant speech
         setAssistantText(data.assistantSpeech);
         
         // Handle pending memory if assistant suggests creating one

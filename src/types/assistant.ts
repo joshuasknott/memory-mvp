@@ -26,3 +26,8 @@ export interface AssistantResponse {
   safetyFlag?: AssistantSafetyFlag;
 }
 
+export interface AskMemvellaResponse {
+  answer: string;
+  usedMemoryIds: string[];
+}
+

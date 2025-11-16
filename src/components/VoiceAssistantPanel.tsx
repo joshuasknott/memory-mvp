@@ -6,7 +6,8 @@ import { api } from '../../convex/_generated/api';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import type { AssistantMode, AssistantResponse, AssistantSuggestedMemory } from '@/types/assistant';
+import { useMemorySearch } from '@/hooks/useMemorySearch';
+import type { AssistantMode, AssistantResponse, AssistantSuggestedMemory, AskMemvellaResponse } from '@/types/assistant';
 
 type Mode = AssistantMode;
 
@@ -37,6 +38,12 @@ export function VoiceAssistantPanel() {
   const [speechSupported, setSpeechSupported] = useState(true);
   
   const createMemory = useMutation(api.memories.createMemory);
+
+  // Use memory search for recall mode
+  const {
+    results: recallSearchResults,
+    isLoading: isRecallSearchLoading,
+  } = useMemorySearch(transcript, 8);
 
   // Setup speech recognition instance (created once)
   useEffect(() => {
@@ -220,26 +227,60 @@ export function VoiceAssistantPanel() {
     setErrorText(null);
 
     try {
-      const res = await fetch('/api/assistant', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode, transcript: trimmed }),
-      });
+      // Branch for recall mode: use /api/ask-memvella with memory search
+      if (mode === 'recall') {
+        // Build simplified memories array from search results
+        const memories = recallSearchResults.map((mem) => ({
+          id: mem._id,
+          title: mem.title,
+          date: mem.date || null,
+          description: mem.description,
+          people: mem.people,
+          importance: mem.importance || null,
+        }));
 
-      if (!res.ok) {
-        setErrorText("Something went wrong. Please try again in a moment.");
-        setIsProcessing(false);
-        return;
-      }
+        const res = await fetch('/api/ask-memvella', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question: trimmed,
+            memories,
+          }),
+        });
 
-      const data = (await res.json()) as AssistantResponse;
-      setAssistantText(data.assistantSpeech);
-      
-      // Handle pending memory if assistant suggests creating one
-      if (data.action === 'create_memory' && data.memory) {
-        setPendingMemory(data.memory);
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ error: 'Something went wrong.' }));
+          setErrorText(errorData.error || "Something went wrong. Please try again in a moment.");
+          setIsProcessing(false);
+          return;
+        }
+
+        const data = (await res.json()) as AskMemvellaResponse;
+        setAssistantText(data.answer);
+        setPendingMemory(null); // recall mode does not auto-create memories
       } else {
-        setPendingMemory(null);
+        // All other modes (auto, add, ground) use /api/assistant
+        const res = await fetch('/api/assistant', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode, transcript: trimmed }),
+        });
+
+        if (!res.ok) {
+          setErrorText("Something went wrong. Please try again in a moment.");
+          setIsProcessing(false);
+          return;
+        }
+
+        const data = (await res.json()) as AssistantResponse;
+        setAssistantText(data.assistantSpeech);
+        
+        // Handle pending memory if assistant suggests creating one
+        if (data.action === 'create_memory' && data.memory) {
+          setPendingMemory(data.memory);
+        } else {
+          setPendingMemory(null);
+        }
       }
     } catch (error) {
       console.error('Error calling assistant', error);
@@ -288,6 +329,11 @@ export function VoiceAssistantPanel() {
                   <p className="text-lg leading-relaxed text-[var(--mv-text)]">
                     {assistantText}
                   </p>
+                  {mode === 'recall' && isRecallSearchLoading && (
+                    <p className="text-sm text-[var(--mv-text-muted)]">
+                      (Looking through your memories…)
+                    </p>
+                  )}
                 </div>
               )}
               {pendingMemory && (

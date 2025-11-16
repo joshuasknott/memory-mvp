@@ -31,7 +31,7 @@ export default function HomeV2Page() {
           {/* Conversation / assistant section */}
           <section className="mt-2 sm:mt-3 flex-1">
             <div className="h-full">
-              <VoiceAssistantPanel />
+              <VoiceAssistantPanel variant="compact" />
             </div>
           </section>
         </main>

@@ -26,7 +26,11 @@ const MODE_MESSAGES: Record<Mode, string> = {
   ground: "We're in Grounding mode. I can help you feel oriented and calm.",
 };
 
-export function VoiceAssistantPanel() {
+interface VoiceAssistantPanelProps {
+  variant?: 'default' | 'compact';
+}
+
+export function VoiceAssistantPanel({ variant = 'default' }: VoiceAssistantPanelProps) {
   const [mode, setMode] = useState<Mode>('auto');
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -383,12 +387,13 @@ export function VoiceAssistantPanel() {
 
   const hasContent = assistantText || transcript;
 
-  return (
-    <Card
-      role="group"
-      aria-labelledby="voice-assistant-heading"
-      className="p-5 sm:p-6"
-    >
+  if (variant === 'default') {
+    return (
+      <Card
+        role="group"
+        aria-labelledby="voice-assistant-heading"
+        className="p-5 sm:p-6"
+      >
       <section
         aria-labelledby="voice-assistant-heading"
         aria-describedby="voice-assistant-description"
@@ -613,6 +618,222 @@ export function VoiceAssistantPanel() {
         )}
       </section>
     </Card>
+    );
+  }
+
+  // Compact variant for the voice-first home (home-v2)
+  return (
+    <div
+      role="group"
+      aria-labelledby="voice-assistant-heading"
+      className="flex flex-col gap-4 sm:gap-5 rounded-2xl border border-[var(--mv-border-soft)] bg-[var(--mv-card)] p-4 sm:p-5"
+    >
+      {/* Header */}
+      <div className="space-y-1">
+        <h2
+          id="voice-assistant-heading"
+          className="text-lg font-semibold text-[var(--mv-primary)] sm:text-xl"
+        >
+          Memvella voice companion
+        </h2>
+        <p
+          id="voice-assistant-description"
+          className="text-sm text-[var(--mv-text-muted)]"
+        >
+          Talk to me to save memories, remember things, or feel more grounded.
+        </p>
+      </div>
+
+      {/* Conversation area */}
+      <div className="flex-1 min-h-[160px] space-y-3">
+        {hasContent ? (
+          <>
+            {assistantText && (
+              <div aria-live="polite" role="status" className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--mv-text-muted-strong)]">
+                  Assistant
+                </p>
+                <p className="text-base sm:text-lg leading-relaxed text-[var(--mv-text)]">
+                  {assistantText}
+                </p>
+
+                {usedRecallMemories.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs font-medium tracking-wide text-[var(--mv-text-muted)]">
+                      I looked at:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {usedRecallMemories.map((mem) => (
+                        <Link
+                          key={mem._id}
+                          href={`/memory/${mem._id}`}
+                          aria-label={`View memory: ${mem.title || 'Untitled memory'}`}
+                          className="inline-flex items-center gap-1 rounded-full border border-[var(--mv-border-soft)] bg-[var(--mv-card-soft, rgba(255,255,255,0.02))] px-3 py-1 text-xs text-[var(--mv-text-muted)] hover:border-[var(--mv-primary)] hover:text-[var(--mv-primary)]"
+                        >
+                          <span className="font-medium">
+                            {mem.title || 'Untitled memory'}
+                          </span>
+                          {mem.date && (
+                            <span className="opacity-70">
+                              {new Date(mem.date).toLocaleDateString()}
+                            </span>
+                          )}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {pendingMemory && (
+              <div className="rounded-lg bg-[var(--mv-card-soft)] p-3 space-y-2">
+                <p className="text-sm font-semibold text-[var(--mv-primary)]">
+                  Save this memory?
+                </p>
+                <div className="space-y-1">
+                  <p className="text-sm text-[var(--mv-text)]">
+                    {pendingMemory.title}
+                  </p>
+                  {pendingMemory.dateLabel && (
+                    <p className="text-xs text-[var(--mv-text-muted)]">
+                      When: {pendingMemory.dateLabel === 'not sure' ? 'not sure' : pendingMemory.dateLabel}
+                    </p>
+                  )}
+                  {pendingMemory.people && pendingMemory.people.length > 0 && (
+                    <p className="text-xs text-[var(--mv-text-muted)]">
+                      With: {pendingMemory.people.join(', ')}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-col gap-1.5 sm:flex-row">
+                  <Button
+                    variant="primary"
+                    onClick={handleSavePendingMemory}
+                    disabled={isProcessing}
+                    className="w-full sm:w-auto"
+                  >
+                    Save this memory
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setPendingMemory(null)}
+                    disabled={isProcessing}
+                    className="w-full sm:w-auto"
+                  >
+                    Dismiss
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {transcript && (
+              <div className="space-y-1">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--mv-text-muted-strong)]">
+                  You said
+                </p>
+                <p className="text-sm sm:text-base leading-relaxed text-[var(--mv-text)]">
+                  {transcript}
+                </p>
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="text-sm sm:text-base leading-relaxed text-[var(--mv-text-muted)]">
+            Tap the microphone and tell me about a moment you&apos;d like to remember.
+          </p>
+        )}
+      </div>
+
+      {/* Controls: big mic + basic actions */}
+      <div className="space-y-3">
+        <div className="flex flex-col items-center gap-2">
+          <button
+            type="button"
+            onClick={handleMicToggle}
+            aria-pressed={isListening}
+            aria-label={isListening ? 'Stop listening' : 'Start listening'}
+            className="h-16 w-16 rounded-full border border-[var(--mv-border-soft)] bg-[var(--mv-accent-soft)] text-xs font-medium flex items-center justify-center shadow-sm"
+          >
+            {isListening ? 'Listening…' : 'Tap to talk'}
+          </button>
+          <p
+            className="text-xs text-[var(--mv-text-muted)]"
+            aria-live="polite"
+            role="status"
+          >
+            {isListening ? 'Listening…' : 'Not listening'}
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Button
+            variant="secondary"
+            onClick={callAssistant}
+            disabled={isProcessing || !transcript.trim()}
+            className="w-full sm:w-auto"
+          >
+            {isProcessing ? 'Processing…' : 'Ask assistant'}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={handleClear}
+            className="w-full sm:w-auto"
+          >
+            Clear
+          </Button>
+        </div>
+
+        {/* Optional: keep mode selector and TTS toggle in a low-visual-weight row */}
+        <div className="flex flex-col gap-2 pt-1 text-xs text-[var(--mv-text-muted)]">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <label className="sr-only" htmlFor="voice-assistant-mode-compact">
+              Choose assistant mode
+            </label>
+            <select
+              id="voice-assistant-mode-compact"
+              value={mode}
+              onChange={handleModeSelect}
+              className="w-full sm:w-auto rounded-full border border-[var(--mv-border)] bg-[var(--mv-card-soft)] px-3 py-1.5 text-xs text-[var(--mv-text)] focus:outline-none focus:ring-2 focus:ring-[var(--mv-primary)]"
+            >
+              <option value="auto">Auto</option>
+              <option value="add">Add</option>
+              <option value="recall">Recall</option>
+              <option value="ground">Ground</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              id="tts-toggle-compact"
+              type="checkbox"
+              className="h-3.5 w-3.5 rounded border-[var(--mv-border-soft)]"
+              checked={ttsEnabled}
+              onChange={(e) => {
+                const enabled = e.target.checked;
+                setTtsEnabled(enabled);
+                if (typeof window !== 'undefined') {
+                  try {
+                    window.localStorage.setItem('memvella_tts_enabled', enabled ? 'on' : 'off');
+                  } catch (err) {
+                    console.error('Failed to persist TTS preference', err);
+                  }
+                }
+              }}
+            />
+            <label htmlFor="tts-toggle-compact" className="cursor-pointer select-none">
+              Read replies out loud
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Error */}
+      {errorText && (
+        <p className="text-xs text-[var(--mv-danger)]" role="alert">
+          {errorText}
+        </p>
+      )}
+    </div>
   );
 }
 

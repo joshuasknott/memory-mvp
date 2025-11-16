@@ -125,7 +125,7 @@ export default function TimelinePage() {
               Whenever you&apos;re ready
             </h2>
             <p className="text-lg text-[var(--mv-text-muted)]">
-              You can save your first memory and return to add more detail later.
+              When you save your first memory, it will appear here. You can always come back later to add more detail.
             </p>
             <Button asChild variant="secondary" className="w-full sm:w-auto">
               <Link href="/save" className="no-underline">

@@ -43,11 +43,19 @@ export default function SaveMemoryPage() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const trimmedTitle = formData.title.trim();
+    const trimmedDescription = formData.description.trim();
+
+    if (!trimmedTitle && !trimmedDescription) {
+      showStatusError('Please add a title or a short description before saving this memory.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       // Gather values from state
-      const { title, description, date, importance, people: peopleInput } = formData;
+      const { date, importance, people: peopleInput } = formData;
 
       // Convert peopleInput into an array of trimmed strings
       const people = peopleInput
@@ -57,8 +65,8 @@ export default function SaveMemoryPage() {
 
       // Call createMemory with exact args structure from convex/memories.ts
       await createMemory({
-        title,
-        description,
+        title: trimmedTitle,
+        description: trimmedDescription,
         date,
         importance,
         people,

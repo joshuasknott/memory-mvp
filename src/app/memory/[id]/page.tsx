@@ -86,6 +86,10 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   // Generate cue card function
   const handleGenerateCueCard = async () => {
     if (!memory) return;
+    if (!selectedTone) {
+      showError('Please choose a tone before generating a summary.');
+      return;
+    }
 
     setIsLoadingCueCard(true);
     const cacheKey = `cueCard_${memoryId}`;
@@ -128,7 +132,6 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
     } catch (error) {
       console.error('Error fetching cue card:', error);
       showError('Failed to generate memory summary. Please try again.');
-      setCueCard('');
     } finally {
       setIsLoadingCueCard(false);
     }

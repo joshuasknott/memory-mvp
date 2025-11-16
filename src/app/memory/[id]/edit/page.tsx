@@ -159,6 +159,13 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
     e.preventDefault();
     
     if (!memory) return;
+    const trimmedTitle = formData.title.trim();
+    const trimmedDescription = formData.description.trim();
+
+    if (!trimmedTitle && !trimmedDescription) {
+      showStatusError('Please add a title or a short description before updating this memory.');
+      return;
+    }
     
     // Mark all fields as touched
     setTouched({ title: true, description: true, date: true });

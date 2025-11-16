@@ -73,13 +73,26 @@ export default function Home() {
         ) : (
           <Card className="p-8">
             <div className="space-y-4">
-              <h2 className="text-[1.75rem] font-semibold text-[var(--mv-primary)]">
-                You currently have {memoryCount}{' '}
-                {memoryCount === 1 ? 'memory' : 'memories'}.
-              </h2>
-              <p className="mt-2 text-lg text-[var(--mv-text-muted)]">
-                You can look back at a saved memory, or add a new moment you&apos;d like to remember.
-              </p>
+              {memoryCount > 0 ? (
+                <>
+                  <h2 className="text-[1.75rem] font-semibold text-[var(--mv-primary)]">
+                    You currently have {memoryCount}{' '}
+                    {memoryCount === 1 ? 'memory' : 'memories'}.
+                  </h2>
+                  <p className="mt-2 text-lg text-[var(--mv-text-muted)]">
+                    You can look back at a saved memory, or add a new moment you&apos;d like to remember.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-[1.75rem] font-semibold text-[var(--mv-primary)]">
+                    No saved memories yet.
+                  </h2>
+                  <p className="mt-2 text-lg text-[var(--mv-text-muted)]">
+                    When you&apos;re ready, you can save your first memory and see it here.
+                  </p>
+                </>
+              )}
               <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <Button asChild variant="secondary" className="w-full sm:w-auto">
                   <Link href="/timeline" className="no-underline">

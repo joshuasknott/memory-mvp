@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -26,17 +26,113 @@ export function VoiceAssistantPanel() {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [assistantText, setAssistantText] = useState('');
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const isListeningRef = useRef(false);
+  const [speechSupported, setSpeechSupported] = useState(true);
+
+  // Setup speech recognition instance (created once)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const SpeechRecognition =
+      window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setSpeechSupported(false);
+      setAssistantText((current) =>
+        current ||
+          "Your device doesn't support voice capture yet. You can still use Memvella without it."
+      );
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-GB';
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let fullText = '';
+      for (let i = 0; i < event.results.length; i++) {
+        fullText += event.results[i][0].transcript;
+      }
+      setTranscript(fullText);
+    };
+
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      recognition.stop();
+      setIsListening(false);
+      isListeningRef.current = false;
+      setAssistantText(
+        "I couldn't hear you properly just now. You can try again in a moment."
+      );
+    };
+
+    recognition.onend = () => {
+      // If still listening, restart to keep listening continuously
+      if (isListeningRef.current && recognitionRef.current) {
+        try {
+          recognitionRef.current.start();
+        } catch (err) {
+          // Ignore errors from restart attempts
+        }
+      }
+    };
+
+    recognitionRef.current = recognition;
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+      }
+    };
+  }, []);
 
   const handleMicToggle = () => {
     const newListeningState = !isListening;
     setIsListening(newListeningState);
+    isListeningRef.current = newListeningState;
 
+    if (speechSupported === false) {
+      // If speech not supported, just update assistant text
+      if (newListeningState) {
+        setAssistantText("I'm listening. You can start speaking when you're ready.");
+      } else {
+        setAssistantText(
+          "I've stopped listening. Later, I'll use what you said to help with your memories."
+        );
+      }
+      return;
+    }
+
+    // Handle speech recognition
     if (newListeningState) {
-      setAssistantText("I'm listening. You can start speaking when you're ready.");
+      // Starting listening
+      if (recognitionRef.current) {
+        setTranscript('');
+        try {
+          recognitionRef.current.start();
+          setAssistantText("I'm listening. You can start speaking when you're ready.");
+        } catch (err) {
+          // If start fails, stop listening state
+          setIsListening(false);
+          isListeningRef.current = false;
+          setAssistantText(
+            "I couldn't start listening just now. Please try again in a moment."
+          );
+        }
+      }
     } else {
-      setAssistantText(
-        "I've stopped listening. Later, I'll use what you said to help with your memories."
-      );
+      // Stopping listening
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+        setAssistantText(
+          "I've stopped listening. Later, I'll use what you said to help with your memories."
+        );
+      }
     }
   };
 

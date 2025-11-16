@@ -239,11 +239,11 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
           </Button>
         </div>
         <Button
-          variant="danger"
+          variant="secondary"
           onClick={handleDeleteClick}
           disabled={isDeleting}
           aria-label={isDeleting ? 'Deleting memory' : 'Delete this memory'}
-          className="w-full text-base md:w-auto md:self-start"
+          className="w-full text-base text-[var(--mv-danger)] md:w-auto md:self-start"
         >
           {isDeleting ? 'Deleting...' : 'Delete this memory'}
         </Button>
@@ -316,7 +316,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
               </select>
             </div>
             <Button
-              variant="primary"
+              variant="secondary"
               onClick={handleGenerateCueCard}
               disabled={isLoadingCueCard}
               className="w-full"

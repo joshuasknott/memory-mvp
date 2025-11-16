@@ -127,7 +127,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
       sessionStorage.setItem(cacheKeySelectedTone, selectedTone);
     } catch (error) {
       console.error('Error fetching cue card:', error);
-      showError('Failed to generate cue card. Please try again.');
+      showError('Failed to generate memory summary. Please try again.');
       setCueCard('');
     } finally {
       setIsLoadingCueCard(false);
@@ -284,7 +284,13 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
       <Card className="border-[var(--mv-border-strong)] bg-[var(--mv-card)]">
         <div className="space-y-6">
           <div>
-            <h2 className="text-[1.5rem] font-semibold text-[var(--mv-primary)]">Cue card</h2>
+            <h2 className="text-[1.5rem] font-semibold text-[var(--mv-primary)]">
+              Memory summary (AI-generated)
+            </h2>
+            <p className="text-base text-[var(--mv-text-muted)]">
+              This is a gentle AI-written summary to help you recall this memory. Use it as a reminder, not a
+              replacement for your own words.
+            </p>
             {cueCardTone && (
               <p className="mt-1 text-lg text-[var(--mv-text-muted)]">
                 Generated in {cueCardTone} tone
@@ -314,22 +320,23 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
               onClick={handleGenerateCueCard}
               disabled={isLoadingCueCard}
               className="w-full"
-              aria-label="Generate cue card"
+              aria-label="Generate memory summary"
             >
-              {isLoadingCueCard ? 'Generating...' : 'Generate cue card'}
+              {isLoadingCueCard ? 'Generating...' : 'Generate memory summary'}
             </Button>
           </div>
 
           <div className="rounded-2xl bg-white/90 p-5 shadow-inner">
             {isLoadingCueCard ? (
               <p className="text-lg font-semibold text-[var(--mv-primary)]">
-                Generating your cue card...
+                Generating your memory summary...
               </p>
             ) : cueCard ? (
               <p className="text-lg leading-relaxed text-[var(--mv-text)]">{cueCard}</p>
             ) : (
               <p className="text-lg text-[var(--mv-text-muted)]">
-                No cue card yet. Choose a tone and tap the Generate cue card button for a gentle prompt.
+                No memory summary yet. If you'd like, choose a tone and select Generate memory summary for an AI-written
+                prompt.
               </p>
             )}
           </div>

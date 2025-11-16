@@ -55,6 +55,10 @@ export default function TimelinePage() {
     });
   };
 
+  const getMemoryBodyText = (memory: Memory): string => {
+    return memory.aiSummary ?? memory.description;
+  };
+
   const renderMemoryCard = (memory: Memory) => (
     <Link
       key={memory.id}
@@ -93,7 +97,7 @@ export default function TimelinePage() {
                 overflow: 'hidden',
               }}
             >
-              {memory.description}
+              {getMemoryBodyText(memory)}
             </p>
 
             {memory.people.length > 0 && (

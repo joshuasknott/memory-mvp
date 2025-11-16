@@ -58,6 +58,10 @@ export default function Home() {
     return `${text.slice(0, 140).trimEnd()}…`;
   };
 
+  const getMemoryBodyText = (memory: Memory): string => {
+    return memory.aiSummary ?? memory.description;
+  };
+
   // Type for Convex memory document returned from searchMemories
   type ConvexMemory = {
     _id: string;
@@ -122,7 +126,7 @@ export default function Home() {
                 overflow: 'hidden',
               }}
             >
-              {memory.description}
+              {getMemoryBodyText(memory)}
             </p>
 
             {memory.people.length > 0 && (
@@ -298,7 +302,7 @@ export default function Home() {
                   </p>
                 </div>
                 <p className="text-lg leading-relaxed text-[var(--mv-text)]">
-                  {getHighlightSnippet(highlightMemory.description)}
+                  {getHighlightSnippet(highlightMemory.aiSummary ?? highlightMemory.description)}
                 </p>
                 <Button asChild variant="secondary" className="mt-4 w-full sm:w-auto">
                   <Link href={`/memory/${highlightMemory.id}`} className="no-underline">

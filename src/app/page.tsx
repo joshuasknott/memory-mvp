@@ -9,6 +9,29 @@ import { Card } from '@/components/ui/Card';
 export default function Home() {
   const memories = useQuery(api.memories.getMemories);
   const memoryCount = memories ? memories.length : 0;
+  const highlightMemory = memories && memories.length > 0 ? memories[0] : null;
+
+  const formatMemoryDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  const getHighlightSnippet = (text?: string) => {
+    if (!text) {
+      return 'This memory is ready for more detail whenever you are.';
+    }
+
+    if (text.length <= 140) {
+      return text;
+    }
+
+    return `${text.slice(0, 140).trimEnd()}…`;
+  };
 
   return (
     <div className="space-y-12 bg-[var(--mv-bg)]">
@@ -73,6 +96,32 @@ export default function Home() {
           </Card>
         )}
       </section>
+
+      {highlightMemory && (
+        <section className="space-y-3">
+          <p className="mv-section-label mb-2">Memory highlight</p>
+          <Card className="p-6 sm:p-8">
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <h2 className="text-[1.4rem] font-semibold text-[var(--mv-primary)]">
+                  {highlightMemory.title}
+                </h2>
+                <p className="text-base font-medium text-[var(--mv-text-muted)]">
+                  {formatMemoryDate(highlightMemory.date)}
+                </p>
+              </div>
+              <p className="text-lg leading-relaxed text-[var(--mv-text)]">
+                {getHighlightSnippet(highlightMemory.description)}
+              </p>
+              <Button asChild variant="secondary" className="w-full sm:w-auto">
+                <Link href={`/memory/${highlightMemory._id}`} className="no-underline">
+                  Open memory
+                </Link>
+              </Button>
+            </div>
+          </Card>
+        </section>
+      )}
     </div>
   );
 }

@@ -257,12 +257,12 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
     <div className="space-y-8">
       <Link
         href="/timeline"
-        className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+        className="inline-flex items-center gap-2 text-lg font-semibold text-[var(--mv-primary)] no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
       >
         ← Back to your memories
       </Link>
       <div className="space-y-3">
-        <h1 className="text-3xl md:text-4xl font-semibold text-[var(--mv-primary)]">
+        <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)] md:text-[2.25rem]">
           Edit this memory
         </h1>
         <p className="text-base text-[var(--mv-text-dark)]/75">
@@ -276,7 +276,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
           <div>
             <label
               htmlFor="title"
-              className="mb-2 block text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)]"
+              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
             >
               Memory title <span className="text-[#b42318]" aria-label="required">*</span>
             </label>
@@ -302,7 +302,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
           <div>
             <label
               htmlFor="description"
-              className="mb-2 block text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)]"
+              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
             >
               Describe this memory <span className="text-[#b42318]" aria-label="required">*</span>
             </label>
@@ -339,7 +339,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
           <div>
             <label
               htmlFor="date"
-              className="mb-2 block text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)]"
+              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
             >
               When did this happen?
             </label>
@@ -371,7 +371,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
           <div>
             <label
               htmlFor="importance"
-              className="mb-2 block text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)]"
+              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
             >
               Importance
             </label>
@@ -391,7 +391,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
           <div>
             <label
               htmlFor="people"
-              className="mb-2 block text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)]"
+              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
             >
               Who was involved?
             </label>
@@ -413,7 +413,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
           <div className="flex flex-col gap-3 pt-4">
             <Button
               type="submit"
-              variant="primary"
+              variant="secondary"
               disabled={isSubmitting || !isValid}
               className="w-full min-w-[200px]"
               aria-label={

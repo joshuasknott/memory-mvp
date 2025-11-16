@@ -109,9 +109,6 @@ export default function SaveMemoryPage() {
 
       <Card>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <p className="text-lg font-semibold text-[var(--mv-text-muted)]">
-            Save this memory. You can edit it later.
-          </p>
           <div>
             <label
               htmlFor="title"

@@ -285,10 +285,10 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
         <div className="space-y-6">
           <div>
             <h2 className="text-[1.5rem] font-semibold text-[var(--mv-primary)]">
-              Memory summary (AI-generated)
+              Memory summary
             </h2>
             <p className="text-base text-[var(--mv-text-muted)]">
-              This is a gentle AI-written summary to help you recall this memory. Use it as a reminder, not a
+              This AI-written summary is here to gently help you recall this memory. Use it as a reminder, not a
               replacement for your own words.
             </p>
             {cueCardTone && (
@@ -335,8 +335,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
               <p className="text-lg leading-relaxed text-[var(--mv-text)]">{cueCard}</p>
             ) : (
               <p className="text-lg text-[var(--mv-text-muted)]">
-                No memory summary yet. If you'd like, choose a tone and select Generate memory summary for an AI-written
-                prompt.
+                No summary yet. If you’d like, choose a tone and select Generate memory summary for an AI-written prompt.
               </p>
             )}
           </div>

@@ -43,6 +43,38 @@ export const getMemoryById = query({
   },
 });
 
+// Query: Search memories by text in title, description, or people
+export const searchMemories = query({
+  args: {
+    term: v.string(),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const term = args.term.trim().toLowerCase();
+    if (!term) {
+      return [];
+    }
+
+    // For MVP: simple in-memory filtering over a bounded number of recent memories.
+    const all = await ctx.db.query("memories").collect();
+
+    const matches = all.filter((memory) => {
+      const title = memory.title.toLowerCase();
+      const description = memory.description.toLowerCase();
+      const people = (memory.people ?? []).map((p) => p.toLowerCase());
+
+      return (
+        title.includes(term) ||
+        description.includes(term) ||
+        people.some((p) => p.includes(term))
+      );
+    });
+
+    const limit = args.limit ?? 5;
+    return matches.slice(0, limit);
+  },
+});
+
 // Mutation: Create a new memory
 export const createMemory = mutation({
   args: {

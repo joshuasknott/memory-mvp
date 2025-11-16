@@ -5,6 +5,7 @@ import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { VoiceAssistantPanel } from '@/components/VoiceAssistantPanel';
 
 export default function Home() {
   const memories = useQuery(api.memories.getMemories);
@@ -68,6 +69,10 @@ export default function Home() {
             </Link>
           </Button>
         </div>
+      </section>
+
+      <section>
+        <VoiceAssistantPanel />
       </section>
 
       <section>

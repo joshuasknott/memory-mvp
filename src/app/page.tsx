@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { VoiceAssistantPanel } from '@/components/VoiceAssistantPanel';
+import { AskMemvellaPanel } from '@/components/AskMemvellaPanel';
 import { useMemorySearch } from '@/hooks/useMemorySearch';
 import type { Memory } from '@/types/memory';
 
@@ -157,6 +158,10 @@ export default function Home() {
 
       <section>
         <VoiceAssistantPanel />
+      </section>
+
+      <section>
+        <AskMemvellaPanel />
       </section>
 
       {/* Search Section */}

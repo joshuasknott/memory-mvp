@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, FormEvent, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useMutation } from 'convex/react';
+import { useAction, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -13,8 +13,14 @@ import { useStatus } from '@/contexts/StatusContext';
 export default function SaveMemoryPage() {
   const router = useRouter();
   const createMemory = useMutation(api.memories.createMemory);
+  const generateMemoryImageUploadUrl = useAction(api.storage.generateMemoryImageUploadUrl);
+  const attachMemoryImage = useMutation(api.memories.attachMemoryImage);
   const { showSuccess, showError: showStatusError } = useStatus();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
   const fieldClasses =
     'w-full rounded-[18px] border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-lg text-[var(--mv-text)] shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] placeholder:text-[var(--mv-text-muted)]/70';
 
@@ -64,13 +70,43 @@ export default function SaveMemoryPage() {
         .filter(Boolean);
 
       // Call createMemory with exact args structure from convex/memories.ts
-      await createMemory({
+      const memoryId = await createMemory({
         title: trimmedTitle,
         description: trimmedDescription,
         date,
         importance,
         people,
       });
+
+      // Optional image upload and attach
+      if (imageFile) {
+        try {
+          // 1. Request an upload URL
+          const { uploadUrl } = await generateMemoryImageUploadUrl();
+
+          // 2. Upload the file
+          const uploadRes = await fetch(uploadUrl, {
+            method: 'POST',
+            body: imageFile,
+          });
+
+          if (!uploadRes.ok) {
+            throw new Error('Image upload failed');
+          }
+
+          // 3. Read storageId
+          const { storageId } = await uploadRes.json();
+
+          // 4. Attach to memory
+          await attachMemoryImage({
+            memoryId,
+            imageId: storageId,
+          });
+        } catch (err) {
+          console.error('Image upload failed:', err);
+          setImageError('Your memory was saved, but the image could not be uploaded.');
+        }
+      }
 
       // Clear form and draft
       setFormData({
@@ -210,7 +246,7 @@ export default function SaveMemoryPage() {
               htmlFor="people"
               className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
             >
-              Who was involved?
+              Who was involved? (optional)
             </label>
             <input
               type="text"
@@ -222,7 +258,56 @@ export default function SaveMemoryPage() {
               placeholder="Alice, Bob, Charlie"
             />
             <p id="people-help" className="mt-2 text-base text-[var(--mv-text-muted)]">
-              Separate names with commas. This is optional.
+              Separate names with commas.
+            </p>
+          </div>
+
+          <div>
+            <label
+              htmlFor="image"
+              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+            >
+              Photo (optional)
+            </label>
+            <input
+              type="file"
+              id="image"
+              ref={fileInputRef}
+              accept="image/*"
+              onChange={(e) => {
+                setImageError(null);
+                const file = e.target.files?.[0];
+                if (!file) {
+                  setImageFile(null);
+                  setImagePreviewUrl(null);
+                  return;
+                }
+                setImageFile(file);
+                setImagePreviewUrl(URL.createObjectURL(file));
+              }}
+              aria-describedby={imageError ? "image-error" : "image-help"}
+              className="sr-only"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full rounded-full border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-lg font-semibold text-[var(--mv-text)] shadow-sm transition-colors hover:border-[var(--mv-border-strong)] hover:bg-[var(--mv-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] inline-flex items-center justify-center gap-2 min-h-[44px]"
+            >
+              <span>📷</span>
+              <span>Add a photo</span>
+            </button>
+            {imagePreviewUrl && (
+              <img
+                src={imagePreviewUrl}
+                alt="Preview of image for this memory"
+                className="mt-2 max-h-40 rounded-lg object-cover"
+              />
+            )}
+            {imageError && (
+              <p id="image-error" className="mt-2 text-base text-[var(--mv-text-muted)]">{imageError}</p>
+            )}
+            <p id="image-help" className="mt-2 text-base text-[var(--mv-text-muted)]">
+              A photo can help you recognise this memory later.
             </p>
           </div>
 

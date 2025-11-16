@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, FormEvent, useMemo, useEffect } from 'react';
+import { useState, FormEvent, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { use } from 'react';
 import Link from 'next/link';
-import { useQuery } from 'convex/react';
+import { useQuery, useAction, useMutation } from 'convex/react';
 import { api } from '../../../../../convex/_generated/api';
 import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import type { Importance, Memory } from '@/types/memory';
@@ -34,8 +34,15 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
   const router = useRouter();
   const updateMemory = useMemoriesStore((state) => state.updateMemory);
   const { showSuccess, showError: showStatusError } = useStatus();
+  const generateMemoryImageUploadUrl = useAction(api.storage.generateMemoryImageUploadUrl);
+  const attachMemoryImage = useMutation(api.memories.attachMemoryImage);
+  const removeMemoryImage = useMutation(api.memories.removeMemoryImage);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
   const resolvedParams = use(params);
   
   // Memoize the memory ID to prevent unnecessary re-fetches
@@ -104,6 +111,15 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memory]);
 
+  // Cleanup object URL when component unmounts or preview changes
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl);
+      }
+    };
+  }, [imagePreviewUrl]);
+
 
   const errors = useMemo<FormErrors>(() => {
     const errs: FormErrors = {};
@@ -143,6 +159,13 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
     );
   }, [formData, errors]);
 
+  // Determine display image URL: prefer preview, then existing image from memory
+  const displayImageUrl = useMemo(() => {
+    if (imagePreviewUrl) return imagePreviewUrl;
+    if (memory && 'imageUrl' in memory && memory.imageUrl) return memory.imageUrl;
+    return null;
+  }, [imagePreviewUrl, memory]);
+
   const handleBlur = (field: string) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
   };
@@ -152,6 +175,46 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
     // Mark field as touched when user starts typing
     if (!touched[field]) {
       setTouched((prev) => ({ ...prev, [field]: true }));
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    if (!memory) return;
+
+    try {
+      await removeMemoryImage({ memoryId: memory.id });
+      setImageFile(null);
+      setImagePreviewUrl(null);
+      setImageError(null);
+    } catch (error) {
+      console.error('Failed to remove image:', error);
+      setImageError("We couldn't remove this photo right now. Please try again.");
+    }
+  };
+
+  const handleSaveImage = async () => {
+    if (!memory || !imageFile) return;
+
+    try {
+      const { uploadUrl } = await generateMemoryImageUploadUrl();
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'POST',
+        body: imageFile,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const { storageId } = await uploadRes.json();
+      await attachMemoryImage({ memoryId: memory.id, imageId: storageId });
+
+      setImageFile(null);
+      setImagePreviewUrl(null);
+      setImageError(null);
+    } catch (error) {
+      console.error('Failed to save image:', error);
+      setImageError("We couldn't save this photo right now. Your memory is still saved.");
     }
   };
 
@@ -400,7 +463,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               htmlFor="people"
               className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
             >
-              Who was involved?
+              Who was involved? (optional)
             </label>
             <input
               type="text"
@@ -413,8 +476,94 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               aria-label="People involved in this memory, separated by commas"
             />
             <p id="people-help" className="mt-2 text-sm text-[var(--mv-text-dark)]/65">
-              Separate names with commas. This is optional.
+              Separate names with commas.
             </p>
+          </div>
+
+          <div>
+            <label
+              htmlFor="image"
+              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+            >
+              Photo (optional)
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              id="image"
+              accept="image/*"
+              onChange={(e) => {
+                setImageError(null);
+                const file = e.target.files?.[0];
+                if (!file) {
+                  setImageFile(null);
+                  setImagePreviewUrl(null);
+                  return;
+                }
+                setImageFile(file);
+                setImagePreviewUrl(URL.createObjectURL(file));
+              }}
+              aria-describedby={imageError ? 'image-error' : 'image-help'}
+              className="sr-only"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full rounded-full border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-lg font-semibold text-[var(--mv-text)] shadow-sm transition-colors hover:border-[var(--mv-border-strong)] hover:bg-[var(--mv-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] inline-flex items-center justify-center gap-2 min-h-[44px]"
+            >
+              <span>📷</span>
+              <span>{imageFile ? 'Change photo' : 'Add a photo'}</span>
+            </button>
+            {imagePreviewUrl && (
+              <img
+                src={imagePreviewUrl}
+                alt="Preview of image for this memory"
+                className="mt-2 max-h-40 rounded-lg object-cover"
+              />
+            )}
+            {imageError && (
+              <p id="image-error" className="mt-2 text-base text-[var(--mv-text-muted)]" role="alert">
+                {imageError}
+              </p>
+            )}
+            <p id="image-help" className="mt-2 text-base text-[var(--mv-text-muted)]">
+              A photo can help you recognise this memory later.
+            </p>
+            {displayImageUrl && !imagePreviewUrl && (
+              <img
+                src={displayImageUrl}
+                alt="Photo for this memory"
+                className="mt-4 max-h-64 w-auto rounded-lg object-contain"
+              />
+            )}
+            <div className="mt-4 flex flex-col gap-2">
+              {imageFile && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleSaveImage}
+                  disabled={isSubmitting}
+                  className="w-full min-w-[200px]"
+                  aria-label="Save photo"
+                >
+                  Save photo
+                </Button>
+              )}
+              {memory &&
+                ('imageUrl' in memory && memory.imageUrl) &&
+                !imageFile && (
+                  <Button
+                    type="button"
+                    variant="subtle"
+                    onClick={handleRemoveImage}
+                    disabled={isSubmitting}
+                    className="w-full min-w-[200px]"
+                    aria-label="Remove photo"
+                  >
+                    Remove photo
+                  </Button>
+                )}
+            </div>
           </div>
 
           <div className="flex flex-col gap-3 pt-4">

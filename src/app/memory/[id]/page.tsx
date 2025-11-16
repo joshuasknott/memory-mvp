@@ -57,6 +57,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
       importance: convexMemory.importance,
       people: convexMemory.people,
       createdAt: convexMemory.createdAt,
+      imageUrl: convexMemory.imageUrl ?? null,
     };
   }, [convexMemory]);
 
@@ -267,6 +268,14 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
               </Badge>
             </div>
           </div>
+
+          {memory.imageUrl && (
+            <img
+              src={memory.imageUrl}
+              alt={`Photo for memory: ${memory.title}`}
+              className="mt-4 max-h-80 w-full rounded-lg object-contain"
+            />
+          )}
 
           {memory.people.length > 0 && (
             <div className="space-y-2">

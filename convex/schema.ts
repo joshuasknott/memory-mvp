@@ -9,6 +9,7 @@ export default defineSchema({
     importance: v.union(v.literal("low"), v.literal("medium"), v.literal("high")),
     people: v.array(v.string()), // names of people involved
     title: v.string(),
+    imageId: v.optional(v.id("_storage")),
     aiSummary: v.optional(v.string()),
   }).index("by_createdAt", ["createdAt"]),
 });

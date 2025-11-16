@@ -18,6 +18,7 @@ type ConvexMemory = {
   importance: 'low' | 'medium' | 'high';
   people: string[];
   createdAt: string;
+  imageUrl?: string | null;
 };
 
 export default function TimelinePage() {
@@ -31,6 +32,7 @@ export default function TimelinePage() {
     importance: memory.importance,
     people: memory.people,
     createdAt: memory.createdAt,
+    imageUrl: memory.imageUrl ?? null,
   }));
 
   const bucketedMemories =
@@ -59,31 +61,43 @@ export default function TimelinePage() {
       aria-label={`View memory: ${memory.title}`}
     >
       <Card className="hover:-translate-y-0.5">
-        <div className="space-y-5">
-          <p className="text-base font-medium text-[var(--mv-text-muted)]">{formatDate(memory.date)}</p>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <h2 className="text-[1.4rem] font-semibold text-[var(--mv-primary)]">{memory.title}</h2>
-            <Badge variant={memory.importance} className="self-start capitalize sm:self-end sm:text-right">
-              {memory.importance}
-            </Badge>
-          </div>
-
-          <p
-            className="text-lg leading-relaxed text-[var(--mv-text)]"
-            style={{
-              display: '-webkit-box',
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            {memory.description}
-          </p>
-
-          {memory.people.length > 0 && (
-            <p className="text-base font-medium text-[var(--mv-text-muted)]">With {memory.people.join(', ')}</p>
+        <div className="flex gap-4">
+          {memory.imageUrl && (
+            <div className="flex-shrink-0">
+              <img
+                src={memory.imageUrl}
+                alt={`Photo for memory: ${memory.title}`}
+                className="h-20 w-20 rounded-xl object-cover"
+              />
+            </div>
           )}
+
+          <div className="flex-1 space-y-5">
+            <p className="text-base font-medium text-[var(--mv-text-muted)]">{formatDate(memory.date)}</p>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <h2 className="text-[1.4rem] font-semibold text-[var(--mv-primary)]">{memory.title}</h2>
+              <Badge variant={memory.importance} className="self-start capitalize sm:self-end sm:text-right">
+                {memory.importance}
+              </Badge>
+            </div>
+
+            <p
+              className="text-lg leading-relaxed text-[var(--mv-text)]"
+              style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              {memory.description}
+            </p>
+
+            {memory.people.length > 0 && (
+              <p className="text-base font-medium text-[var(--mv-text-muted)]">With {memory.people.join(', ')}</p>
+            )}
+          </div>
         </div>
       </Card>
     </Link>

@@ -10,7 +10,18 @@ export const getMemories = query({
       .withIndex("by_createdAt")
       .order("desc")
       .collect();
-    return memories;
+
+    const withUrls = await Promise.all(
+      memories.map(async (memory) => {
+        let imageUrl: string | null = null;
+        if (memory.imageId) {
+          imageUrl = await ctx.storage.getUrl(memory.imageId);
+        }
+        return { ...memory, imageUrl };
+      })
+    );
+
+    return withUrls;
   },
 });
 
@@ -19,7 +30,16 @@ export const getMemoryById = query({
   args: { id: v.id("memories") },
   handler: async (ctx, args) => {
     const memory = await ctx.db.get(args.id);
-    return memory;
+    if (!memory) {
+      return null;
+    }
+
+    let imageUrl: string | null = null;
+    if (memory.imageId) {
+      imageUrl = await ctx.storage.getUrl(memory.imageId);
+    }
+
+    return { ...memory, imageUrl };
   },
 });
 
@@ -68,6 +88,52 @@ export const deleteMemory = mutation({
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
     return args.id;
+  },
+});
+
+export const attachMemoryImage = mutation({
+  args: {
+    memoryId: v.id("memories"),
+    imageId: v.id("_storage"),
+  },
+  handler: async (ctx, args) => {
+    const memory = await ctx.db.get(args.memoryId);
+    if (!memory) {
+      throw new Error("Memory not found");
+    }
+
+    // If there is an existing imageId, try to delete it, but don't fail if delete fails
+    if (memory.imageId) {
+      try {
+        await ctx.storage.delete(memory.imageId);
+      } catch (error) {
+        console.error("Failed to delete old image", error);
+      }
+    }
+
+    await ctx.db.patch(args.memoryId, { imageId: args.imageId });
+  },
+});
+
+export const removeMemoryImage = mutation({
+  args: {
+    memoryId: v.id("memories"),
+  },
+  handler: async (ctx, args) => {
+    const memory = await ctx.db.get(args.memoryId);
+    if (!memory) {
+      throw new Error("Memory not found");
+    }
+
+    if (memory.imageId) {
+      try {
+        await ctx.storage.delete(memory.imageId);
+      } catch (error) {
+        console.error("Failed to delete image", error);
+      }
+    }
+
+    await ctx.db.patch(args.memoryId, { imageId: undefined });
   },
 });
 

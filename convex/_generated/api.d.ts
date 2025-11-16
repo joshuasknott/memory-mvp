@@ -9,6 +9,7 @@
  */
 
 import type * as memories from "../memories.js";
+import type * as storage from "../storage.js";
 
 import type {
   ApiFromModules,
@@ -18,6 +19,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   memories: typeof memories;
+  storage: typeof storage;
 }>;
 
 /**

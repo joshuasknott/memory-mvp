@@ -115,7 +115,8 @@ export default function TimelinePage() {
           <p className="mv-section-label">Timeline</p>
           <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)]">Your memories</h1>
           <p className="text-lg text-[var(--mv-text-muted)]">
-            Entries are sorted from newest to oldest to help you notice patterns over time.
+            Recent memories are grouped by when they happened: Today, This week, and Earlier memories. Newest memories
+            appear first.
           </p>
         </section>
         <Card className="p-8">
@@ -145,7 +146,8 @@ export default function TimelinePage() {
         <div className="space-y-3">
           <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)]">Your memories</h1>
           <p className="text-lg text-[var(--mv-text-muted)]">
-            Entries are sorted from newest to oldest to help you notice patterns over time.
+            Recent memories are grouped by when they happened: Today, This week, and Earlier memories. Newest memories
+            appear first.
           </p>
         </div>
         <div className="space-y-3">

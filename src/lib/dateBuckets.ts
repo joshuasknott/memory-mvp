@@ -44,7 +44,7 @@ export function getBucketLabel(bucket: DateBucket): string {
     case 'thisWeek':
       return 'This Week';
     case 'earlier':
-      return 'Earlier';
+      return 'Earlier memories';
   }
 }
 

@@ -65,25 +65,52 @@ export const searchMemories = query({
       return [];
     }
 
-    // For MVP: simple in-memory filtering over a bounded number of recent memories.
-    const all = await ctx.db.query("memories").collect();
+    // Fetch memories using the by_createdAt index to get a stable, newest-first baseline
+    const all = await ctx.db
+      .query("memories")
+      .withIndex("by_createdAt")
+      .order("desc")
+      .collect();
 
-    const matches = all.filter((memory) => {
-      // Build combined text from title, description, and people
-      const combined = [
-        memory.title ?? '',
-        memory.description ?? '',
-        ...(memory.people ?? []),
-      ]
-        .join(' ')
-        .toLowerCase();
+    // Score and rank matches
+    const scored = all
+      .map((memory) => {
+        // all strings lowercased
+        const title = (memory.title ?? "").toLowerCase();
+        const description = (memory.description ?? "").toLowerCase();
+        const people = (memory.people ?? []).map((p) => p.toLowerCase());
 
-      // Match if any token is contained in the combined text
-      return tokens.some((token) => combined.includes(token));
+        let score = 0;
+        for (const token of tokens) {
+          if (title.includes(token)) {
+            score += 3;
+          }
+          if (description.includes(token)) {
+            score += 2;
+          }
+          if (people.some((p) => p.includes(token))) {
+            score += 2;
+          }
+        }
+
+        return { memory, score };
+      })
+      .filter((item) => item.score > 0);
+
+    // Sort by score descending, then createdAt descending
+    scored.sort((a, b) => {
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
+      // createdAt is an ISO string, so lexicographic compare works
+      if (b.memory.createdAt < a.memory.createdAt) return -1;
+      if (b.memory.createdAt > a.memory.createdAt) return 1;
+      return 0;
     });
 
     const limit = args.limit ?? 5;
-    return matches.slice(0, limit);
+    // Return only the memory documents, not the scores
+    return scored.slice(0, limit).map((item) => item.memory);
   },
 });
 

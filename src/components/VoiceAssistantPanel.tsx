@@ -389,7 +389,11 @@ export function VoiceAssistantPanel() {
       aria-labelledby="voice-assistant-heading"
       className="p-5 sm:p-6"
     >
-      <div className="space-y-6">
+      <section
+        aria-labelledby="voice-assistant-heading"
+        aria-describedby="voice-assistant-description"
+        className="space-y-4 sm:space-y-5"
+      >
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-2">
@@ -399,7 +403,10 @@ export function VoiceAssistantPanel() {
             >
               Memvella Voice Assistant
             </h2>
-            <p className="text-sm text-[var(--mv-text-muted)] sm:text-base">
+            <p
+              id="voice-assistant-description"
+              className="text-sm text-[var(--mv-text-muted)] sm:text-base"
+            >
               Tap the microphone and I&apos;ll help you save or recall memories using your voice.
             </p>
           </div>
@@ -429,6 +436,7 @@ export function VoiceAssistantPanel() {
                           <Link
                             key={mem._id}
                             href={`/memory/${mem._id}`}
+                            aria-label={`View memory: ${mem.title || 'Untitled memory'}`}
                             className="inline-flex items-center gap-1 rounded-full border border-[var(--mv-border-soft)] bg-[var(--mv-card-soft, rgba(255,255,255,0.02))] px-3 py-1 text-xs text-[var(--mv-text-muted)] hover:border-[var(--mv-primary)] hover:text-[var(--mv-primary)]"
                           >
                             <span className="font-medium">
@@ -510,78 +518,100 @@ export function VoiceAssistantPanel() {
           )}
         </div>
 
-        {/* Footer Controls */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <Button
-            variant="primary"
-            onClick={handleMicToggle}
-            aria-pressed={isListening}
-            aria-label="Toggle listening"
-            className="w-full sm:w-auto"
-          >
-            {isListening ? 'Stop listening' : 'Start listening'}
-          </Button>
-          <label className="sr-only" htmlFor="voice-assistant-mode">
-            Choose assistant mode
-          </label>
-          <select
-            id="voice-assistant-mode"
-            value={mode}
-            onChange={handleModeSelect}
-            className="w-full sm:w-auto rounded-full border border-[var(--mv-border)] bg-[var(--mv-card-soft)] px-4 py-2 text-sm text-[var(--mv-text)] focus:outline-none focus:ring-2 focus:ring-[var(--mv-primary)]"
-            aria-label="Choose assistant mode"
-          >
-            <option value="auto">Auto</option>
-            <option value="add">Add memory</option>
-            <option value="recall">Recall memory</option>
-            <option value="ground">Grounding</option>
-          </select>
-          <Button
-            variant="secondary"
-            onClick={callAssistant}
-            disabled={isProcessing || !transcript.trim()}
-            aria-label="Ask assistant"
-            className="w-full sm:w-auto"
-          >
-            {isProcessing ? 'Processing...' : 'Ask assistant'}
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={handleClear}
-            aria-label="Clear assistant text"
-            className="w-full sm:w-auto"
-          >
-            Clear
-          </Button>
+        {/* Controls */}
+        <div className="space-y-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Button
+                variant="primary"
+                onClick={handleMicToggle}
+                aria-pressed={isListening}
+                aria-label={isListening ? 'Stop listening' : 'Start listening'}
+                className="w-full sm:w-auto"
+              >
+                {isListening ? 'Stop listening' : 'Start listening'}
+              </Button>
+              <p
+                className="text-sm text-[var(--mv-text-muted)]"
+                aria-live="polite"
+                role="status"
+              >
+                {isListening ? 'Listening…' : 'Not listening'}
+              </p>
+            </div>
+            <label className="sr-only" htmlFor="voice-assistant-mode">
+              Choose assistant mode
+            </label>
+            <select
+              id="voice-assistant-mode"
+              value={mode}
+              onChange={handleModeSelect}
+              className="w-full sm:w-auto rounded-full border border-[var(--mv-border)] bg-[var(--mv-card-soft)] px-4 py-2 text-sm text-[var(--mv-text)] focus:outline-none focus:ring-2 focus:ring-[var(--mv-primary)]"
+              aria-label="Choose assistant mode"
+            >
+              <option value="auto">Auto</option>
+              <option value="add">Add memory</option>
+              <option value="recall">Recall memory</option>
+              <option value="ground">Grounding</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Button
+              variant="secondary"
+              onClick={callAssistant}
+              disabled={isProcessing || !transcript.trim()}
+              aria-label="Ask assistant"
+              className="w-full sm:w-auto"
+            >
+              {isProcessing ? 'Processing...' : 'Ask assistant'}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleClear}
+              aria-label="Clear assistant text"
+              className="w-full sm:w-auto"
+            >
+              Clear
+            </Button>
+          </div>
         </div>
-        <div className="mt-2 flex items-center gap-2 text-xs text-[var(--mv-text-muted)]">
-          <input
-            id="tts-toggle"
-            type="checkbox"
-            className="h-4 w-4 rounded border-[var(--mv-border-soft)]"
-            checked={ttsEnabled}
-            onChange={(e) => {
-              const enabled = e.target.checked;
-              setTtsEnabled(enabled);
-              if (typeof window !== 'undefined') {
-                try {
-                  window.localStorage.setItem('memvella_tts_enabled', enabled ? 'on' : 'off');
-                } catch (err) {
-                  console.error('Failed to persist TTS preference', err);
+        {/* TTS Toggle */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-xs text-[var(--mv-text-muted)]">
+            <input
+              id="tts-toggle"
+              type="checkbox"
+              className="h-4 w-4 rounded border-[var(--mv-border-soft)]"
+              checked={ttsEnabled}
+              onChange={(e) => {
+                const enabled = e.target.checked;
+                setTtsEnabled(enabled);
+                if (typeof window !== 'undefined') {
+                  try {
+                    window.localStorage.setItem('memvella_tts_enabled', enabled ? 'on' : 'off');
+                  } catch (err) {
+                    console.error('Failed to persist TTS preference', err);
+                  }
                 }
-              }
-            }}
-          />
-          <label htmlFor="tts-toggle" className="cursor-pointer select-none">
-            Read replies out loud
-          </label>
+              }}
+              aria-describedby="tts-helper"
+            />
+            <label htmlFor="tts-toggle" className="cursor-pointer select-none">
+              Read replies out loud
+            </label>
+          </div>
+          <p id="tts-helper" className="text-xs text-[var(--mv-text-muted)]">
+            Uses your device&apos;s voice to read out the assistant&apos;s replies.
+          </p>
         </div>
+
+        {/* Error */}
         {errorText && (
-          <p className="mt-2 text-sm text-[var(--mv-danger)]">
+          <p className="text-sm text-[var(--mv-danger)]" role="alert">
             {errorText}
           </p>
         )}
-      </div>
+      </section>
     </Card>
   );
 }

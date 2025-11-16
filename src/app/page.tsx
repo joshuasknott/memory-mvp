@@ -14,6 +14,7 @@ import type { Memory } from '@/types/memory';
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isAskOpen, setIsAskOpen] = useState(false);
   const memories = useQuery(api.memories.getMemories);
   const memoryCount = memories ? memories.length : 0;
   const rawHighlightMemory = memories && memories.length > 0 ? memories[0] : null;
@@ -139,181 +140,220 @@ export default function Home() {
   );
 
   return (
-    <div className="space-y-12 bg-[var(--mv-bg)]">
-      <section className="space-y-5">
-        <p className="mv-section-label">Gentle beta</p>
-        <h1 className="text-[2rem] font-semibold leading-snug text-[var(--mv-primary)] sm:text-[2.25rem]">
-          A calm space to save what matters.
-        </h1>
-        <p className="max-w-2xl text-lg text-[var(--mv-text-muted)]">
-          Memvella helps you note memories without pressure. Keep them organised and revisit them
-          when you need grounding.
-        </p>
-        <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
-          <Button asChild variant="secondary">
-            <Link href="/save" className="no-underline">
-              Save a memory
-            </Link>
-          </Button>
-          <Button asChild variant="secondary">
-            <Link href="/timeline" className="no-underline">
-              Open your timeline
-            </Link>
-          </Button>
-        </div>
-      </section>
+    <div className="bg-[var(--mv-bg)]">
+      <div className="flex flex-col lg:flex-row gap-8">
+        <main
+          id="memvella-main"
+          className="flex-1 space-y-12"
+          aria-labelledby="memvella-main-heading"
+        >
+          {/* Hero Section */}
+          <section className="space-y-5">
+            <p className="mv-section-label">Gentle beta</p>
+            <h1
+              id="memvella-main-heading"
+              className="text-[2rem] font-semibold leading-snug text-[var(--mv-primary)] sm:text-[2.25rem]"
+            >
+              A calm space to save what matters.
+            </h1>
+            <p className="max-w-2xl text-lg text-[var(--mv-text-muted)]">
+              Memvella helps you note memories without pressure. Keep them organised and revisit them
+              when you need grounding.
+            </p>
+            <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
+              <Button asChild variant="secondary">
+                <Link href="/save" className="no-underline">
+                  Save a memory
+                </Link>
+              </Button>
+              <Button asChild variant="secondary">
+                <Link href="/timeline" className="no-underline">
+                  Open your timeline
+                </Link>
+              </Button>
+            </div>
+          </section>
 
-      <section>
-        <VoiceAssistantPanel />
-      </section>
+          {/* Voice Assistant Section */}
+          <section>
+            <VoiceAssistantPanel />
+          </section>
 
-      <section>
-        <AskMemvellaPanel />
-      </section>
+          {/* Search Section */}
+          <section className="space-y-3">
+            <label htmlFor="memory-search" className="block text-lg font-medium text-[var(--mv-primary)]">
+              Search your memories
+            </label>
+            <input
+              id="memory-search"
+              type="search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by title, description, or people…"
+              aria-label="Search your memories"
+              className="w-full rounded-[18px] border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-lg text-[var(--mv-text)] shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] placeholder:text-[var(--mv-text-muted)]/70"
+            />
+          </section>
 
-      {/* Search Section */}
-      <section className="space-y-3">
-        <label htmlFor="memory-search" className="block text-lg font-medium text-[var(--mv-primary)]">
-          Search your memories
-        </label>
-        <input
-          id="memory-search"
-          type="search"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search by title, description, or people…"
-          aria-label="Search your memories"
-          className="w-full rounded-[18px] border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-lg text-[var(--mv-text)] shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] placeholder:text-[var(--mv-text-muted)]/70"
-        />
-      </section>
-
-      {/* Search Results or Regular Content */}
-      {isSearching ? (
-        <section className="space-y-4">
-          {isSearchLoading ? (
-            <Card className="p-8">
-              <div className="space-y-2">
-                <p className="text-lg font-semibold text-[var(--mv-primary)]">
-                  Searching your memories...
-                </p>
-                <p className="text-lg text-[var(--mv-text-muted)]">
-                  This usually takes just a moment.
-                </p>
-              </div>
-            </Card>
-          ) : searchResults.length === 0 ? (
-            <Card className="p-8">
-              <div className="space-y-2">
-                <h2 className="text-[1.75rem] font-semibold text-[var(--mv-primary)]">
-                  No memories found
-                </h2>
-                <p className="text-lg text-[var(--mv-text-muted)]">
-                  Try a different word, or make the search more general.
-                </p>
-              </div>
-            </Card>
-          ) : (
-            <div className="space-y-6 md:space-y-8">
-              {searchResults.map((memory) => {
-                const normalizedMemory = normalizeConvexMemory(memory);
-                return (
-                  <div key={normalizedMemory.id}>
-                    {renderMemoryCard(normalizedMemory)}
+          {/* Search Results or Regular Content */}
+          {isSearching ? (
+            <section className="space-y-4">
+              {isSearchLoading ? (
+                <Card className="p-8">
+                  <div className="space-y-2">
+                    <p className="text-lg font-semibold text-[var(--mv-primary)]">
+                      Searching your memories...
+                    </p>
+                    <p className="text-lg text-[var(--mv-text-muted)]">
+                      This usually takes just a moment.
+                    </p>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-      ) : (
-        <section>
-        {memories === undefined ? (
-          <Card className="p-8">
-            <div className="space-y-2">
-              <p className="text-lg font-semibold text-[var(--mv-primary)]">
-                Loading your memories...
-              </p>
-              <p className="text-lg text-[var(--mv-text-muted)]">
-                This usually takes just a moment.
-              </p>
-            </div>
-          </Card>
-        ) : (
-          <Card className="p-8">
-            <div className="space-y-4">
-              {memoryCount > 0 ? (
-                <>
-                  <h2 className="text-[1.75rem] font-semibold text-[var(--mv-primary)]">
-                    You currently have {memoryCount}{' '}
-                    {memoryCount === 1 ? 'memory' : 'memories'}.
-                  </h2>
-                  <p className="mt-2 text-lg text-[var(--mv-text-muted)]">
-                    You can look back at a saved memory, or add a new moment you&apos;d like to remember.
-                  </p>
-                </>
+                </Card>
+              ) : searchResults.length === 0 ? (
+                <Card className="p-8">
+                  <div className="space-y-2">
+                    <h2 className="text-[1.75rem] font-semibold text-[var(--mv-primary)]">
+                      No memories found
+                    </h2>
+                    <p className="text-lg text-[var(--mv-text-muted)]">
+                      Try a different word, or make the search more general.
+                    </p>
+                  </div>
+                </Card>
               ) : (
-                <>
-                  <h2 className="text-[1.75rem] font-semibold text-[var(--mv-primary)]">
-                    No saved memories yet.
-                  </h2>
-                  <p className="mt-2 text-lg text-[var(--mv-text-muted)]">
-                    When you&apos;re ready, you can save your first memory and see it here.
-                  </p>
-                </>
-              )}
-              <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <Button asChild variant="secondary" className="w-full sm:w-auto">
-                  <Link href="/timeline" className="no-underline">
-                    View your memories
-                  </Link>
-                </Button>
-                <Button asChild variant="secondary" className="w-full sm:w-auto">
-                  <Link href="/save" className="no-underline">
-                    Save something new
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </Card>
-        )}
-        </section>
-      )}
-
-      {/* Memory highlight - only show when not searching */}
-      {!isSearching && highlightMemory && (
-        <section className="space-y-3">
-          <p className="mv-section-label mb-2">Memory highlight</p>
-          <Card className="p-6 sm:p-8">
-            <div className="flex gap-4">
-              {highlightMemory.imageUrl && (
-                <img
-                  src={highlightMemory.imageUrl}
-                  alt={`Photo for memory: ${highlightMemory.title}`}
-                  className="h-24 w-24 rounded-lg object-cover flex-shrink-0"
-                />
-              )}
-              <div className="flex flex-col justify-between flex-1">
-                <div className="space-y-1">
-                  <h2 className="text-[1.4rem] font-semibold text-[var(--mv-primary)]">
-                    {highlightMemory.title}
-                  </h2>
-                  <p className="text-base font-medium text-[var(--mv-text-muted)]">
-                    {formatMemoryDate(highlightMemory.date)}
-                  </p>
+                <div className="space-y-6 md:space-y-8">
+                  {searchResults.map((memory) => {
+                    const normalizedMemory = normalizeConvexMemory(memory);
+                    return (
+                      <div key={normalizedMemory.id}>
+                        {renderMemoryCard(normalizedMemory)}
+                      </div>
+                    );
+                  })}
                 </div>
-                <p className="text-lg leading-relaxed text-[var(--mv-text)]">
-                  {getHighlightSnippet(highlightMemory.aiSummary ?? highlightMemory.description)}
-                </p>
-                <Button asChild variant="secondary" className="mt-4 w-full sm:w-auto">
-                  <Link href={`/memory/${highlightMemory.id}`} className="no-underline">
-                    Open memory
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </section>
-      )}
+              )}
+            </section>
+          ) : (
+            <section>
+              {memories === undefined ? (
+                <Card className="p-8">
+                  <div className="space-y-2">
+                    <p className="text-lg font-semibold text-[var(--mv-primary)]">
+                      Loading your memories...
+                    </p>
+                    <p className="text-lg text-[var(--mv-text-muted)]">
+                      This usually takes just a moment.
+                    </p>
+                  </div>
+                </Card>
+              ) : (
+                <Card className="p-8">
+                  <div className="space-y-4">
+                    {memoryCount > 0 ? (
+                      <>
+                        <h2 className="text-[1.75rem] font-semibold text-[var(--mv-primary)]">
+                          You currently have {memoryCount}{' '}
+                          {memoryCount === 1 ? 'memory' : 'memories'}.
+                        </h2>
+                        <p className="mt-2 text-lg text-[var(--mv-text-muted)]">
+                          You can look back at a saved memory, or add a new moment you&apos;d like to remember.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <h2 className="text-[1.75rem] font-semibold text-[var(--mv-primary)]">
+                          No saved memories yet.
+                        </h2>
+                        <p className="mt-2 text-lg text-[var(--mv-text-muted)]">
+                          When you&apos;re ready, you can save your first memory and see it here.
+                        </p>
+                      </>
+                    )}
+                    <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <Button asChild variant="secondary" className="w-full sm:w-auto">
+                        <Link href="/timeline" className="no-underline">
+                          View your memories
+                        </Link>
+                      </Button>
+                      <Button asChild variant="secondary" className="w-full sm:w-auto">
+                        <Link href="/save" className="no-underline">
+                          Save something new
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              )}
+            </section>
+          )}
+
+          {/* Memory highlight - only show when not searching */}
+          {!isSearching && highlightMemory && (
+            <section className="space-y-3">
+              <p className="mv-section-label mb-2">Memory highlight</p>
+              <Card className="p-6 sm:p-8">
+                <div className="flex gap-4">
+                  {highlightMemory.imageUrl && (
+                    <img
+                      src={highlightMemory.imageUrl}
+                      alt={`Photo for memory: ${highlightMemory.title}`}
+                      className="h-24 w-24 rounded-lg object-cover flex-shrink-0"
+                    />
+                  )}
+                  <div className="flex flex-col justify-between flex-1">
+                    <div className="space-y-1">
+                      <h2 className="text-[1.4rem] font-semibold text-[var(--mv-primary)]">
+                        {highlightMemory.title}
+                      </h2>
+                      <p className="text-base font-medium text-[var(--mv-text-muted)]">
+                        {formatMemoryDate(highlightMemory.date)}
+                      </p>
+                    </div>
+                    <p className="text-lg leading-relaxed text-[var(--mv-text)]">
+                      {getHighlightSnippet(highlightMemory.aiSummary ?? highlightMemory.description)}
+                    </p>
+                    <Button asChild variant="secondary" className="mt-4 w-full sm:w-auto">
+                      <Link href={`/memory/${highlightMemory.id}`} className="no-underline">
+                        Open memory
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </section>
+          )}
+        </main>
+
+        <aside
+          className="w-full lg:w-[360px] xl:w-[400px] lg:shrink-0"
+          role="complementary"
+          aria-labelledby="ask-memvella-heading"
+        >
+          {/* Mobile Toggle Button */}
+          <div className="lg:hidden mb-3">
+            <button
+              type="button"
+              onClick={() => setIsAskOpen((open) => !open)}
+              className="w-full flex items-center justify-between rounded-2xl border border-[var(--mv-border-soft)] bg-[var(--mv-card-soft)] px-4 py-3 text-base font-medium"
+              aria-expanded={isAskOpen}
+              aria-controls="ask-memvella-panel"
+            >
+              <span>Ask Memvella (chat)</span>
+              <span className="text-sm text-[var(--mv-text-muted)]">
+                {isAskOpen ? 'Hide' : 'Show'}
+              </span>
+            </button>
+          </div>
+
+          {/* Ask Memvella Panel */}
+          <div
+            id="ask-memvella-panel"
+            className={`transition-all duration-200 mt-2 ${!isAskOpen ? 'hidden lg:block' : 'block'}`}
+          >
+            <AskMemvellaPanel />
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }

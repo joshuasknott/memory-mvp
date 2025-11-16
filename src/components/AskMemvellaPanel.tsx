@@ -90,47 +90,13 @@ export function AskMemvellaPanel() {
           >
             Ask Memvella
           </h2>
-          <p className="text-sm text-[var(--mv-text-muted)] sm:text-base">
+          <p
+            id="ask-memvella-description"
+            className="text-sm text-[var(--mv-text-muted)] sm:text-base"
+          >
             Ask a question about your saved memories. I&apos;ll use them to gently help you remember.
           </p>
         </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="ask-memvella-question" className="sr-only">
-              Your question
-            </label>
-            <textarea
-              id="ask-memvella-question"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="e.g., What did I do with Sarah last month?"
-              rows={3}
-              disabled={isLoading}
-              className="w-full rounded-[18px] border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-lg text-[var(--mv-text)] shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] placeholder:text-[var(--mv-text-muted)]/70 disabled:opacity-50 disabled:cursor-not-allowed resize-none"
-              aria-label="Your question about your memories"
-            />
-          </div>
-
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={isLoading || !question.trim()}
-            className="w-full sm:w-auto"
-          >
-            {isLoading ? 'Thinking about your memories…' : 'Ask'}
-          </Button>
-        </form>
-
-        {/* Loading state */}
-        {isLoading && (
-          <div aria-live="polite" role="status" className="space-y-2">
-            <p className="text-lg leading-relaxed text-[var(--mv-text-muted)]">
-              Thinking about your memories…
-            </p>
-          </div>
-        )}
 
         {/* Answer */}
         {answer && !isLoading && (
@@ -152,6 +118,7 @@ export function AskMemvellaPanel() {
                     <Link
                       key={mem._id}
                       href={`/memory/${mem._id}`}
+                      aria-label={`View memory: ${mem.title || 'Untitled memory'}`}
                       className="inline-flex items-center gap-1 rounded-full border border-[var(--mv-border-soft)] bg-[var(--mv-card-soft, rgba(255,255,255,0.02))] px-3 py-1 text-sm text-[var(--mv-text-muted)] hover:border-[var(--mv-primary)] hover:text-[var(--mv-primary)]"
                     >
                       <span className="font-medium">
@@ -167,6 +134,42 @@ export function AskMemvellaPanel() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4" aria-describedby="ask-memvella-description">
+          <div>
+            <label htmlFor="ask-memvella-question" className="sr-only">
+              Your question
+            </label>
+            <textarea
+              id="ask-memvella-question"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="e.g., What did I do with Sarah last month?"
+              rows={3}
+              disabled={isLoading}
+              className="w-full rounded-[18px] border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-lg text-[var(--mv-text)] shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] placeholder:text-[var(--mv-text-muted)]/70 disabled:opacity-50 disabled:cursor-not-allowed resize-none"
+            />
+          </div>
+
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={isLoading || !question.trim()}
+            className="w-full sm:w-auto"
+          >
+            {isLoading ? 'Thinking about your memories…' : 'Ask'}
+          </Button>
+        </form>
+
+        {/* Loading state */}
+        {isLoading && (
+          <div aria-live="polite" role="status" className="space-y-2">
+            <p className="text-lg leading-relaxed text-[var(--mv-text-muted)]">
+              Thinking about your memories…
+            </p>
           </div>
         )}
 

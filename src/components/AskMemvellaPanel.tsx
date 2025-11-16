@@ -44,7 +44,7 @@ export function AskMemvellaPanel() {
         id: mem._id,
         title: mem.title,
         date: mem.date || null,
-        description: mem.description,
+        description: mem.aiSummary ?? mem.description,
         people: mem.people,
         importance: mem.importance || null,
       }));

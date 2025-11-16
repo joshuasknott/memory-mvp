@@ -9,7 +9,19 @@ import { Card } from '@/components/ui/Card';
 export default function Home() {
   const memories = useQuery(api.memories.getMemories);
   const memoryCount = memories ? memories.length : 0;
-  const highlightMemory = memories && memories.length > 0 ? memories[0] : null;
+  const rawHighlightMemory = memories && memories.length > 0 ? memories[0] : null;
+  const highlightMemory = rawHighlightMemory
+    ? {
+        id: rawHighlightMemory._id,
+        title: rawHighlightMemory.title,
+        description: rawHighlightMemory.description,
+        date: rawHighlightMemory.date,
+        importance: rawHighlightMemory.importance,
+        people: rawHighlightMemory.people,
+        createdAt: rawHighlightMemory.createdAt,
+        imageUrl: rawHighlightMemory.imageUrl ?? null,
+      }
+    : null;
 
   const formatMemoryDate = (dateString: string) => {
     if (!dateString) return '';
@@ -114,23 +126,32 @@ export default function Home() {
         <section className="space-y-3">
           <p className="mv-section-label mb-2">Memory highlight</p>
           <Card className="p-6 sm:p-8">
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <h2 className="text-[1.4rem] font-semibold text-[var(--mv-primary)]">
-                  {highlightMemory.title}
-                </h2>
-                <p className="text-base font-medium text-[var(--mv-text-muted)]">
-                  {formatMemoryDate(highlightMemory.date)}
+            <div className="flex gap-4">
+              {highlightMemory.imageUrl && (
+                <img
+                  src={highlightMemory.imageUrl}
+                  alt={`Photo for memory: ${highlightMemory.title}`}
+                  className="h-24 w-24 rounded-lg object-cover flex-shrink-0"
+                />
+              )}
+              <div className="flex flex-col justify-between flex-1">
+                <div className="space-y-1">
+                  <h2 className="text-[1.4rem] font-semibold text-[var(--mv-primary)]">
+                    {highlightMemory.title}
+                  </h2>
+                  <p className="text-base font-medium text-[var(--mv-text-muted)]">
+                    {formatMemoryDate(highlightMemory.date)}
+                  </p>
+                </div>
+                <p className="text-lg leading-relaxed text-[var(--mv-text)]">
+                  {getHighlightSnippet(highlightMemory.description)}
                 </p>
+                <Button asChild variant="secondary" className="mt-4 w-full sm:w-auto">
+                  <Link href={`/memory/${highlightMemory.id}`} className="no-underline">
+                    Open memory
+                  </Link>
+                </Button>
               </div>
-              <p className="text-lg leading-relaxed text-[var(--mv-text)]">
-                {getHighlightSnippet(highlightMemory.description)}
-              </p>
-              <Button asChild variant="secondary" className="mt-4 w-full sm:w-auto">
-                <Link href={`/memory/${highlightMemory._id}`} className="no-underline">
-                  Open memory
-                </Link>
-              </Button>
             </div>
           </Card>
         </section>

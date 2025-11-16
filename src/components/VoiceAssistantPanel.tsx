@@ -687,7 +687,7 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
     <div
       role="group"
       aria-labelledby="voice-assistant-heading"
-      className="flex flex-col h-full min-h-0 max-h-full"
+      className="flex flex-col h-full max-h-full"
     >
       {/* Conversation area - minimal, only show if there's content */}
       {hasContent && (
@@ -743,18 +743,18 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
       )}
 
       {/* Controls: big mic as primary focus */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 min-h-0">
-        <div className="rounded-3xl bg-gradient-to-r from-[var(--mv-gradient-start)]/10 via-[var(--mv-gradient-mid)]/10 to-[var(--mv-gradient-end)]/10 px-8 py-8 sm:px-10 sm:py-10 flex flex-col items-center gap-4">
+      <div className="flex-1 flex flex-col items-center justify-center gap-6 min-h-0">
+        <div className="rounded-[40px] bg-gradient-to-br from-white/20 via-white/8 to-white/5 backdrop-blur-xl px-10 py-10 sm:px-12 sm:py-12 flex flex-col items-center gap-5 shadow-[0_20px_70px_rgba(15,23,42,0.35)]">
           <button
             type="button"
             onClick={handleMicToggle}
             aria-pressed={isListening}
             aria-label={isListening ? 'Stop listening' : 'Start listening'}
-            className="h-32 w-32 sm:h-36 sm:w-36 lg:h-44 lg:w-44 rounded-full border border-[var(--mv-border-soft)] bg-[var(--mv-card)] text-base font-medium flex items-center justify-center shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-[var(--mv-accent-soft)]"
+            className="h-40 w-40 sm:h-48 sm:w-48 lg:h-56 lg:w-56 rounded-full shadow-[0_22px_80px_rgba(37,99,235,0.65)] bg-gradient-to-br from-[var(--mv-gradient-start)] via-[var(--mv-gradient-mid)] to-[var(--mv-gradient-end)] text-base sm:text-lg font-semibold text-white flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-[var(--mv-accent-soft)]"
           >
             {isListening ? 'Listening…' : 'Tap to talk'}
           </button>
-          <p className="text-sm text-[var(--mv-text-muted)] text-center" aria-live="polite" role="status">
+          <p className="text-sm sm:text-base text-white/85 text-center" aria-live="polite" role="status">
             Tap to talk to Memvella.
           </p>
         </div>

@@ -31,16 +31,20 @@ export default function HomeV2Page() {
 
   return (
     <div className="bg-gradient-to-r from-[var(--mv-gradient-start)] via-[var(--mv-gradient-mid)] to-[var(--mv-gradient-end)] h-[100dvh] overflow-hidden">
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-stretch h-full min-h-0">
+      <div
+        className={`flex flex-col lg:flex-row h-full min-h-0 lg:items-stretch transition-opacity duration-300 ${
+          isAskOpen ? 'opacity-95' : 'opacity-100'
+        }`}
+      >
         <main
           id="memvella-home-v2-main"
-          className={`flex-1 flex flex-col gap-4 sm:gap-5 pb-4 sm:pb-6 h-full min-h-0 ${
+          className={`flex-1 flex flex-col justify-center h-full min-h-0 ${
             isAskOpen ? 'lg:pr-[440px] xl:pr-[480px]' : ''
           }`}
           aria-labelledby="memvella-home-v2-heading"
         >
           {/* Header section */}
-          <section className="space-y-2 sm:space-y-2.5">
+          <section className="space-y-1 sm:space-y-1.5 mb-4 sm:mb-6">
             <h1
               id="memvella-home-v2-heading"
               className="text-[1.8rem] sm:text-[2rem] font-semibold leading-snug text-white"
@@ -53,8 +57,8 @@ export default function HomeV2Page() {
           </section>
 
           {/* Conversation / assistant section */}
-          <section className="mt-1.5 sm:mt-2 flex-1 min-h-0">
-            <div className="h-full bg-[var(--mv-card)]/70 backdrop-blur-sm rounded-2xl p-4 sm:p-5">
+          <section className="flex-1 min-h-[360px] sm:min-h-[420px] lg:min-h-[480px] flex items-center">
+            <div className="h-full w-full max-w-[720px] mx-auto bg-[var(--mv-card)]/35 backdrop-blur-md rounded-[32px] p-6 sm:p-8 shadow-[0_18px_60px_rgba(15,23,42,0.35)]">
               <VoiceAssistantPanel variant="compact" onAssistantActivity={handleAssistantActivity} />
             </div>
           </section>
@@ -97,20 +101,20 @@ export default function HomeV2Page() {
         </aside>
       </div>
 
-      {/* Ask Memvella handle/footer bar */}
+      {/* Ask Memvella floating action button */}
       {!isAskOpen && (
         <button
           type="button"
           onClick={handleOpenAsk}
-          className="inline-flex items-center justify-center gap-2 fixed bottom-0 left-0 right-0 lg:left-auto lg:right-0 z-30 w-full lg:w-[440px] xl:w-[480px] bg-[var(--mv-card)] border-t border-[var(--mv-border-soft)] lg:rounded-l-3xl lg:rounded-r-none lg:rounded-t-none px-5 py-3.5 lg:py-2.5 text-sm font-semibold text-[var(--mv-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--mv-bg)]"
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-full bg-gradient-to-br from-[var(--mv-gradient-start)] via-[var(--mv-gradient-mid)] to-[var(--mv-gradient-end)] px-4 pr-5 py-2.5 shadow-[0_18px_60px_rgba(15,23,42,0.6)] hover:scale-[1.03] active:scale-[0.98] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--mv-bg)]"
           aria-label="Open Ask Memvella"
           aria-expanded="false"
         >
-          <span className="relative inline-flex items-center gap-2">
-            <span>Ask Memvella</span>
-            {hasUnread && (
-              <span className="h-2 w-2 rounded-full bg-[var(--mv-primary)] shadow-sm" aria-hidden="true" />
-            )}
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 backdrop-blur-md">
+            <span className="text-2xl leading-none text-white">+</span>
+          </div>
+          <span className="text-sm sm:text-base font-semibold text-white">
+            Ask Memvella
           </span>
         </button>
       )}

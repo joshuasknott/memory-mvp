@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { Card } from '@/components/ui/Card';
@@ -33,6 +34,7 @@ export function VoiceAssistantPanel() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [pendingMemory, setPendingMemory] = useState<AssistantSuggestedMemory | null>(null);
+  const [usedMemoryIds, setUsedMemoryIds] = useState<string[]>([]);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isListeningRef = useRef(false);
   const [speechSupported, setSpeechSupported] = useState(true);
@@ -44,6 +46,11 @@ export function VoiceAssistantPanel() {
     results: recallSearchResults,
     isLoading: isRecallSearchLoading,
   } = useMemorySearch(transcript, 8);
+
+  // Derive usedRecallMemories from recallSearchResults
+  const usedRecallMemories = recallSearchResults.filter((mem) =>
+    usedMemoryIds.includes(mem._id)
+  );
 
   // Setup speech recognition instance (created once)
   useEffect(() => {
@@ -162,6 +169,7 @@ export function VoiceAssistantPanel() {
     setAssistantText('');
     setErrorText(null);
     setPendingMemory(null);
+    setUsedMemoryIds([]);
   };
 
   const resolveDate = (dateLabel?: string): string => {
@@ -251,6 +259,7 @@ export function VoiceAssistantPanel() {
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({ error: 'Something went wrong.' }));
           setErrorText(errorData.error || "Something went wrong. Please try again in a moment.");
+          setUsedMemoryIds([]);
           setIsProcessing(false);
           return;
         }
@@ -258,6 +267,7 @@ export function VoiceAssistantPanel() {
         const data = (await res.json()) as AskMemvellaResponse;
         setAssistantText(data.answer);
         setPendingMemory(null); // recall mode does not auto-create memories
+        setUsedMemoryIds(data.usedMemoryIds ?? []);
       } else {
         // All other modes (auto, add, ground) use /api/assistant
         const res = await fetch('/api/assistant', {
@@ -299,14 +309,17 @@ export function VoiceAssistantPanel() {
             const askData = (await askRes.json()) as AskMemvellaResponse;
             setAssistantText(askData.answer);
             setPendingMemory(null);
+            setUsedMemoryIds(askData.usedMemoryIds ?? []);
             setIsProcessing(false);
             return;
           }
           // If /api/ask-memvella fails, fall back to original assistant response
+          setUsedMemoryIds([]);
         }
         
         // Default behavior: use assistant speech
         setAssistantText(data.assistantSpeech);
+        setUsedMemoryIds([]);
         
         // Handle pending memory if assistant suggests creating one
         if (data.action === 'create_memory' && data.memory) {
@@ -362,6 +375,33 @@ export function VoiceAssistantPanel() {
                   <p className="text-lg leading-relaxed text-[var(--mv-text)]">
                     {assistantText}
                   </p>
+
+                  {usedRecallMemories.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      <p className="text-xs font-medium tracking-wide text-[var(--mv-text-muted)]">
+                        I looked at:
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {usedRecallMemories.map((mem) => (
+                          <Link
+                            key={mem._id}
+                            href={`/memory/${mem._id}`}
+                            className="inline-flex items-center gap-1 rounded-full border border-[var(--mv-border-soft)] bg-[var(--mv-card-soft, rgba(255,255,255,0.02))] px-3 py-1 text-xs text-[var(--mv-text-muted)] hover:border-[var(--mv-primary)] hover:text-[var(--mv-primary)]"
+                          >
+                            <span className="font-medium">
+                              {mem.title || 'Untitled memory'}
+                            </span>
+                            {mem.date && (
+                              <span className="opacity-70">
+                                {new Date(mem.date).toLocaleDateString()}
+                              </span>
+                            )}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {mode === 'recall' && isRecallSearchLoading && (
                     <p className="text-sm text-[var(--mv-text-muted)]">
                       (Looking through your memories…)

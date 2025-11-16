@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
+import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useMemorySearch } from '@/hooks/useMemorySearch';
@@ -15,9 +16,15 @@ export function AskMemvellaPanel() {
   const [answer, setAnswer] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [usedMemoryIds, setUsedMemoryIds] = useState<string[]>([]);
 
   // Use memory search with the current question
   const { results: searchResults } = useMemorySearch(question, 8);
+
+  // Derive the "used memories" from searchResults
+  const usedMemories = searchResults.filter((mem) =>
+    usedMemoryIds.includes(mem._id)
+  );
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,16 +58,18 @@ export function AskMemvellaPanel() {
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: 'Something went wrong.' }));
         setError(errorData.error || 'Something went wrong. Please try again.');
+        setUsedMemoryIds([]);
         setIsLoading(false);
         return;
       }
 
       const data = (await res.json()) as AskMemvellaResponse;
       setAnswer(data.answer);
-      // Optionally use data.usedMemoryIds for future UI improvements
+      setUsedMemoryIds(data.usedMemoryIds ?? []);
     } catch (err) {
       console.error('Error calling ask-memvella:', err);
       setError("I couldn't reach Memvella just now. Please check your connection and try again.");
+      setUsedMemoryIds([]);
     } finally {
       setIsLoading(false);
     }
@@ -132,6 +141,32 @@ export function AskMemvellaPanel() {
             <p className="text-lg leading-relaxed text-[var(--mv-text)]">
               {answer}
             </p>
+
+            {usedMemories.length > 0 && (
+              <div className="mt-3 space-y-1">
+                <p className="text-sm text-[var(--mv-text-muted)]">
+                  I looked at:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {usedMemories.map((mem) => (
+                    <Link
+                      key={mem._id}
+                      href={`/memory/${mem._id}`}
+                      className="inline-flex items-center gap-1 rounded-full border border-[var(--mv-border-soft)] bg-[var(--mv-card-soft, rgba(255,255,255,0.02))] px-3 py-1 text-sm text-[var(--mv-text-muted)] hover:border-[var(--mv-primary)] hover:text-[var(--mv-primary)]"
+                    >
+                      <span className="font-medium">
+                        {mem.title || 'Untitled memory'}
+                      </span>
+                      {mem.date && (
+                        <span className="text-xs opacity-70">
+                          {new Date(mem.date).toLocaleDateString()}
+                        </span>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

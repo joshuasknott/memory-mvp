@@ -51,6 +51,8 @@ export const createMemory = mutation({
     date: v.string(),
     importance: v.union(v.literal("low"), v.literal("medium"), v.literal("high")),
     people: v.array(v.string()),
+    origin: v.optional(v.union(v.literal("manual"), v.literal("voice"))),
+    voiceTranscript: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const memoryId = await ctx.db.insert("memories", {
@@ -60,6 +62,8 @@ export const createMemory = mutation({
       importance: args.importance,
       people: args.people,
       createdAt: new Date().toISOString(),
+      origin: args.origin ?? 'manual',
+      voiceTranscript: args.voiceTranscript,
     });
     return memoryId;
   },

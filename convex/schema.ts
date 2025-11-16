@@ -11,6 +11,8 @@ export default defineSchema({
     title: v.string(),
     imageId: v.optional(v.id("_storage")),
     aiSummary: v.optional(v.string()),
+    origin: v.optional(v.union(v.literal("manual"), v.literal("voice"))),
+    voiceTranscript: v.optional(v.string()),
   }).index("by_createdAt", ["createdAt"]),
 });
 

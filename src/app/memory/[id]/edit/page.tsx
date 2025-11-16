@@ -6,6 +6,7 @@ import { use } from 'react';
 import Link from 'next/link';
 import { useQuery, useAction, useMutation } from 'convex/react';
 import { api } from '../../../../../convex/_generated/api';
+import type { Id } from '../../../../../convex/_generated/dataModel';
 import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import type { Importance, Memory } from '@/types/memory';
 import { Button } from '@/components/ui/Button';
@@ -21,7 +22,7 @@ interface FormErrors {
 
 // Type for Convex memory document returned from the server
 type ConvexMemory = {
-  _id: string;
+  _id: Id<'memories'>;
   title: string;
   description: string;
   date: string;
@@ -179,10 +180,10 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
   };
 
   const handleRemoveImage = async () => {
-    if (!memory) return;
+    if (!convexMemory) return;
 
     try {
-      await removeMemoryImage({ memoryId: memory.id });
+      await removeMemoryImage({ memoryId: convexMemory._id });
       setImageFile(null);
       setImagePreviewUrl(null);
       setImageError(null);
@@ -193,7 +194,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
   };
 
   const handleSaveImage = async () => {
-    if (!memory || !imageFile) return;
+    if (!convexMemory || !imageFile) return;
 
     try {
       const { uploadUrl } = await generateMemoryImageUploadUrl();
@@ -207,7 +208,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
       }
 
       const { storageId } = await uploadRes.json();
-      await attachMemoryImage({ memoryId: memory.id, imageId: storageId });
+      await attachMemoryImage({ memoryId: convexMemory._id, imageId: storageId });
 
       setImageFile(null);
       setImagePreviewUrl(null);

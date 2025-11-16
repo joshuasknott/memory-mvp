@@ -6,7 +6,7 @@ import { use } from 'react';
 import Link from 'next/link';
 import { useQuery, useAction, useMutation } from 'convex/react';
 import { api } from '../../../../../convex/_generated/api';
-import type { Id } from '../../../../../convex/_generated/dataModel';
+import type { Doc } from '../../../../../convex/_generated/dataModel';
 import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import type { Importance, Memory } from '@/types/memory';
 import { Button } from '@/components/ui/Button';
@@ -20,16 +20,8 @@ interface FormErrors {
   date?: string;
 }
 
-// Type for Convex memory document returned from the server
-type ConvexMemory = {
-  _id: Id<'memories'>;
-  title: string;
-  description: string;
-  date: string;
-  importance: 'low' | 'medium' | 'high';
-  people: string[];
-  createdAt: string;
-};
+// Type for Convex memory document returned from the server (includes imageUrl from query)
+type ConvexMemory = Doc<'memories'> & { imageUrl: string | null };
 
 export default function EditMemoryPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();

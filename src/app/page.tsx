@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { VoiceAssistantPanel } from '@/components/VoiceAssistantPanel';
 import { AskMemvellaPanel } from '@/components/AskMemvellaPanel';
 
@@ -63,8 +64,11 @@ export default function HomeV2Page() {
               >
                 Memvella Voice
               </h1>
-              <p className="text-sm sm:text-base text-white/85">
-                Speak to save memories. I&apos;m here to help you remember and feel more grounded.
+              <p className="text-base sm:text-lg text-white/90">
+                Speak to share moments. I&apos;m here to help you remember and feel more grounded.
+              </p>
+              <p className="text-sm sm:text-base text-white/90 mt-2 max-w-[600px]">
+                You can talk to me here, or type to me with Ask Memvella – it&apos;s the same companion, just a different way of chatting.
               </p>
             </div>
 
@@ -72,6 +76,14 @@ export default function HomeV2Page() {
             <div className="w-full max-w-[360px] sm:max-w-[420px] mt-4 sm:mt-6">
               <VoiceAssistantPanel variant="compact" onAssistantActivity={handleAssistantActivity} />
             </div>
+
+            {/* Timeline link */}
+            <Link
+              href="/timeline"
+              className="mt-6 text-sm sm:text-base text-white hover:text-white underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2 rounded"
+            >
+              View your timeline of moments
+            </Link>
           </section>
         </main>
 
@@ -119,7 +131,7 @@ export default function HomeV2Page() {
           onClick={handleOpenAsk}
           className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-full bg-gradient-to-br from-[var(--mv-gradient-start)] via-[var(--mv-gradient-mid)] to-[var(--mv-gradient-end)] px-4 pr-5 py-2.5 shadow-[0_18px_60px_rgba(15,23,42,0.6)] hover:scale-[1.03] active:scale-[0.98] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--mv-bg)]"
           aria-label="Open Ask Memvella"
-          aria-expanded="false"
+          aria-expanded={isAskOpen}
         >
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 backdrop-blur-md">
             <span className="text-2xl leading-none text-white">+</span>

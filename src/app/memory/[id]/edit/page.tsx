@@ -273,7 +273,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
           href="/timeline"
           className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
         >
-          ← Back to your memories
+          ← Back to your timeline
         </Link>
         <h1 className="text-3xl md:text-4xl font-semibold text-[var(--mv-primary)]">
           Edit this memory
@@ -295,7 +295,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
           href="/timeline"
           className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
         >
-          ← Back to your memories
+          ← Back to your timeline
         </Link>
         <h1 className="text-3xl md:text-4xl font-semibold text-[var(--mv-primary)]">
           Edit this memory
@@ -309,7 +309,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               It may have been removed or the link is incomplete.
             </p>
             <Button asChild aria-label="View all memories in timeline">
-              <Link href="/timeline">Back to your memories</Link>
+              <Link href="/timeline">Back to your timeline</Link>
             </Button>
           </div>
         </Card>
@@ -319,12 +319,20 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="space-y-8">
-      <Link
-        href="/timeline"
-        className="inline-flex items-center gap-2 text-lg font-semibold text-[var(--mv-primary)] no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
-      >
-        ← Back to your memories
-      </Link>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <Link
+          href={`/memory/${memory.id}`}
+          className="inline-flex items-center gap-2 text-lg font-semibold text-[var(--mv-primary)] no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+        >
+          ← Back to this memory
+        </Link>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-base font-medium text-[var(--mv-primary)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+        >
+          Talk to Memvella
+        </Link>
+      </div>
       <div className="space-y-3">
         <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)] md:text-[2.25rem]">
           Edit this memory

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, FormEvent, useRef, useEffect } from 'react';
-import Link from 'next/link';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { Card } from '@/components/ui/Card';
@@ -9,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Dialog } from '@/components/ui/Dialog';
 import { useMemorySearch } from '@/hooks/useMemorySearch';
-import { useConversationStore } from '@/stores/useConversationStore';
+import { useConversationStore, type ConversationMessage } from '@/stores/useConversationStore';
 import { useMemoriesStore } from '@/stores/useMemoriesStore';
 import { groupMemoriesByDate, getBucketLabel, type DateBucket } from '@/lib/dateBuckets';
 import type { Memory } from '@/types/memory';
@@ -41,7 +40,6 @@ type ConvexMemory = {
 
 export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPanelProps) {
   const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [usedMemoryIds, setUsedMemoryIds] = useState<string[]>([]);
@@ -55,9 +53,12 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeletingMemory, setIsDeletingMemory] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const [isAtBottom, setIsAtBottom] = useState(true);
   
   const addConversationMessage = useConversationStore((s) => s.addMessage);
   const messages = useConversationStore((s) => s.messages);
+  const clearConversation = useConversationStore((s) => s.clearConversation);
   const createMemory = useMutation(api.memories.createMemory);
   const updateMemory = useMemoriesStore((s) => s.updateMemory);
   const deleteMemory = useMemoriesStore((s) => s.deleteMemory);
@@ -66,41 +67,44 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
   // Use memory search with the current question
   const { results: searchResults } = useMemorySearch(question, 8);
 
-  // Derive the "used memories" from searchResults
-  const usedMemories = searchResults.filter((mem) =>
-    usedMemoryIds.includes(mem._id)
-  );
+  // Handle scroll position tracking
+  const handleScroll = () => {
+    if (!scrollContainerRef.current) return;
+    const element = scrollContainerRef.current;
+    const distanceFromBottom = element.scrollHeight - (element.scrollTop + element.clientHeight);
+    setIsAtBottom(distanceFromBottom <= 64);
+  };
 
-  // Helper to start save memory flow from a message
-  const startSaveMemoryFlowFromMessage = (messageContent: string, source: 'voice' | 'text') => {
-    const words = messageContent.trim().split(/\s+/);
-    const suggestedTitle = words.length >= 6 
-      ? words.slice(0, 8).join(' ') 
-      : words.length > 0 
-        ? words.join(' ')
-        : 'Memory from today';
-    
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
+  // Auto-scroll to bottom when new messages arrive (if user is near bottom)
+  useEffect(() => {
+    if (!scrollContainerRef.current) return;
+    if (isAtBottom) {
+      const element = scrollContainerRef.current;
+      element.scrollTo({ top: element.scrollHeight, behavior: 'smooth' });
+    }
+  }, [messages.length, isAtBottom]);
 
-    addConversationMessage({
-      role: 'assistant',
-      content: "That sounds like a meaningful moment. Would you like me to save it as a memory?",
-      source,
-      actionButtons: {
-        type: 'save_memory',
-        payload: {
-          title: suggestedTitle,
-          description: messageContent.trim(),
-          date: todayStr,
-          importance: 'medium' as const,
-          people: [],
-          source,
-          originalMessage: messageContent.trim(),
-        },
-      },
-    });
-    onAssistantActivity?.();
+  // Scroll to bottom on first mount after messages load
+  useEffect(() => {
+    if (scrollContainerRef.current && messages.length > 0) {
+      const element = scrollContainerRef.current;
+      // Use setTimeout to ensure DOM has updated
+      setTimeout(() => {
+        element.scrollTop = element.scrollHeight;
+      }, 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
+  // Handle clear conversation
+  const handleClearConversation = () => {
+    const confirmed = window.confirm(
+      "This will clear your conversation with Memvella from this device. Are you sure?"
+    );
+    if (confirmed) {
+      clearConversation();
+      setIsAtBottom(true); // Reset scroll state
+    }
   };
 
   // Handle saving a memory from action buttons
@@ -127,7 +131,7 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
 
       addConversationMessage({
         role: 'assistant',
-        content: "All saved. I'll remember this for you.",
+        content: "All saved. I'll remember this for you so we can revisit it together. You'll find this on your timeline, or you can just keep chatting with me here.",
         source: payload.source,
       });
       onAssistantActivity?.();
@@ -204,7 +208,6 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
       }
 
       const data = (await res.json()) as AskMemvellaResponse;
-      setAnswer(data.answer);
       setUsedMemoryIds(data.usedMemoryIds ?? []);
       
       if (data.answer?.trim()) {
@@ -384,20 +387,28 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
 
   // Render memory card
   const renderMemoryCard = (memory: Memory) => (
-    <div
+    <button
       key={memory.id}
-      className="block no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+      type="button"
+      onClick={(e) => {
+        // Don't expand if clicking on the Edit button or its link
+        const target = e.target as HTMLElement;
+        if (target.closest('a[href*="/edit"], button')) {
+          return;
+        }
+        setExpandedMemoryId(expandedMemoryId === memory.id ? null : memory.id);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setExpandedMemoryId(expandedMemoryId === memory.id ? null : memory.id);
+        }
+      }}
+      aria-expanded={expandedMemoryId === memory.id}
+      className="w-full text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
     >
       <Card 
         className={`hover:-translate-y-0.5 cursor-pointer ${expandedMemoryId === memory.id ? 'ring-2 ring-[var(--mv-accent)]' : ''}`}
-        onClick={(e) => {
-          // Don't expand if clicking on the Edit button or its link
-          const target = e.target as HTMLElement;
-          if (target.closest('a[href*="/edit"], button')) {
-            return;
-          }
-          setExpandedMemoryId(expandedMemoryId === memory.id ? null : memory.id);
-        }}
       >
         <div className="flex gap-4">
           {memory.imageUrl && (
@@ -465,7 +476,7 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
           </div>
         </div>
       </Card>
-    </div>
+    </button>
   );
 
   return (
@@ -480,16 +491,16 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
           <div className="space-y-2">
             <h2
               id="ask-memvella-heading"
-              className="text-sm font-semibold text-[var(--mv-text-muted-strong)] sm:text-base"
+              className="text-base font-semibold text-[var(--mv-text-muted-strong)] sm:text-lg"
             >
               Ask Memvella
             </h2>
             <p
               id="ask-memvella-description"
-              className="text-sm text-[var(--mv-text-muted)] sm:text-base"
+              className="text-base text-[var(--mv-text-muted)]"
             >
               {viewMode === 'chat' 
-                ? "Ask a question about your saved memories. I'll use them to gently help you remember."
+                ? "This is the same Memvella you talk to on the home screen – here you can type instead of speaking. Ask me about something you've shared before, or anything that's on your mind. When it helps, I'll gently bring in your past moments."
                 : "Browse your saved memories. Tap any memory to see more details."}
             </p>
           </div>
@@ -498,7 +509,7 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
             <button
               type="button"
               onClick={onClose}
-              className="text-xs font-medium text-[var(--mv-text-muted)] hover:text-[var(--mv-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--mv-bg)]"
+              className="text-sm font-medium text-[var(--mv-text-muted)] hover:text-[var(--mv-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--mv-bg)] min-h-[44px] px-3 py-2"
             >
               Hide
             </button>
@@ -506,39 +517,62 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
         </div>
 
         {/* View toggle */}
-        <div className="flex gap-2 shrink-0 border-b border-[var(--mv-border-soft)]">
-          <button
-            type="button"
-            onClick={() => setViewMode('chat')}
-            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
-              viewMode === 'chat'
-                ? 'border-[var(--mv-primary)] text-[var(--mv-primary)]'
-                : 'border-transparent text-[var(--mv-text-muted)] hover:text-[var(--mv-text)]'
-            }`}
-          >
-            Chat
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode('memories')}
-            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
-              viewMode === 'memories'
-                ? 'border-[var(--mv-primary)] text-[var(--mv-primary)]'
-                : 'border-transparent text-[var(--mv-text-muted)] hover:text-[var(--mv-text)]'
-            }`}
-          >
-            Memories
-          </button>
+        <div className="flex items-center justify-between gap-2 shrink-0 border-b border-[var(--mv-border-soft)]">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setViewMode('chat')}
+              className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-2 ${
+                viewMode === 'chat'
+                  ? 'border-[var(--mv-primary)] text-[var(--mv-primary)]'
+                  : 'border-transparent text-[var(--mv-text-muted)] hover:text-[var(--mv-text)]'
+              }`}
+            >
+              Chat
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('memories')}
+              className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-2 ${
+                viewMode === 'memories'
+                  ? 'border-[var(--mv-primary)] text-[var(--mv-primary)]'
+                  : 'border-transparent text-[var(--mv-text-muted)] hover:text-[var(--mv-text)]'
+              }`}
+            >
+              Memories
+            </button>
+          </div>
+          {viewMode === 'chat' && messages.length > 0 && (
+            <button
+              type="button"
+              onClick={handleClearConversation}
+              className="text-sm font-medium text-[var(--mv-text-muted)] hover:text-[var(--mv-primary)] underline-offset-2 hover:underline px-3 py-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-2"
+              aria-label="Clear this conversation"
+            >
+              Clear conversation
+            </button>
+          )}
         </div>
 
         {/* Content area */}
         {viewMode === 'chat' ? (
           <>
-            <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1">
+            <div
+              ref={scrollContainerRef}
+              onScroll={handleScroll}
+              className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1"
+              aria-live="polite"
+              aria-atomic="false"
+            >
               {/* Welcome state when there are no messages */}
               {messages.length === 0 && !isLoading && !error && (
-                <div className="max-w-[90%] rounded-2xl bg-[var(--mv-bg-soft)] px-4 py-3 text-sm leading-relaxed text-[var(--mv-text-muted)]">
-                  You can talk to me about anything that&apos;s on your mind. When it helps, I&apos;ll gently bring in your memories – but I&apos;m also here just to keep you company.
+                <div className="max-w-[90%] rounded-2xl bg-[var(--mv-bg-soft)] px-4 py-3 text-sm leading-relaxed text-[var(--mv-text-muted)] space-y-2">
+                  <p>
+                    You can talk to me about anything that&apos;s on your mind. When it helps, I&apos;ll gently bring in your memories – but I&apos;m also here just to keep you company.
+                  </p>
+                  <p className="text-xs">
+                    You can also tap the circle on the home screen to talk to me with your voice.
+                  </p>
                 </div>
               )}
 
@@ -550,44 +584,43 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
                     key={msg.id}
                     className={`flex flex-col gap-2 ${isUser ? 'items-end' : 'items-start'}`}
                   >
+                    {isUser && msg.source === 'voice' && (
+                      <p className="text-xs sm:text-sm uppercase tracking-wide text-[var(--mv-text-muted-strong)] mb-1">
+                        You said (via voice)
+                      </p>
+                    )}
+                    {isUser && msg.source === 'text' && (
+                      <p className="text-xs sm:text-sm uppercase tracking-wide text-[var(--mv-text-muted-strong)] mb-1">
+                        You wrote
+                      </p>
+                    )}
                     <div
                       className={`
-                        max-w-[90%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm
+                        max-w-[90%] rounded-2xl px-4 py-3 text-base leading-relaxed shadow-sm
                         ${isUser
                           ? 'bg-[var(--mv-primary)] text-white'
                           : 'bg-[var(--mv-bg-soft)] text-[var(--mv-text)]'}
                       `}
                     >
                       {!isUser && (
-                        <p className="mb-1 text-[0.7rem] font-semibold uppercase tracking-wide text-[var(--mv-text-muted-strong)]">
+                        <p className="mb-1 text-xs sm:text-sm font-semibold uppercase tracking-wide text-[var(--mv-primary)]">
                           Memvella
                         </p>
                       )}
                       <p>{msg.content}</p>
                     </div>
-                    
-                    {/* Save as memory button for user messages */}
-                    {isUser && (
-                      <button
-                        type="button"
-                        onClick={() => startSaveMemoryFlowFromMessage(msg.content, msg.source || 'text')}
-                        className="text-xs text-[var(--mv-text-muted)] hover:text-[var(--mv-primary)] underline-offset-2 hover:underline"
-                      >
-                        Save as memory
-                      </button>
-                    )}
 
                     {/* Action buttons for assistant messages */}
-                    {!isUser && (msg as any).actionButtons && (msg as any).actionButtons.type === 'save_memory' && !dismissedActionButtons.has(msg.id) && (
+                    {!isUser && (msg as ConversationMessage).actionButtons && (msg as ConversationMessage).actionButtons?.type === 'save_memory' && !dismissedActionButtons.has(msg.id) && (
                       <div className="max-w-[90%] space-y-2">
                         <div className="flex flex-col gap-2 sm:flex-row">
                           <Button
                             variant="primary"
-                            onClick={() => handleSaveMemory((msg as any).actionButtons.payload)}
+                            onClick={() => handleSaveMemory((msg as ConversationMessage).actionButtons!.payload)}
                             disabled={savingMemoryId !== null}
                             className="w-full sm:w-auto min-h-[44px]"
                           >
-                            {savingMemoryId === 'pending' ? 'Saving...' : 'Save this memory'}
+                            {savingMemoryId === 'pending' ? 'Saving...' : 'Save this'}
                           </Button>
                           <Button
                             variant="secondary"
@@ -617,7 +650,7 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
 
               {/* Error */}
               {error && (
-                <p className="text-xs text-[var(--mv-danger)]" role="alert">
+                <p className="text-sm sm:text-base text-[var(--mv-danger)]" role="alert" aria-live="assertive">
                   {error}
                 </p>
               )}
@@ -679,7 +712,7 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
                   Whenever you&apos;re ready
                 </h3>
                 <p className="text-base text-[var(--mv-text-muted)]">
-                  When you save your first memory, it will appear here.
+                  Anything you save from our conversations or from your timeline will appear here.
                 </p>
               </div>
             ) : (
@@ -779,13 +812,13 @@ function MemoryFormOverlay({
   isDeleting?: boolean;
 }) {
   const today = new Date().toISOString().split('T')[0];
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(() => ({
     title: memory?.title || '',
     description: memory?.description || '',
     date: memory?.date ? (memory.date.includes('T') ? memory.date.split('T')[0] : memory.date) : today,
     importance: (memory?.importance || 'medium') as 'low' | 'medium' | 'high',
     people: memory?.people.join(', ') || '',
-  });
+  }));
 
   // Reset form data when memory changes
   useEffect(() => {
@@ -930,7 +963,7 @@ function MemoryFormOverlay({
                   className={fieldClasses}
                   placeholder="Alice, Bob, Charlie"
                 />
-                <p className="mt-1 text-xs text-[var(--mv-text-muted)]">Separate names with commas</p>
+                <p className="mt-1 text-sm text-[var(--mv-text-muted)]">Separate names with commas</p>
               </div>
             </div>
 

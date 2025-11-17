@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import Link from 'next/link';
@@ -37,12 +38,23 @@ export default function TimelinePage() {
     aiSummary: memory.aiSummary ?? null,
   }));
 
-  const bucketedMemories =
-    normalizedMemories === undefined
-      ? undefined
-      : normalizedMemories.length === 0
-        ? new Map<DateBucket, Memory[]>()
-        : groupMemoriesByDate(normalizedMemories);
+  const bucketedMemories = useMemo(() => {
+    if (normalizedMemories === undefined) {
+      return undefined;
+    }
+    if (normalizedMemories.length === 0) {
+      return new Map<DateBucket, Memory[]>();
+    }
+    return groupMemoriesByDate(normalizedMemories);
+  }, [normalizedMemories]);
+
+  // Compute initial showEarlier state based on earlier bucket size
+  const earlierCount = bucketedMemories?.get('earlier')?.length ?? 0;
+  const [showEarlier, setShowEarlier] = useState(() => {
+    // Lazy initializer: compute based on current bucketedMemories
+    const count = bucketedMemories?.get('earlier')?.length ?? 0;
+    return count <= 10;
+  });
 
   const bucketOrder: DateBucket[] = ['today', 'thisWeek', 'earlier'];
 
@@ -115,7 +127,7 @@ export default function TimelinePage() {
       <div className="space-y-8 bg-[var(--mv-bg)]">
         <section className="space-y-3">
           <p className="mv-section-label">Timeline</p>
-          <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)]">Your memories</h1>
+          <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)]">Moments you&apos;ve shared</h1>
           <p className="text-lg text-[var(--mv-text-muted)]">Sorting your saved entries...</p>
         </section>
         <Card>
@@ -133,10 +145,9 @@ export default function TimelinePage() {
       <div className="space-y-8 bg-[var(--mv-bg)]">
         <section className="space-y-4">
           <p className="mv-section-label">Timeline</p>
-          <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)]">Your memories</h1>
+          <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)]">Moments you&apos;ve shared</h1>
           <p className="text-lg text-[var(--mv-text-muted)]">
-            Recent memories are grouped by when they happened: Today, This week, and Earlier memories. Newest memories
-            appear first.
+            Your moments are organised by when they happened. The newest ones appear first.
           </p>
         </section>
         <Card className="p-8">
@@ -145,13 +156,20 @@ export default function TimelinePage() {
               Whenever you&apos;re ready
             </h2>
             <p className="text-lg text-[var(--mv-text-muted)]">
-              When you save your first memory, it will appear here. You can always come back later to add more detail.
+              When you save your first moment, it will appear here. You can share something by talking to Memvella on the home screen, typing in Ask Memvella, or adding a moment manually.
             </p>
-            <Button asChild variant="secondary" className="w-full sm:w-auto">
-              <Link href="/save" className="no-underline">
-                Add a new memory
-              </Link>
-            </Button>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button asChild variant="secondary" className="w-full sm:w-auto">
+                <Link href="/save" className="no-underline">
+                  Add a new memory
+                </Link>
+              </Button>
+              <Button asChild variant="subtle" className="w-full sm:w-auto">
+                <Link href="/" className="no-underline">
+                  Talk to Memvella
+                </Link>
+              </Button>
+            </div>
           </div>
         </Card>
       </div>
@@ -164,20 +182,26 @@ export default function TimelinePage() {
       <section className="space-y-5">
         <p className="mv-section-label">Timeline</p>
         <div className="space-y-3">
-          <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)]">Your memories</h1>
+          <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)]">Moments you&apos;ve shared</h1>
           <p className="text-lg text-[var(--mv-text-muted)]">
-            Recent memories are grouped by when they happened: Today, This week, and Earlier memories. Newest memories
-            appear first.
+            Your moments are organised by when they happened. The newest ones appear first.
           </p>
         </div>
         <div className="space-y-3">
-          <Button asChild variant="secondary" className="w-full sm:w-auto">
-            <Link href="/save" className="no-underline">
-              Add a new memory
-            </Link>
-          </Button>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button asChild variant="secondary" className="w-full sm:w-auto">
+              <Link href="/save" className="no-underline">
+                Add a new memory
+              </Link>
+            </Button>
+            <Button asChild variant="subtle" className="w-full sm:w-auto">
+              <Link href="/" className="no-underline">
+                Talk to Memvella
+              </Link>
+            </Button>
+          </div>
           <p className="text-lg text-[var(--mv-text-muted)]">
-            You&apos;re viewing your saved memories.
+            These are moments you&apos;ve shared with Memvella.
           </p>
         </div>
       </section>
@@ -189,12 +213,33 @@ export default function TimelinePage() {
             return null;
           }
 
+          const count = bucketMemories.length;
+          const isEarlier = bucketKey === 'earlier';
+          const shouldShow = !isEarlier || showEarlier;
+
           return (
             <section key={bucketKey} className="space-y-3">
-              <p className="mv-section-label mb-1">{getBucketLabel(bucketKey)}</p>
-              <div className="space-y-6 md:space-y-8">
-                {bucketMemories.map((memory) => renderMemoryCard(memory))}
+              <div className="flex items-center justify-between mb-1">
+                <p className="mv-section-label">
+                  {getBucketLabel(bucketKey)}
+                  {count > 0 && ` (${count})`}
+                </p>
+                {isEarlier && count > 5 && (
+                  <button
+                    type="button"
+                    aria-expanded={showEarlier}
+                    className="text-sm font-medium text-[var(--mv-primary)] underline-offset-2 hover:underline px-3 py-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-2"
+                    onClick={() => setShowEarlier((prev) => !prev)}
+                  >
+                    {showEarlier ? 'Hide earlier memories' : 'Show earlier memories'}
+                  </button>
+                )}
               </div>
+              {shouldShow && (
+                <div className="space-y-6 md:space-y-8">
+                  {bucketMemories.map((memory) => renderMemoryCard(memory))}
+                </div>
+              )}
             </section>
           );
         })}

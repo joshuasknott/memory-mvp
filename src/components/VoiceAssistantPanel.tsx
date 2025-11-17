@@ -15,15 +15,15 @@ type Mode = AssistantMode;
 
 const MODE_LABELS: Record<Mode, string> = {
   auto: 'Auto',
-  add: 'Add memory',
-  recall: 'Recall memory',
+  add: 'New moment',
+  recall: 'Find a past moment',
   ground: 'Grounding',
 };
 
 const MODE_MESSAGES: Record<Mode, string> = {
   auto: "We're in Auto mode. I'll choose whether to save, recall, or ground based on what you say.",
-  add: "We're in Add memory mode. I'll help you save something new.",
-  recall: "We're in Recall memory mode. I'll help you find a past memory.",
+  add: "New moment mode. I'll help you save something you'd like to remember.",
+  recall: "Find a past moment. I'll help you revisit something you've shared before.",
   ground: "We're in Grounding mode. I can help you feel oriented and calm.",
 };
 
@@ -37,6 +37,7 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [assistantText, setAssistantText] = useState('');
+  const [statusMessage, setStatusMessage] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [pendingMemory, setPendingMemory] = useState<AssistantSuggestedMemory | null>(null);
@@ -44,9 +45,24 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isListeningRef = useRef(false);
   const [speechSupported, setSpeechSupported] = useState(true);
+  const [ttsEnabled, setTtsEnabled] = useState<boolean>(true);
   
   const createMemory = useMutation(api.memories.createMemory);
   const addConversationMessage = useConversationStore((s) => s.addMessage);
+
+  // Load TTS preference from localStorage on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const stored = window.localStorage.getItem('memvella_tts_enabled');
+    if (stored === 'true') setTtsEnabled(true);
+    if (stored === 'false') setTtsEnabled(false);
+  }, []);
+
+  // Persist TTS preference to localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem('memvella_tts_enabled', ttsEnabled ? 'true' : 'false');
+  }, [ttsEnabled]);
 
   // Use memory search for recall mode
   const {
@@ -68,10 +84,7 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
 
     if (!SpeechRecognition) {
       setSpeechSupported(false);
-      setAssistantText((current) =>
-        current ||
-          "Your device doesn't support voice capture yet. You can still use Memvella without it."
-      );
+      setStatusMessage("Your device doesn't support voice capture yet. You can still use Memvella without it.");
       return;
     }
 
@@ -88,11 +101,11 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
       setTranscript(fullText);
     };
 
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+    recognition.onerror = () => {
       recognition.stop();
       setIsListening(false);
       isListeningRef.current = false;
-      setAssistantText(
+      setStatusMessage(
         "I couldn't hear you properly just now. You can try again in a moment."
       );
     };
@@ -102,7 +115,7 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
       if (isListeningRef.current && recognitionRef.current) {
         try {
           recognitionRef.current.start();
-        } catch (err) {
+        } catch {
           // Ignore errors from restart attempts
         }
       }
@@ -120,20 +133,17 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
     };
   }, []);
 
-  // TTS effect: always speak assistantText when it changes
+  // TTS effect: speak assistantText when it changes, only if TTS is enabled
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!('speechSynthesis' in window)) return;
 
-    const text = assistantText.trim();
-    // If there's no text, just cancel any ongoing speech and exit
-    if (!text) {
-      window.speechSynthesis.cancel();
-      return;
-    }
-
-    // Cancel any ongoing speech before starting new
     window.speechSynthesis.cancel();
+
+    if (!ttsEnabled) return;
+
+    const text = assistantText.trim();
+    if (!text) return;
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'en-GB';
@@ -145,7 +155,7 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
     return () => {
       window.speechSynthesis.cancel();
     };
-  }, [assistantText]);
+  }, [assistantText, ttsEnabled]);
 
   const handleMicToggle = () => {
     const newListeningState = !isListening;
@@ -153,14 +163,7 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
     isListeningRef.current = newListeningState;
 
     if (speechSupported === false) {
-      // If speech not supported, just update assistant text
-      if (newListeningState) {
-        setAssistantText("I'm listening. You can start speaking when you're ready.");
-      } else {
-        setAssistantText(
-          "I've stopped listening. Later, I'll use what you said to help with your memories."
-        );
-      }
+      // Speech not supported - no need to set assistantText for mic state changes
       return;
     }
 
@@ -171,12 +174,11 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
         setTranscript('');
         try {
           recognitionRef.current.start();
-          setAssistantText("I'm listening. You can start speaking when you're ready.");
-        } catch (err) {
+        } catch {
           // If start fails, stop listening state
           setIsListening(false);
           isListeningRef.current = false;
-          setAssistantText(
+          setStatusMessage(
             "I couldn't start listening just now. Please try again in a moment."
           );
         }
@@ -185,13 +187,10 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
       // Stopping listening
       if (recognitionRef.current) {
         recognitionRef.current.stop();
-        setAssistantText(
-          "I've stopped listening. Later, I'll use what you said to help with your memories."
-        );
       }
       
-      // Auto-trigger assistant when stopping if there's a transcript (compact variant only)
-      if (variant === 'compact' && transcript.trim().length > 0 && !isProcessing) {
+      // Auto-trigger assistant when stopping if there's a transcript (both variants)
+      if (transcript.trim().length > 0 && !isProcessing) {
         // Small delay to ensure transcript is finalized
         setTimeout(() => {
           if (transcript.trim().length > 0 && !isProcessing) {
@@ -205,12 +204,13 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
   const handleModeSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const nextMode = event.target.value as Mode;
     setMode(nextMode);
-    setAssistantText(MODE_MESSAGES[nextMode]);
+    setStatusMessage(MODE_MESSAGES[nextMode]);
   };
 
   const handleClear = () => {
     setTranscript('');
     setAssistantText('');
+    setStatusMessage('');
     setErrorText(null);
     setPendingMemory(null);
     setUsedMemoryIds([]);
@@ -260,7 +260,7 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
         voiceTranscript: trimmedTranscript || undefined,
       });
 
-      const newText = "I've saved this as a memory for you.";
+      const newText = "I've saved this for you. You'll be able to see it on your timeline later.";
       setAssistantText(newText);
       setPendingMemory(null);
       
@@ -429,7 +429,6 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
   };
 
   const hasContent = assistantText || transcript;
-  const hasVisibleContent = hasContent || isProcessing;
 
   if (variant === 'default') {
     return (
@@ -454,7 +453,7 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
             </h2>
             <p
               id="voice-assistant-description"
-              className="text-sm text-[var(--mv-text-muted)] sm:text-base"
+              className="text-base text-[var(--mv-text-muted)] sm:text-lg"
             >
               Tap the microphone and I&apos;ll help you save or recall memories using your voice.
             </p>
@@ -486,7 +485,7 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
                             key={mem._id}
                             href={`/memory/${mem._id}`}
                             aria-label={`View memory: ${mem.title || 'Untitled memory'}`}
-                            className="inline-flex items-center gap-1 rounded-full border border-[var(--mv-border-soft)] bg-[var(--mv-card-soft, rgba(255,255,255,0.02))] px-3 py-1 text-xs text-[var(--mv-text-muted)] hover:border-[var(--mv-primary)] hover:text-[var(--mv-primary)]"
+                            className="inline-flex items-center gap-1 rounded-full border border-[var(--mv-border-soft)] bg-[var(--mv-card-soft, rgba(255,255,255,0.02))] px-3 py-1.5 text-xs text-[var(--mv-text-muted)] hover:border-[var(--mv-primary)] hover:text-[var(--mv-primary)] min-h-[32px]"
                           >
                             <span className="font-medium">
                               {mem.title || 'Untitled memory'}
@@ -503,7 +502,7 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
                   )}
 
                   {mode === 'recall' && isRecallSearchLoading && (
-                    <p className="text-sm text-[var(--mv-text-muted)]">
+                    <p className="text-base text-[var(--mv-text-muted)]">
                       (Looking through your memories…)
                     </p>
                   )}
@@ -512,7 +511,7 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
               {pendingMemory && (
                 <div className="rounded-lg bg-[var(--mv-card-soft)] p-4 space-y-3">
                   <p className="text-lg font-semibold text-[var(--mv-primary)]">
-                    Save this memory?
+                    Save this?
                   </p>
                   <div className="space-y-1.5">
                     <p className="text-base text-[var(--mv-text)]">
@@ -536,7 +535,7 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
                       disabled={isProcessing}
                       className="w-full sm:w-auto"
                     >
-                      Save this memory
+                      Save this
                     </Button>
                     <Button
                       variant="secondary"
@@ -548,6 +547,11 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
                     </Button>
                   </div>
                 </div>
+              )}
+              {statusMessage && (
+                <p className="mt-2 text-sm text-[var(--mv-text-muted)]" aria-live="polite">
+                  {statusMessage}
+                </p>
               )}
               {transcript && (
                 <div className="space-y-2">
@@ -599,21 +603,12 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
               aria-label="Choose assistant mode"
             >
               <option value="auto">Auto</option>
-              <option value="add">Add memory</option>
-              <option value="recall">Recall memory</option>
+              <option value="add">New moment</option>
+              <option value="recall">Find a past moment</option>
               <option value="ground">Grounding</option>
             </select>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Button
-              variant="secondary"
-              onClick={callAssistant}
-              disabled={isProcessing || !transcript.trim()}
-              aria-label="Ask assistant"
-              className="w-full sm:w-auto"
-            >
-              {isProcessing ? 'Processing...' : 'Ask assistant'}
-            </Button>
             <Button
               variant="secondary"
               onClick={handleClear}
@@ -627,10 +622,34 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
 
         {/* Error */}
         {errorText && (
-          <p className="text-sm text-[var(--mv-danger)]" role="alert">
+          <p className="text-sm sm:text-base text-[var(--mv-danger)]" role="alert">
             {errorText}
           </p>
         )}
+
+        {/* TTS Toggle - only in default variant */}
+            <div className="flex items-center gap-2 mt-3">
+          <button
+            type="button"
+            onClick={() => setTtsEnabled(prev => !prev)}
+            aria-pressed={ttsEnabled}
+            className="inline-flex items-center gap-2 text-sm text-[var(--mv-text-muted)] hover:text-[var(--mv-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--mv-bg)] min-h-[44px] px-3 py-2"
+          >
+            <span
+              className={`inline-flex h-4 w-7 items-center rounded-full border border-[var(--mv-border-soft)] bg-[var(--mv-card)] transition-colors ${
+                ttsEnabled ? 'bg-[var(--mv-primary)] border-transparent' : ''
+              }`}
+              aria-hidden="true"
+            >
+              <span
+                className={`h-3 w-3 rounded-full bg-white shadow-sm transition-transform translate-x-[2px] ${
+                  ttsEnabled ? 'translate-x-[14px]' : ''
+                }`}
+              />
+            </span>
+            <span>{ttsEnabled ? 'Read replies aloud' : 'Replies on screen only'}</span>
+          </button>
+        </div>
       </section>
     </Card>
     );
@@ -656,24 +675,24 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
           {pendingMemory && (
             <div className="rounded-lg bg-[var(--mv-card-soft)] p-3 space-y-2">
               <p className="text-sm font-semibold text-[var(--mv-primary)]">
-                Save this memory?
+                Save this?
               </p>
               <div className="space-y-1">
-                <p className="text-sm text-[var(--mv-text)]">
+                <p className="text-base text-[var(--mv-text)]">
                   {pendingMemory.title}
                 </p>
                 {pendingMemory.dateLabel && (
-                  <p className="text-xs text-[var(--mv-text-muted)]">
+                  <p className="text-sm text-[var(--mv-text-muted)]">
                     When: {pendingMemory.dateLabel === 'not sure' ? 'not sure' : pendingMemory.dateLabel}
                   </p>
                 )}
                 {pendingMemory.people && pendingMemory.people.length > 0 && (
-                  <p className="text-xs text-[var(--mv-text-muted)]">
+                  <p className="text-sm text-[var(--mv-text-muted)]">
                     With: {pendingMemory.people.join(', ')}
                   </p>
                 )}
               </div>
-              <div className="flex flex-col gap-1.5 sm:flex-row">
+              <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                 <Button
                   variant="primary"
                   onClick={handleSavePendingMemory}
@@ -704,19 +723,27 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
             onClick={handleMicToggle}
             aria-pressed={isListening}
             aria-label={isListening ? 'Stop listening' : 'Start listening'}
-            className="h-40 w-40 sm:h-48 sm:w-48 lg:h-56 lg:w-56 rounded-full bg-gradient-to-br from-[var(--mv-gradient-start)] via-[var(--mv-gradient-mid)] to-[var(--mv-gradient-end)] text-base sm:text-lg font-semibold text-white flex items-center justify-center shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-[var(--mv-accent-soft)]"
+            className={`relative flex items-center justify-center rounded-full shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--mv-bg)] h-48 w-48 sm:h-56 sm:w-56 lg:h-64 lg:w-64 bg-gradient-to-br from-[var(--mv-gradient-start)] via-[var(--mv-gradient-mid)] to-[var(--mv-gradient-end)] text-base sm:text-lg font-semibold text-white ${isListening ? 'mv-orb-pulse' : ''}`}
           >
             {isListening ? 'Listening…' : 'Tap to talk'}
           </button>
-          <p className="text-sm sm:text-base text-white/80 text-center" aria-live="polite" role="status">
-            Tap to talk to Memvella.
+          <p
+            className="text-base sm:text-lg text-white/95 text-center"
+            aria-live="polite"
+            role="status"
+          >
+            {!speechSupported
+              ? "Your browser does not support voice yet. Try the Ask Memvella chat below."
+              : isListening
+              ? "Listening…"
+              : "Tap to talk to Memvella."}
           </p>
         </div>
       </div>
 
       {/* Error */}
       {errorText && (
-        <p className="text-xs text-[var(--mv-danger)] mt-2" role="alert">
+        <p className="text-sm sm:text-base text-[var(--mv-danger)] mt-2" role="alert">
           {errorText}
         </p>
       )}

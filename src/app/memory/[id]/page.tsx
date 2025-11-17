@@ -197,7 +197,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
           href="/timeline"
           className="inline-flex items-center gap-2 text-lg font-semibold text-[var(--mv-primary)] no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
         >
-          ← Back to your memories
+          ← Back to your timeline
         </Link>
         <Card>
           <div className="space-y-5 text-center">
@@ -241,12 +241,20 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
         </Card>
       )}
 
-      <Link
-        href="/timeline"
-        className="inline-flex items-center gap-2 text-lg font-semibold text-[var(--mv-primary)] no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
-      >
-        ← Back to your memories
-      </Link>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <Link
+          href="/timeline"
+          className="inline-flex items-center gap-2 text-lg font-semibold text-[var(--mv-primary)] no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+        >
+          ← Back to your timeline
+        </Link>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-base font-medium text-[var(--mv-primary)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+        >
+          Talk to Memvella
+        </Link>
+      </div>
 
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-3 sm:flex-row">

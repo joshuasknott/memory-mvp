@@ -119,7 +119,7 @@ export default function SaveMemoryPage() {
       clearDraft();
 
       // Show success message
-      showSuccess('Memory saved. You can come back and change this any time.');
+      showSuccess('Saved. You\'ll see this on your timeline.');
       
       // Navigate to timeline after a short delay
       setTimeout(() => {
@@ -135,12 +135,20 @@ export default function SaveMemoryPage() {
 
   return (
     <div className="space-y-8 bg-[var(--mv-bg)]">
-      <Link
-        href="/timeline"
-        className="inline-flex items-center gap-2 text-lg font-semibold text-[var(--mv-primary)] no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
-      >
-        ← Back to your memories
-      </Link>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <Link
+          href="/timeline"
+          className="inline-flex items-center gap-2 text-lg font-semibold text-[var(--mv-primary)] no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+        >
+          ← Back to your timeline
+        </Link>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-base font-medium text-[var(--mv-primary)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+        >
+          Talk to Memvella
+        </Link>
+      </div>
       <div className="space-y-3">
         <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)] md:text-[2.25rem]">
           Add a new memory

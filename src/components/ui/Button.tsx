@@ -31,7 +31,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles: Record<NonNullable<ButtonProps['variant']>, string> = {
       primary:
-        'bg-[linear-gradient(135deg,var(--mv-gradient-start),var(--mv-gradient-mid),var(--mv-gradient-end))] text-[var(--mv-text-on-dark)] shadow-[var(--mv-shadow-soft)] hover:brightness-[1.05] hover:shadow-[0_18px_34px_rgba(40,78,147,0.35)] active:translate-y-[1px]',
+        'bg-[linear-gradient(135deg,var(--mv-gradient-start),var(--mv-gradient-mid),var(--mv-gradient-end))] text-[var(--mv-text-on-dark)] shadow-[var(--mv-shadow-soft)] hover:brightness-[1.05] hover:shadow-[0_18px_34px_rgba(76,111,232,0.32)] active:translate-y-[1px]',
       secondary:
         'bg-[var(--mv-surface-soft)] text-[var(--mv-primary)] border-[var(--mv-border-soft)] shadow-none hover:border-[var(--mv-border-strong)] hover:bg-[var(--mv-secondary)] hover:-translate-y-[1px]',
       subtle:

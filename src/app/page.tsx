@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { VoiceAssistantPanel } from '@/components/VoiceAssistantPanel';
 import { AskMemvellaPanel } from '@/components/AskMemvellaPanel';
 
@@ -30,7 +31,7 @@ export default function HomeV2Page() {
   };
 
   return (
-    <div className="bg-gradient-to-r from-[var(--mv-gradient-start)] via-[var(--mv-gradient-mid)] to-[var(--mv-gradient-end)] h-[100dvh] overflow-hidden">
+    <div className="min-h-screen w-full bg-gradient-to-br from-[var(--mv-hero-gradient-start)] via-[var(--mv-hero-gradient-mid)] to-[var(--mv-hero-gradient-end)] flex items-center justify-center overflow-hidden">
       <div
         className={`flex flex-col lg:flex-row h-full min-h-0 lg:items-stretch transition-opacity duration-300 ${
           isAskOpen ? 'opacity-95' : 'opacity-100'
@@ -38,27 +39,37 @@ export default function HomeV2Page() {
       >
         <main
           id="memvella-home-v2-main"
-          className={`flex-1 flex flex-col justify-center h-full min-h-0 ${
+          className={`flex-1 flex flex-col items-center justify-center min-h-screen w-full ${
             isAskOpen ? 'lg:pr-[440px] xl:pr-[480px]' : ''
           }`}
           aria-labelledby="memvella-home-v2-heading"
         >
-          {/* Header section */}
-          <section className="space-y-1 sm:space-y-1.5 mb-4 sm:mb-6">
-            <h1
-              id="memvella-home-v2-heading"
-              className="text-[1.8rem] sm:text-[2rem] font-semibold leading-snug text-white"
-            >
-              Talk to Memvella
-            </h1>
-            <p className="max-w-xl text-base sm:text-lg text-white/90">
-              Tap the microphone and I&apos;ll help you remember, save moments, or feel more grounded.
-            </p>
-          </section>
+          <section className="w-full max-w-[720px] px-4 sm:px-6 flex flex-col items-center text-center gap-6 sm:gap-8 py-12 sm:py-16">
+            {/* Logo */}
+            <Image
+              src="/memvella-logo.png"
+              alt="Memvella logo"
+              width={80}
+              height={80}
+              priority
+              className="drop-shadow-[0_16px_45px_rgba(15,23,42,0.55)]"
+            />
 
-          {/* Conversation / assistant section */}
-          <section className="flex-1 min-h-[360px] sm:min-h-[420px] lg:min-h-[480px] flex items-center">
-            <div className="h-full w-full max-w-[720px] mx-auto bg-[var(--mv-card)]/35 backdrop-blur-md rounded-[32px] p-6 sm:p-8 shadow-[0_18px_60px_rgba(15,23,42,0.35)]">
+            {/* Title + Subtitle */}
+            <div className="flex flex-col items-center gap-3">
+              <h1
+                id="memvella-home-v2-heading"
+                className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-white"
+              >
+                Memvella Voice
+              </h1>
+              <p className="text-sm sm:text-base text-white/85">
+                Speak to save memories. I&apos;m here to help you remember and feel more grounded.
+              </p>
+            </div>
+
+            {/* Voice orb section */}
+            <div className="w-full max-w-[360px] sm:max-w-[420px] mt-4 sm:mt-6">
               <VoiceAssistantPanel variant="compact" onAssistantActivity={handleAssistantActivity} />
             </div>
           </section>

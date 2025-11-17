@@ -2,9 +2,14 @@
 
 :root {
   /* Logo-like gradient colours (lighter, not navy/black) */
-  --mv-gradient-start: #3465d8;
-  --mv-gradient-mid: #41b4ff;
-  --mv-gradient-end: #c58bff;
+  --mv-gradient-start: #203a8f;
+  --mv-gradient-mid: #4c6fe8;
+  --mv-gradient-end: #f0a7ff;
+
+  /* Hero page background gradient (separate from button/orb gradients) */
+  --mv-hero-gradient-start: #203a8f;
+  --mv-hero-gradient-mid: #4c6fe8;
+  --mv-hero-gradient-end: #f0a7ff;
 
   /* Core surfaces and text */
   --mv-primary: #2b3f82;

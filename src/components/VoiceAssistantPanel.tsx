@@ -44,8 +44,6 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isListeningRef = useRef(false);
   const [speechSupported, setSpeechSupported] = useState(true);
-  const [ttsEnabled, setTtsEnabled] = useState(false);
-  const [showOptions, setShowOptions] = useState(false);
   
   const createMemory = useMutation(api.memories.createMemory);
   const addConversationMessage = useConversationStore((s) => s.addMessage);
@@ -122,34 +120,20 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
     };
   }, []);
 
-  // Hydrate TTS preference from localStorage
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    try {
-      const stored = window.localStorage.getItem('memvella_tts_enabled');
-      if (stored === 'on') {
-        setTtsEnabled(true);
-      } else if (stored === 'off') {
-        setTtsEnabled(false);
-      }
-    } catch (e) {
-      console.error('Failed to read TTS preference from localStorage', e);
-    }
-  }, []);
-
-  // TTS effect: speak assistantText when enabled
+  // TTS effect: always speak assistantText when it changes
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!('speechSynthesis' in window)) return;
 
-    // Always cancel any in-progress speech first
-    window.speechSynthesis.cancel();
-
-    if (!ttsEnabled) return;
-
     const text = assistantText.trim();
-    if (!text) return;
+    // If there's no text, just cancel any ongoing speech and exit
+    if (!text) {
+      window.speechSynthesis.cancel();
+      return;
+    }
+
+    // Cancel any ongoing speech before starting new
+    window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'en-GB';
@@ -159,10 +143,9 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
     window.speechSynthesis.speak(utterance);
 
     return () => {
-      // Cleanup: stop any speech when component unmounts or dependencies change
       window.speechSynthesis.cancel();
     };
-  }, [assistantText, ttsEnabled]);
+  }, [assistantText]);
 
   const handleMicToggle = () => {
     const newListeningState = !isListening;
@@ -342,7 +325,7 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
         }
 
         const data = (await res.json()) as AskMemvellaResponse;
-        setAssistantText(data.answer);
+        setAssistantText(data.answer ?? '');
         setPendingMemory(null); // recall mode does not auto-create memories
         setUsedMemoryIds(data.usedMemoryIds ?? []);
         
@@ -394,7 +377,7 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
 
           if (askRes.ok) {
             const askData = (await askRes.json()) as AskMemvellaResponse;
-            setAssistantText(askData.answer);
+            setAssistantText(askData.answer ?? '');
             setPendingMemory(null);
             setUsedMemoryIds(askData.usedMemoryIds ?? []);
             
@@ -416,7 +399,7 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
         }
         
         // Default behavior: use assistant speech
-        setAssistantText(data.assistantSpeech);
+        setAssistantText(data.assistantSpeech ?? '');
         setUsedMemoryIds([]);
         
         if (data.assistantSpeech?.trim()) {
@@ -641,35 +624,6 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
             </Button>
           </div>
         </div>
-        {/* TTS Toggle */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs text-[var(--mv-text-muted)]">
-            <input
-              id="tts-toggle"
-              type="checkbox"
-              className="h-4 w-4 rounded border-[var(--mv-border-soft)]"
-              checked={ttsEnabled}
-              onChange={(e) => {
-                const enabled = e.target.checked;
-                setTtsEnabled(enabled);
-                if (typeof window !== 'undefined') {
-                  try {
-                    window.localStorage.setItem('memvella_tts_enabled', enabled ? 'on' : 'off');
-                  } catch (err) {
-                    console.error('Failed to persist TTS preference', err);
-                  }
-                }
-              }}
-              aria-describedby="tts-helper"
-            />
-            <label htmlFor="tts-toggle" className="cursor-pointer select-none">
-              Read replies out loud
-            </label>
-          </div>
-          <p id="tts-helper" className="text-xs text-[var(--mv-text-muted)]">
-            Uses your device&apos;s voice to read out the assistant&apos;s replies.
-          </p>
-        </div>
 
         {/* Error */}
         {errorText && (
@@ -743,22 +697,21 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
       )}
 
       {/* Controls: big mic as primary focus */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-6 min-h-0">
-        <div className="rounded-[40px] bg-gradient-to-br from-white/20 via-white/8 to-white/5 backdrop-blur-xl px-10 py-10 sm:px-12 sm:py-12 flex flex-col items-center gap-5 shadow-[0_20px_70px_rgba(15,23,42,0.35)]">
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 sm:gap-5 min-h-[220px] sm:min-h-[260px]">
+        <div className="flex flex-col items-center gap-4 sm:gap-5">
           <button
             type="button"
             onClick={handleMicToggle}
             aria-pressed={isListening}
             aria-label={isListening ? 'Stop listening' : 'Start listening'}
-            className="h-40 w-40 sm:h-48 sm:w-48 lg:h-56 lg:w-56 rounded-full shadow-[0_22px_80px_rgba(37,99,235,0.65)] bg-gradient-to-br from-[var(--mv-gradient-start)] via-[var(--mv-gradient-mid)] to-[var(--mv-gradient-end)] text-base sm:text-lg font-semibold text-white flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-[var(--mv-accent-soft)]"
+            className="h-40 w-40 sm:h-48 sm:w-48 lg:h-56 lg:w-56 rounded-full bg-gradient-to-br from-[var(--mv-gradient-start)] via-[var(--mv-gradient-mid)] to-[var(--mv-gradient-end)] text-base sm:text-lg font-semibold text-white flex items-center justify-center shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-[var(--mv-accent-soft)]"
           >
             {isListening ? 'Listening…' : 'Tap to talk'}
           </button>
-          <p className="text-sm sm:text-base text-white/85 text-center" aria-live="polite" role="status">
+          <p className="text-sm sm:text-base text-white/80 text-center" aria-live="polite" role="status">
             Tap to talk to Memvella.
           </p>
         </div>
-
       </div>
 
       {/* Error */}

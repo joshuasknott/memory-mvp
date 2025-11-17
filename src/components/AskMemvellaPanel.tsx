@@ -7,6 +7,7 @@ import { api } from '../../convex/_generated/api';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { Dialog } from '@/components/ui/Dialog';
 import { useMemorySearch } from '@/hooks/useMemorySearch';
 import { useConversationStore } from '@/stores/useConversationStore';
 import { useMemoriesStore } from '@/stores/useMemoriesStore';
@@ -51,12 +52,15 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
   const [activeMemoryForm, setActiveMemoryForm] = useState<null | { type: 'create' | 'edit'; memory?: Memory }>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSavingMemory, setIsSavingMemory] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeletingMemory, setIsDeletingMemory] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   
   const addConversationMessage = useConversationStore((s) => s.addMessage);
   const messages = useConversationStore((s) => s.messages);
   const createMemory = useMutation(api.memories.createMemory);
   const updateMemory = useMemoriesStore((s) => s.updateMemory);
+  const deleteMemory = useMemoriesStore((s) => s.deleteMemory);
   const allMemories = useQuery(api.memories.getMemories);
 
   // Use memory search with the current question
@@ -345,6 +349,36 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
       setFormError('Something went wrong updating this memory. Please try again.');
     } finally {
       setIsSavingMemory(false);
+    }
+  };
+
+  // Handle request delete from form
+  const handleRequestDeleteFromForm = () => {
+    if (!activeMemoryForm || activeMemoryForm.type !== 'edit' || !activeMemoryForm.memory) return;
+    setShowDeleteDialog(true);
+  };
+
+  // Handle confirmed delete
+  const handleConfirmDeleteMemory = async () => {
+    if (!activeMemoryForm || activeMemoryForm.type !== 'edit' || !activeMemoryForm.memory) {
+      setShowDeleteDialog(false);
+      return;
+    }
+
+    try {
+      setIsDeletingMemory(true);
+
+      await deleteMemory(activeMemoryForm.memory.id);
+
+      // Close dialog and sheet
+      setShowDeleteDialog(false);
+      setActiveMemoryForm(null);
+      setFormError(null);
+    } catch (error) {
+      console.error('Failed to delete memory from AskMemvella:', error);
+      setShowDeleteDialog(false);
+    } finally {
+      setIsDeletingMemory(false);
     }
   };
 
@@ -680,14 +714,40 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
             setActiveMemoryForm(null);
             setFormError(null);
           }}
-          onSubmit={activeMemoryForm.type === 'create' 
-            ? handleCreateMemory 
-            : (formData) => activeMemoryForm.memory && handleEditMemory(activeMemoryForm.memory.id, formData)
+          onSubmit={
+            activeMemoryForm.type === 'create'
+              ? handleCreateMemory
+              : (formData) =>
+                  activeMemoryForm.memory &&
+                  handleEditMemory(activeMemoryForm.memory.id, formData)
           }
           error={formError}
           isSaving={isSavingMemory}
+          onDelete={
+            activeMemoryForm.type === 'edit' && activeMemoryForm.memory
+              ? handleRequestDeleteFromForm
+              : undefined
+          }
+          isDeleting={isDeletingMemory}
         />
       )}
+
+      {/* Delete confirmation dialog */}
+      <Dialog
+        isOpen={showDeleteDialog}
+        onClose={() => {
+          if (!isDeletingMemory) {
+            setShowDeleteDialog(false);
+          }
+        }}
+        title="Delete this memory?"
+        confirmLabel={isDeletingMemory ? 'Deleting…' : 'Yes, delete this memory'}
+        cancelLabel="Cancel"
+        onConfirm={handleConfirmDeleteMemory}
+        variant="destructive"
+      >
+        Are you sure you want to delete this memory? You will not be able to get it back.
+      </Dialog>
     </Card>
   );
 }
@@ -700,6 +760,8 @@ function MemoryFormOverlay({
   onSubmit,
   error,
   isSaving,
+  onDelete,
+  isDeleting,
 }: {
   type: 'create' | 'edit';
   memory?: Memory;
@@ -713,6 +775,8 @@ function MemoryFormOverlay({
   }) => void;
   error: string | null;
   isSaving: boolean;
+  onDelete?: () => void;
+  isDeleting?: boolean;
 }) {
   const today = new Date().toISOString().split('T')[0];
   const [formData, setFormData] = useState({
@@ -753,124 +817,166 @@ function MemoryFormOverlay({
   };
 
   return (
-    <div className="absolute inset-0 bg-[var(--mv-bg)]/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <form onSubmit={handleSubmit} className="space-y-4 p-4">
-          <div className="flex items-start justify-between">
-            <h3 className="text-lg font-semibold text-[var(--mv-primary)]">
-              {type === 'create' ? 'Save a new memory' : 'Edit memory'}
-            </h3>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-sm text-[var(--mv-text-muted)] hover:text-[var(--mv-primary)]"
-              aria-label="Close"
-            >
-              ✕
-            </button>
-          </div>
+    <>
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50" 
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      
+      {/* Overlay sheet */}
+      <div 
+        className="fixed inset-y-0 right-0 z-50 flex"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="memory-form-title"
+      >
+        <div className="w-full lg:w-[440px] xl:w-[480px] bg-[var(--mv-card)] border-l border-[var(--mv-border-soft)] shadow-[var(--mv-shadow-soft)] rounded-none lg:rounded-l-3xl flex flex-col h-full">
+          <form onSubmit={handleSubmit} className="flex h-full flex-col">
+            {/* Header */}
+            <header className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-[var(--mv-border-soft)] shrink-0">
+              <h3 
+                id="memory-form-title"
+                className="text-lg font-semibold text-[var(--mv-primary)]"
+              >
+                {type === 'create' ? 'Save a new memory' : 'Edit memory'}
+              </h3>
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-sm text-[var(--mv-text-muted)] hover:text-[var(--mv-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--mv-bg)]"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </header>
 
-          {error && (
-            <p className="text-sm text-[var(--mv-danger)]" role="alert">
-              {error}
-            </p>
-          )}
+            {/* Scrollable form body */}
+            <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 space-y-4">
+              {error && (
+                <p className="text-sm text-[var(--mv-danger)]" role="alert">
+                  {error}
+                </p>
+              )}
 
-          <div>
-            <label htmlFor="memory-title" className="block text-sm font-medium text-[var(--mv-primary)] mb-1">
-              Title
-            </label>
-            <input
-              type="text"
-              id="memory-title"
-              value={formData.title}
-              onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-              className={fieldClasses}
-              placeholder="What would you call this moment?"
-            />
-          </div>
+              <div>
+                <label htmlFor="memory-title" className="block text-sm font-medium text-[var(--mv-primary)] mb-1">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  id="memory-title"
+                  value={formData.title}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+                  className={fieldClasses}
+                  placeholder="What would you call this moment?"
+                />
+              </div>
 
-          <div>
-            <label htmlFor="memory-description" className="block text-sm font-medium text-[var(--mv-primary)] mb-1">
-              Description
-            </label>
-            <textarea
-              id="memory-description"
-              rows={4}
-              value={formData.description}
-              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-              className={`${fieldClasses} resize-none`}
-              placeholder="Tell me about this memory..."
-            />
-          </div>
+              <div>
+                <label htmlFor="memory-description" className="block text-sm font-medium text-[var(--mv-primary)] mb-1">
+                  Description
+                </label>
+                <textarea
+                  id="memory-description"
+                  rows={4}
+                  value={formData.description}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                  className={`${fieldClasses} resize-none`}
+                  placeholder="Tell me about this memory..."
+                />
+              </div>
 
-          <div>
-            <label htmlFor="memory-date" className="block text-sm font-medium text-[var(--mv-primary)] mb-1">
-              Date
-            </label>
-            <input
-              type="date"
-              id="memory-date"
-              value={formData.date}
-              onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
-              className={fieldClasses}
-              max={today}
-            />
-          </div>
+              <div>
+                <label htmlFor="memory-date" className="block text-sm font-medium text-[var(--mv-primary)] mb-1">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  id="memory-date"
+                  value={formData.date}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
+                  className={fieldClasses}
+                  max={today}
+                />
+              </div>
 
-          <div>
-            <label htmlFor="memory-importance" className="block text-sm font-medium text-[var(--mv-primary)] mb-1">
-              Importance
-            </label>
-            <select
-              id="memory-importance"
-              value={formData.importance}
-              onChange={(e) => setFormData((prev) => ({ ...prev, importance: e.target.value as 'low' | 'medium' | 'high' }))}
-              className={`${fieldClasses} cursor-pointer`}
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </div>
+              <div>
+                <label htmlFor="memory-importance" className="block text-sm font-medium text-[var(--mv-primary)] mb-1">
+                  Importance
+                </label>
+                <select
+                  id="memory-importance"
+                  value={formData.importance}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, importance: e.target.value as 'low' | 'medium' | 'high' }))}
+                  className={`${fieldClasses} cursor-pointer`}
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
 
-          <div>
-            <label htmlFor="memory-people" className="block text-sm font-medium text-[var(--mv-primary)] mb-1">
-              People (optional)
-            </label>
-            <input
-              type="text"
-              id="memory-people"
-              value={formData.people}
-              onChange={(e) => setFormData((prev) => ({ ...prev, people: e.target.value }))}
-              className={fieldClasses}
-              placeholder="Alice, Bob, Charlie"
-            />
-            <p className="mt-1 text-xs text-[var(--mv-text-muted)]">Separate names with commas</p>
-          </div>
+              <div>
+                <label htmlFor="memory-people" className="block text-sm font-medium text-[var(--mv-primary)] mb-1">
+                  People (optional)
+                </label>
+                <input
+                  type="text"
+                  id="memory-people"
+                  value={formData.people}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, people: e.target.value }))}
+                  className={fieldClasses}
+                  placeholder="Alice, Bob, Charlie"
+                />
+                <p className="mt-1 text-xs text-[var(--mv-text-muted)]">Separate names with commas</p>
+              </div>
+            </div>
 
-          <div className="flex flex-col gap-2 pt-2">
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={isSaving}
-              className="w-full"
-            >
-              {isSaving ? 'Saving...' : type === 'create' ? 'Save' : 'Save changes'}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onClose}
-              disabled={isSaving}
-              className="w-full"
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </Card>
-    </div>
+            {/* Footer with action buttons */}
+            <footer className="px-4 sm:px-5 py-4 border-t border-[var(--mv-border-soft)] shrink-0">
+              <div className="flex flex-col gap-2">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={isSaving || isDeleting}
+                  className="w-full"
+                >
+                  {isSaving
+                    ? 'Saving...'
+                    : type === 'create'
+                    ? 'Save'
+                    : 'Save changes'}
+                </Button>
+
+                {type === 'edit' && onDelete && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={onDelete}
+                    disabled={isSaving || isDeleting}
+                    className="w-full text-[var(--mv-danger)]"
+                  >
+                    {isDeleting ? 'Deleting...' : 'Delete this memory'}
+                  </Button>
+                )}
+
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={onClose}
+                  disabled={isSaving || isDeleting}
+                  className="w-full"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </footer>
+          </form>
+        </div>
+      </div>
+    </>
   );
 }
 

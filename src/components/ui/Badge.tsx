@@ -5,16 +5,18 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 export function Badge({ className = '', variant = 'default', children, ...props }: BadgeProps) {
+  const baseClasses = 'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium';
+  
   const variantStyles = {
     default: 'bg-[var(--mv-bg-soft)] text-[var(--mv-primary)]',
-    low: 'bg-[#e8f4ef] text-[#2f5d47]',
-    medium: 'bg-[#f5ebd7] text-[#5b431d]',
-    high: 'bg-[#f8e2e7] text-[#6c2835]',
+    low: 'bg-emerald-50/80 text-emerald-700',
+    medium: 'bg-amber-50/80 text-amber-700',
+    high: 'bg-rose-50/80 text-rose-700',
   };
 
   return (
     <span
-      className={`inline-flex min-h-[34px] items-center rounded-full px-4 py-1 text-[0.95rem] font-semibold tracking-tight ${variantStyles[variant]} ${className}`}
+      className={`${baseClasses} min-h-[34px] ${variantStyles[variant]} ${className}`}
       {...props}
     >
       {children}

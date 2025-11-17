@@ -15,18 +15,6 @@ import { useStatus } from '@/contexts/StatusContext';
 import type { Memory } from '@/types/memory';
 import type { CueCardTone } from '@/lib/prompts/cueCard';
 
-// Type for Convex memory document returned from the server
-type ConvexMemory = {
-  _id: string;
-  title: string;
-  description: string;
-  date: string;
-  importance: 'low' | 'medium' | 'high';
-  people: string[];
-  createdAt: string;
-  aiSummary?: string | null;
-};
-
 export default function MemoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -48,7 +36,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   const convexMemory = useQuery(api.memories.getMemoryById, { id: memoryId as Id<'memories'> });
   const updateAiSummary = useMutation(api.memories.updateMemoryAiSummary);
 
-  // Convert ConvexMemory to Memory format when available
+  // Convert Convex memory to Memory format when available
   const memory: Memory | null | undefined = useMemo(() => {
     if (convexMemory === undefined) return undefined;
     if (convexMemory === null) return null;
@@ -180,11 +168,12 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   // Loading state: memory is undefined
   if (memory === undefined) {
     return (
-      <div className="space-y-4 bg-[var(--mv-bg)]">
-        <p className="mv-section-label">Memory details</p>
-        <Card>
-          <div className="p-8 text-lg text-[var(--mv-primary)]">Loading this memory...</div>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-[var(--mv-hero-gradient-start)] via-[var(--mv-hero-gradient-mid)] to-[var(--mv-hero-gradient-end)]">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-12 sm:py-16 space-y-8">
+          <Card>
+            <div className="p-8 text-base text-[var(--mv-text)]" aria-live="polite">Loading this memory...</div>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -192,28 +181,30 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   // Not found state: memory is null or falsy after loading
   if (memory === null || !memory) {
     return (
-      <div className="space-y-6 bg-[var(--mv-bg)]">
-        <Link
-          href="/timeline"
-          className="inline-flex items-center gap-2 text-lg font-semibold text-[var(--mv-primary)] no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
-        >
-          ← Back to your timeline
-        </Link>
-        <Card>
-          <div className="space-y-5 text-center">
-            <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)]">
-              We couldn&apos;t find this memory.
-            </h1>
-            <p className="text-lg text-[var(--mv-text-muted)]">
-              It may have been removed or the link expired. Please return to your timeline.
-            </p>
-            <Button asChild aria-label="View all memories in timeline">
-              <Link href="/timeline" className="no-underline">
-                Back to your memories
-              </Link>
-            </Button>
-          </div>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-[var(--mv-hero-gradient-start)] via-[var(--mv-hero-gradient-mid)] to-[var(--mv-hero-gradient-end)]">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-12 sm:py-16 space-y-8">
+          <Link
+            href="/timeline"
+            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--mv-primary)] no-underline underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
+          >
+            ← Back to your timeline
+          </Link>
+          <Card>
+            <div className="space-y-5 text-center">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-[var(--mv-primary)]">
+                We couldn&apos;t find this memory.
+              </h1>
+              <p className="text-base text-[var(--mv-text-muted)]">
+                It may have been removed or the link expired. Please return to your timeline.
+              </p>
+              <Button asChild aria-label="View all memories in timeline">
+                <Link href="/timeline" className="no-underline">
+                  Back to your memories
+                </Link>
+              </Button>
+            </div>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -229,109 +220,114 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
   };
 
   const toneSelectClasses =
-    'w-full rounded-[18px] border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-lg text-[var(--mv-text)] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] cursor-pointer';
+    'w-full rounded-[18px] border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-base text-[var(--mv-text)] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] cursor-pointer min-h-[44px]';
 
   return (
-    <div className="space-y-8 bg-[var(--mv-bg)]">
-      {showSuccess && (
-        <Card className="border border-[var(--mv-border-strong)] bg-[var(--mv-card)]">
-          <div className="text-center text-lg font-semibold text-[var(--mv-primary)]" role="alert">
-            Memory updated successfully.
-          </div>
-        </Card>
-      )}
+    <div className="min-h-screen bg-gradient-to-br from-[var(--mv-hero-gradient-start)] via-[var(--mv-hero-gradient-mid)] to-[var(--mv-hero-gradient-end)]">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 py-12 sm:py-16 space-y-8">
+        {showSuccess && (
+          <Card className="border border-[var(--mv-border-strong)] bg-[var(--mv-card)]">
+            <div className="text-center text-base font-semibold text-[var(--mv-primary)]" role="alert">
+              Memory updated successfully.
+            </div>
+          </Card>
+        )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <Link
-          href="/timeline"
-          className="inline-flex items-center gap-2 text-lg font-semibold text-[var(--mv-primary)] no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
-        >
-          ← Back to your timeline
-        </Link>
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-base font-medium text-[var(--mv-primary)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
-        >
-          Talk to Memvella
-        </Link>
-      </div>
-
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Button asChild variant="secondary" className="w-full sm:w-auto">
-            <Link href={`/memory/${memory.id}/edit`} className="no-underline">
-              Edit this memory
-            </Link>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Button
+            variant="subtle"
+            onClick={() => router.push('/timeline')}
+            className="w-full sm:w-auto"
+          >
+            ← Back to your timeline
           </Button>
-          <Button asChild variant="subtle" className="w-full sm:w-auto">
-            <Link href="/timeline" className="no-underline">
-              Timeline
-            </Link>
+          <Button
+            variant="subtle"
+            onClick={() => router.push('/')}
+            className="w-full sm:w-auto"
+          >
+            Talk to Memvella
           </Button>
         </div>
-        <Button
-          variant="secondary"
-          onClick={handleDeleteClick}
-          disabled={isDeleting}
-          aria-label={isDeleting ? 'Deleting memory' : 'Delete this memory'}
-          className="w-full text-base text-[var(--mv-danger)] md:w-auto md:self-start"
-        >
-          {isDeleting ? 'Deleting...' : 'Delete this memory'}
-        </Button>
-      </div>
 
-      <Card>
-        <div className="space-y-8">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button
+              variant="secondary"
+              onClick={() => router.push(`/memory/${memory.id}/edit`)}
+              className="w-full sm:w-auto"
+            >
+              Edit this memory
+            </Button>
+            <Button
+              variant="subtle"
+              onClick={() => router.push('/timeline')}
+              className="w-full sm:w-auto"
+            >
+              Timeline
+            </Button>
+          </div>
+          <Button
+            variant="secondary"
+            onClick={handleDeleteClick}
+            disabled={isDeleting}
+            aria-label={isDeleting ? 'Deleting memory' : 'Delete this memory'}
+            className="w-full text-base text-[var(--mv-danger)] md:w-auto md:self-start"
+          >
+            {isDeleting ? 'Deleting...' : 'Delete this memory'}
+          </Button>
+        </div>
+
+        <div className="space-y-6">
           <div className="space-y-3">
-            <p className="text-base font-medium text-[var(--mv-text-muted)]">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-[var(--mv-primary)]">
+              {memory.title}
+            </h1>
+            <p className="text-sm font-medium text-[var(--mv-text-muted)]">
               {formatDate(memory.date)}
             </p>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <h1 className="text-[1.75rem] font-semibold text-[var(--mv-primary)]">
-                {memory.title}
-              </h1>
-              <Badge variant={memory.importance} className="capitalize">
-                {memory.importance}
-              </Badge>
-            </div>
+            <Badge variant={memory.importance} className="capitalize text-sm">
+              {memory.importance}
+            </Badge>
           </div>
 
           {memory.imageUrl && (
             <img
               src={memory.imageUrl}
               alt={`Photo for memory: ${memory.title}`}
-              className="mt-4 max-h-80 w-full rounded-lg object-contain"
+              className="max-h-80 w-full rounded-xl object-contain"
             />
           )}
 
           {memory.people.length > 0 && (
             <div className="space-y-2">
-              <p className="text-lg font-semibold text-[var(--mv-primary)]">People</p>
-              <p className="text-lg text-[var(--mv-text)]">{memory.people.join(', ')}</p>
+              <p className="text-sm font-semibold text-[var(--mv-text-muted-strong)]">
+                People in this memory
+              </p>
+              <p className="text-base text-[var(--mv-text)]">{memory.people.join(', ')}</p>
             </div>
           )}
 
-          <div className="space-y-3">
-            <p className="text-lg font-semibold text-[var(--mv-primary)]">Description</p>
-            <p className="whitespace-pre-wrap text-lg leading-relaxed text-[var(--mv-text)]">
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-[var(--mv-text-muted-strong)]">
+              How you described this memory
+            </p>
+            <p className="text-base leading-relaxed text-[var(--mv-text)] whitespace-pre-wrap">
               {memory.description}
             </p>
           </div>
         </div>
-      </Card>
 
-      <Card className="border-[var(--mv-border-strong)] bg-[var(--mv-card)]">
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div>
-            <h2 className="text-[1.5rem] font-semibold text-[var(--mv-primary)]">
-              Memory summary
+            <h2 className="text-xl sm:text-2xl font-semibold text-[var(--mv-primary)]">
+              Memory summary (AI-generated)
             </h2>
-            <p className="text-base text-[var(--mv-text-muted)]">
-              This AI-written summary is here to gently help you recall this memory. Use it as a reminder, not a
-              replacement for your own words.
+            <p className="text-sm text-[var(--mv-text-muted)] mt-2">
+              This is a gentle AI-written summary to help you recall this memory. It works best alongside your own words.
             </p>
             {cueCardTone && (
-              <p className="mt-1 text-lg text-[var(--mv-text-muted)]">
+              <p className="mt-1 text-sm text-[var(--mv-text-muted)]">
                 Generated in {cueCardTone} tone
               </p>
             )}
@@ -339,7 +335,7 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
 
           <div className="space-y-3">
             <div>
-              <label htmlFor="tone-selector" className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]">
+              <label htmlFor="tone-selector" className="mb-2 block text-sm font-medium text-[var(--mv-text-muted-strong)]">
                 Tone
               </label>
               <select
@@ -365,33 +361,36 @@ export default function MemoryDetailPage({ params }: { params: Promise<{ id: str
             </Button>
           </div>
 
-          <div className="rounded-2xl bg-white/90 p-5 shadow-inner">
+          <div
+            className="rounded-[24px] bg-[var(--mv-card)] p-6 sm:p-8 shadow-[var(--mv-shadow-soft)] space-y-3"
+            aria-live="polite"
+          >
             {isLoadingCueCard ? (
-              <p className="text-lg font-semibold text-[var(--mv-primary)]">
+              <p className="text-base font-semibold text-[var(--mv-primary)]">
                 Generating your memory summary...
               </p>
             ) : cueCard ? (
-              <p className="text-lg leading-relaxed text-[var(--mv-text)]">{cueCard}</p>
+              <p className="text-base leading-relaxed text-[var(--mv-text)]">{cueCard}</p>
             ) : (
-              <p className="text-lg text-[var(--mv-text-muted)]">
-                No summary yet. If you’d like, choose a tone and select Generate memory summary for an AI-written prompt.
+              <p className="text-base text-[var(--mv-text-muted)]">
+                No summary yet. If you&apos;d like, choose a tone and select Generate memory summary for an AI-written prompt.
               </p>
             )}
           </div>
         </div>
-      </Card>
 
-      <Dialog
-        isOpen={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        title="Delete this memory?"
-        confirmLabel="Yes, delete this memory"
-        cancelLabel="Cancel"
-        onConfirm={handleDeleteConfirm}
-        variant="destructive"
-      >
-        Are you sure you want to delete this memory? You will not be able to get it back.
-      </Dialog>
+        <Dialog
+          isOpen={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          title="Delete this memory?"
+          confirmLabel="Yes, delete this memory"
+          cancelLabel="Cancel"
+          onConfirm={handleDeleteConfirm}
+          variant="destructive"
+        >
+          Are you sure you want to delete this memory? You will not be able to get it back.
+        </Dialog>
+      </div>
     </div>
   );
 }

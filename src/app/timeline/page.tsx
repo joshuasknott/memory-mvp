@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
+import { MemoryCardUnified } from '@/components/MemoryCardUnified';
 import type { Memory } from '@/types/memory';
-import { groupMemoriesByDate, getBucketLabel, type DateBucket } from '@/lib/dateBuckets';
+import { groupMemoriesByDate, type TimelineBucket } from '@/lib/dateBuckets';
 
 // Type for Convex memory document returned from the server
 type ConvexMemory = {
@@ -38,103 +39,75 @@ export default function TimelinePage() {
     aiSummary: memory.aiSummary ?? null,
   }));
 
+  const router = useRouter();
+
   const bucketedMemories = useMemo(() => {
     if (normalizedMemories === undefined) {
       return undefined;
     }
     if (normalizedMemories.length === 0) {
-      return new Map<DateBucket, Memory[]>();
+      return [];
     }
     return groupMemoriesByDate(normalizedMemories);
   }, [normalizedMemories]);
 
-  // Compute initial showEarlier state based on earlier bucket size
-  const earlierCount = bucketedMemories?.get('earlier')?.length ?? 0;
-  const [showEarlier, setShowEarlier] = useState(() => {
-    // Lazy initializer: compute based on current bucketedMemories
-    const count = bucketedMemories?.get('earlier')?.length ?? 0;
-    return count <= 10;
-  });
-
-  const bucketOrder: DateBucket[] = ['today', 'thisWeek', 'earlier'];
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+  // Generate jump navigation options
+  const jumpOptions = useMemo(() => {
+    if (!bucketedMemories) return [];
+    const options: { value: string; label: string }[] = [];
+    bucketedMemories.forEach((bucket) => {
+      if (bucket.type === 'today' || bucket.type === 'thisWeek' || bucket.type === 'thisMonth') {
+        options.push({ value: bucket.key, label: bucket.label });
+      } else if (bucket.type === 'earlierThisYear') {
+        bucket.groups.forEach((group) => {
+          options.push({ value: group.key, label: group.monthLabel });
+        });
+      } else if (bucket.type === 'previousYears' || bucket.type === 'older') {
+        bucket.groups.forEach((group) => {
+          options.push({ value: group.key, label: group.yearLabel });
+        });
+      }
     });
-  };
+    return options;
+  }, [bucketedMemories]);
 
-  const getMemoryBodyText = (memory: Memory): string => {
-    return memory.aiSummary ?? memory.description;
-  };
+  const handleJump = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const value = e.target.value;
+      if (!value) return;
 
-  const renderMemoryCard = (memory: Memory) => (
-    <Link
-      key={memory.id}
-      href={`/memory/${memory.id}`}
-      className="block no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
-      aria-label={`View memory: ${memory.title}`}
-    >
-      <Card className="hover:-translate-y-0.5">
-        <div className="flex gap-4">
-          {memory.imageUrl && (
-            <div className="flex-shrink-0">
-              <img
-                src={memory.imageUrl}
-                alt={`Photo for memory: ${memory.title}`}
-                className="h-20 w-20 rounded-xl object-cover"
-              />
-            </div>
-          )}
-
-          <div className="flex-1 space-y-5">
-            <p className="text-base font-medium text-[var(--mv-text-muted)]">{formatDate(memory.date)}</p>
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <h2 className="text-[1.4rem] font-semibold text-[var(--mv-primary)]">{memory.title}</h2>
-              <Badge variant={memory.importance} className="self-start capitalize sm:self-end sm:text-right">
-                {memory.importance}
-              </Badge>
-            </div>
-
-            <p
-              className="text-lg leading-relaxed text-[var(--mv-text)]"
-              style={{
-                display: '-webkit-box',
-                WebkitLineClamp: 3,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-              }}
-            >
-              {getMemoryBodyText(memory)}
-            </p>
-
-            {memory.people.length > 0 && (
-              <p className="text-base font-medium text-[var(--mv-text-muted)]">With {memory.people.join(', ')}</p>
-            )}
-          </div>
-        </div>
-      </Card>
-    </Link>
+      const element = document.getElementById(`timeline-anchor-${value}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => {
+          element.focus();
+        }, 300);
+      }
+      // Reset select
+      e.target.value = '';
+    },
+    []
   );
 
   // Loading state
   if (memories === undefined) {
     return (
-      <div className="space-y-8 bg-[var(--mv-bg)]">
-        <section className="space-y-3">
-          <p className="mv-section-label">Timeline</p>
-          <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)]">Moments you&apos;ve shared</h1>
-          <p className="text-lg text-[var(--mv-text-muted)]">Sorting your saved entries...</p>
-        </section>
-        <Card>
-          <div className="p-8 text-lg text-[var(--mv-primary)]">
-            Loading your memories...
-          </div>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-[var(--mv-hero-gradient-start)] via-[var(--mv-hero-gradient-mid)] to-[var(--mv-hero-gradient-end)]">
+        <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-4 sm:px-6">
+          <main className="flex-1 py-12 sm:py-16">
+            <div className="space-y-8">
+              <section className="space-y-3" role="status" aria-live="polite">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-white/95">Your timeline of moments</h1>
+                <p className="text-sm text-white/80">Loading your memories...</p>
+              </section>
+              <Card>
+                <div className="p-8 text-base text-[var(--mv-text)]">
+                  Loading your memories...
+                </div>
+              </Card>
+            </div>
+          </main>
+        </div>
       </div>
     );
   }
@@ -142,107 +115,191 @@ export default function TimelinePage() {
   // Empty state
   if (memories.length === 0) {
     return (
-      <div className="space-y-8 bg-[var(--mv-bg)]">
-        <section className="space-y-4">
-          <p className="mv-section-label">Timeline</p>
-          <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)]">Moments you&apos;ve shared</h1>
-          <p className="text-lg text-[var(--mv-text-muted)]">
-            Your moments are organised by when they happened. The newest ones appear first.
-          </p>
-        </section>
-        <Card className="p-8">
-          <div className="space-y-4 text-left">
-            <h2 className="text-[1.5rem] font-semibold text-[var(--mv-primary)]">
-              Whenever you&apos;re ready
-            </h2>
-            <p className="text-lg text-[var(--mv-text-muted)]">
-              When you save your first moment, it will appear here. You can share something by talking to Memvella on the home screen, typing in Ask Memvella, or adding a moment manually.
-            </p>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button asChild variant="secondary" className="w-full sm:w-auto">
-                <Link href="/save" className="no-underline">
-                  Add a new memory
-                </Link>
-              </Button>
-              <Button asChild variant="subtle" className="w-full sm:w-auto">
-                <Link href="/" className="no-underline">
-                  Talk to Memvella
-                </Link>
-              </Button>
+      <div className="min-h-screen bg-gradient-to-br from-[var(--mv-hero-gradient-start)] via-[var(--mv-hero-gradient-mid)] to-[var(--mv-hero-gradient-end)]">
+        <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-4 sm:px-6">
+          <main className="flex-1 py-12 sm:py-16">
+            <div className="space-y-8">
+              <section className="space-y-3">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-white/95">Your timeline of moments</h1>
+                <p className="text-sm text-white/80 mt-2 max-w-2xl">
+                  Your moments are organised by when they happened. The newest ones appear first.
+                </p>
+              </section>
+              <Card className="p-8">
+                <div className="space-y-4 text-left">
+                  <h2 className="text-xl sm:text-2xl font-semibold text-[var(--mv-primary)]">
+                    Whenever you&apos;re ready
+                  </h2>
+                  <p className="text-base text-[var(--mv-text)]">
+                    When you save your first moment, it will appear here. You can share something by talking to Memvella on the home screen, typing in Ask Memvella, or adding a moment manually.
+                  </p>
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <Button asChild variant="secondary" className="w-full sm:w-auto">
+                      <Link href="/save" className="no-underline">
+                        Add a new memory
+                      </Link>
+                    </Button>
+                    <Button asChild variant="subtle" className="w-full sm:w-auto">
+                      <Link href="/" className="no-underline">
+                        Talk to Memvella
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </Card>
             </div>
-          </div>
-        </Card>
+          </main>
+        </div>
       </div>
     );
   }
 
   // Timeline view
   return (
-    <div className="space-y-8 bg-[var(--mv-bg)]">
-      <section className="space-y-5">
-        <p className="mv-section-label">Timeline</p>
-        <div className="space-y-3">
-          <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)]">Moments you&apos;ve shared</h1>
-          <p className="text-lg text-[var(--mv-text-muted)]">
-            Your moments are organised by when they happened. The newest ones appear first.
-          </p>
-        </div>
-        <div className="space-y-3">
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button asChild variant="secondary" className="w-full sm:w-auto">
-              <Link href="/save" className="no-underline">
-                Add a new memory
-              </Link>
-            </Button>
-            <Button asChild variant="subtle" className="w-full sm:w-auto">
-              <Link href="/" className="no-underline">
-                Talk to Memvella
-              </Link>
-            </Button>
-          </div>
-          <p className="text-lg text-[var(--mv-text-muted)]">
-            These are moments you&apos;ve shared with Memvella.
-          </p>
-        </div>
-      </section>
-
-      <div className="space-y-8">
-        {bucketOrder.map((bucketKey) => {
-          const bucketMemories = bucketedMemories?.get(bucketKey) ?? [];
-          if (bucketMemories.length === 0) {
-            return null;
-          }
-
-          const count = bucketMemories.length;
-          const isEarlier = bucketKey === 'earlier';
-          const shouldShow = !isEarlier || showEarlier;
-
-          return (
-            <section key={bucketKey} className="space-y-3">
-              <div className="flex items-center justify-between mb-1">
-                <p className="mv-section-label">
-                  {getBucketLabel(bucketKey)}
-                  {count > 0 && ` (${count})`}
-                </p>
-                {isEarlier && count > 5 && (
-                  <button
-                    type="button"
-                    aria-expanded={showEarlier}
-                    className="text-sm font-medium text-[var(--mv-primary)] underline-offset-2 hover:underline px-3 py-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-2"
-                    onClick={() => setShowEarlier((prev) => !prev)}
-                  >
-                    {showEarlier ? 'Hide earlier memories' : 'Show earlier memories'}
-                  </button>
-                )}
-              </div>
-              {shouldShow && (
-                <div className="space-y-6 md:space-y-8">
-                  {bucketMemories.map((memory) => renderMemoryCard(memory))}
+    <div className="min-h-screen bg-gradient-to-br from-[var(--mv-hero-gradient-start)] via-[var(--mv-hero-gradient-mid)] to-[var(--mv-hero-gradient-end)]">
+      <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-4 sm:px-6">
+        <main className="flex-1 py-12 sm:py-16">
+          <div className="space-y-8">
+            {/* Header card */}
+            <header className="mx-auto max-w-4xl">
+              <div className="rounded-[24px] bg-white/14 backdrop-blur-md border border-white/12 p-4 sm:p-5 space-y-3">
+                <div className="space-y-2">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-white/95">
+                    Your timeline of moments
+                  </h1>
+                  <p className="text-base text-white/80">
+                    These are your moments, arranged gently from the most recent to older ones.
+                  </p>
                 </div>
-              )}
-            </section>
-          );
-        })}
+
+                {/* Controls row: Back + Jump select */}
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <Button
+                    variant="secondary"
+                    className="min-h-[44px]"
+                    onClick={() => router.push('/')}
+                  >
+                    Back to Memvella Voice
+                  </Button>
+
+                  {jumpOptions.length > 0 && (
+                    <div className="w-full sm:w-auto">
+                      <label htmlFor="timeline-jump" className="sr-only">
+                        Jump to a time period
+                      </label>
+                      <select
+                        id="timeline-jump"
+                        onChange={handleJump}
+                        className="w-full sm:w-auto rounded-[18px] border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-base text-[var(--mv-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] focus-visible:ring-offset-2"
+                        defaultValue=""
+                      >
+                        <option value="" disabled>
+                          Jump to...
+                        </option>
+                        {jumpOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </header>
+
+            {/* Buckets */}
+            <div className="space-y-8">
+              {bucketedMemories?.map((bucket) => {
+                const bucketId = `timeline-anchor-${bucket.key}`;
+                const bucketLabelId = `timeline-bucket-${bucket.key}`;
+
+                // Simple buckets (today, thisWeek, thisMonth)
+                if (bucket.type === 'today' || bucket.type === 'thisWeek' || bucket.type === 'thisMonth') {
+                  const count = bucket.memories.length;
+                  return (
+                    <section
+                      key={bucket.key}
+                      role="region"
+                      aria-labelledby={bucketId}
+                      className="space-y-6 pt-12 border-t border-white/10 first:border-t-0 first:pt-0"
+                    >
+                      <h2
+                        id={bucketId}
+                        tabIndex={-1}
+                        className="mv-section-label"
+                      >
+                        {bucket.label} {count > 0 && `(${count})`}
+                      </h2>
+                      <div
+                        role="list"
+                        aria-label={`Memories from ${bucket.label}`}
+                        className="space-y-6"
+                        aria-live="polite"
+                      >
+                        {bucket.memories.map((memory) => (
+                          <MemoryCardUnified key={memory.id} memory={memory} role="listitem" />
+                        ))}
+                      </div>
+                    </section>
+                  );
+                }
+
+                // Grouped buckets (earlierThisYear, previousYears, older)
+                if (bucket.type === 'earlierThisYear' || bucket.type === 'previousYears' || bucket.type === 'older') {
+                  const totalCount = bucket.groups.reduce((sum, group) => sum + group.memories.length, 0);
+                  const isEarlierThisYear = bucket.type === 'earlierThisYear';
+                  return (
+                    <section
+                      key={bucket.key}
+                      role="region"
+                      aria-labelledby={bucketId}
+                      className="space-y-6 pt-12 border-t border-white/10 first:border-t-0 first:pt-0"
+                    >
+                      <h2
+                        id={bucketId}
+                        tabIndex={-1}
+                        className="mv-section-label"
+                      >
+                        {bucket.label} {totalCount > 0 && `(${totalCount})`}
+                      </h2>
+                      <div className="space-y-8">
+                        {bucket.groups.map((group) => {
+                          const groupAnchorId = `timeline-anchor-${group.key}`;
+                          const groupLabel = isEarlierThisYear 
+                            ? (group as { monthLabel: string; memories: Memory[]; key: string }).monthLabel
+                            : (group as { yearLabel: string; memories: Memory[]; key: string }).yearLabel;
+                          return (
+                            <div key={group.key} className="space-y-4">
+                              <h3
+                                id={groupAnchorId}
+                                tabIndex={-1}
+                                className={isEarlierThisYear ? "text-xl sm:text-2xl font-semibold text-white/90" : "text-lg sm:text-xl font-semibold text-white/80"}
+                              >
+                                {groupLabel}
+                              </h3>
+                              <div
+                                role="list"
+                                aria-label={`Memories from ${groupLabel}`}
+                                className="space-y-6"
+                              >
+                                {group.memories.map((memory) => (
+                                  <MemoryCardUnified key={memory.id} memory={memory} role="listitem" />
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  );
+                }
+
+                return null;
+              })}
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );

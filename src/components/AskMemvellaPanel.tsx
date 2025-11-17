@@ -5,12 +5,9 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Dialog } from '@/components/ui/Dialog';
+import { MemoryCardUnified } from '@/components/MemoryCardUnified';
 import { useMemorySearch } from '@/hooks/useMemorySearch';
 import { useConversationStore, type ConversationMessage } from '@/stores/useConversationStore';
-import { useMemoriesStore } from '@/stores/useMemoriesStore';
-import { groupMemoriesByDate, getBucketLabel, type DateBucket } from '@/lib/dateBuckets';
 import type { Memory } from '@/types/memory';
 
 interface AskMemvellaResponse {
@@ -44,14 +41,11 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
   const [error, setError] = useState<string | null>(null);
   const [usedMemoryIds, setUsedMemoryIds] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('chat');
-  const [expandedMemoryId, setExpandedMemoryId] = useState<string | null>(null);
   const [savingMemoryId, setSavingMemoryId] = useState<string | null>(null);
   const [dismissedActionButtons, setDismissedActionButtons] = useState<Set<string>>(new Set());
-  const [activeMemoryForm, setActiveMemoryForm] = useState<null | { type: 'create' | 'edit'; memory?: Memory }>(null);
+  const [activeMemoryForm, setActiveMemoryForm] = useState<null | { type: 'create' }>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSavingMemory, setIsSavingMemory] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeletingMemory, setIsDeletingMemory] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
@@ -60,8 +54,6 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
   const messages = useConversationStore((s) => s.messages);
   const clearConversation = useConversationStore((s) => s.clearConversation);
   const createMemory = useMutation(api.memories.createMemory);
-  const updateMemory = useMemoriesStore((s) => s.updateMemory);
-  const deleteMemory = useMemoriesStore((s) => s.deleteMemory);
   const allMemories = useQuery(api.memories.getMemories);
 
   // Use memory search with the current question
@@ -228,20 +220,6 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
     }
   };
 
-  // Format date helper
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
-
-  // Get memory body text
-  const getMemoryBodyText = (memory: Memory): string => {
-    return memory.aiSummary ?? memory.description;
-  };
 
   // Normalize Convex memories to Memory type
   const normalizedMemories: Memory[] | undefined = allMemories?.map((memory: ConvexMemory) => ({
@@ -258,13 +236,9 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
 
   // Group memories by date
   const bucketedMemories =
-    normalizedMemories === undefined
-      ? undefined
-      : normalizedMemories.length === 0
-        ? new Map<DateBucket, Memory[]>()
-        : groupMemoriesByDate(normalizedMemories);
-
-  const bucketOrder: DateBucket[] = ['today', 'thisWeek', 'earlier'];
+    // For AskMemvella memories view, just use the normalized memories directly
+    // (no complex bucketing needed here)
+    normalizedMemories;
 
   // Handle create memory form
   const handleCreateMemory = async (formData: {
@@ -311,173 +285,7 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
     }
   };
 
-  // Handle edit memory form
-  const handleEditMemory = async (memoryId: string, formData: {
-    title: string;
-    description: string;
-    date: string;
-    importance: 'low' | 'medium' | 'high';
-    people: string;
-  }) => {
-    const trimmedTitle = formData.title.trim();
-    const trimmedDescription = formData.description.trim();
 
-    if (!trimmedTitle || !trimmedDescription) {
-      setFormError('Title and description are required.');
-      return;
-    }
-
-    setIsSavingMemory(true);
-    setFormError(null);
-
-    try {
-      // Parse people from comma-separated string
-      const people = formData.people
-        .split(',')
-        .map((p) => p.trim())
-        .filter(Boolean);
-
-      await updateMemory(memoryId, {
-        title: trimmedTitle,
-        description: trimmedDescription,
-        date: formData.date,
-        importance: formData.importance,
-        people,
-      });
-
-      // Close form on success
-      setActiveMemoryForm(null);
-    } catch (err) {
-      console.error('Error updating memory:', err);
-      setFormError('Something went wrong updating this memory. Please try again.');
-    } finally {
-      setIsSavingMemory(false);
-    }
-  };
-
-  // Handle request delete from form
-  const handleRequestDeleteFromForm = () => {
-    if (!activeMemoryForm || activeMemoryForm.type !== 'edit' || !activeMemoryForm.memory) return;
-    setShowDeleteDialog(true);
-  };
-
-  // Handle confirmed delete
-  const handleConfirmDeleteMemory = async () => {
-    if (!activeMemoryForm || activeMemoryForm.type !== 'edit' || !activeMemoryForm.memory) {
-      setShowDeleteDialog(false);
-      return;
-    }
-
-    try {
-      setIsDeletingMemory(true);
-
-      await deleteMemory(activeMemoryForm.memory.id);
-
-      // Close dialog and sheet
-      setShowDeleteDialog(false);
-      setActiveMemoryForm(null);
-      setFormError(null);
-    } catch (error) {
-      console.error('Failed to delete memory from AskMemvella:', error);
-      setShowDeleteDialog(false);
-    } finally {
-      setIsDeletingMemory(false);
-    }
-  };
-
-  // Render memory card
-  const renderMemoryCard = (memory: Memory) => (
-    <button
-      key={memory.id}
-      type="button"
-      onClick={(e) => {
-        // Don't expand if clicking on the Edit button or its link
-        const target = e.target as HTMLElement;
-        if (target.closest('a[href*="/edit"], button')) {
-          return;
-        }
-        setExpandedMemoryId(expandedMemoryId === memory.id ? null : memory.id);
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          setExpandedMemoryId(expandedMemoryId === memory.id ? null : memory.id);
-        }
-      }}
-      aria-expanded={expandedMemoryId === memory.id}
-      className="w-full text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
-    >
-      <Card 
-        className={`hover:-translate-y-0.5 cursor-pointer ${expandedMemoryId === memory.id ? 'ring-2 ring-[var(--mv-accent)]' : ''}`}
-      >
-        <div className="flex gap-4">
-          {memory.imageUrl && (
-            <div className="flex-shrink-0">
-              <img
-                src={memory.imageUrl}
-                alt={`Photo for memory: ${memory.title}`}
-                className="h-20 w-20 rounded-xl object-cover"
-              />
-            </div>
-          )}
-
-          <div className="flex-1 space-y-3">
-            <p className="text-sm font-medium text-[var(--mv-text-muted)]">{formatDate(memory.date)}</p>
-
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <h3 className="text-lg font-semibold text-[var(--mv-primary)]">{memory.title}</h3>
-              <Badge variant={memory.importance} className="self-start capitalize sm:self-end sm:text-right text-xs">
-                {memory.importance}
-              </Badge>
-            </div>
-
-            {expandedMemoryId === memory.id ? (
-              <div className="space-y-2">
-                <p className="text-base leading-relaxed text-[var(--mv-text)]">
-                  {getMemoryBodyText(memory)}
-                </p>
-                {memory.people.length > 0 && (
-                  <p className="text-sm font-medium text-[var(--mv-text-muted)]">
-                    With {memory.people.join(', ')}
-                  </p>
-                )}
-                <div className="pt-2">
-                  <Button
-                    variant="secondary"
-                    className="w-full sm:w-auto text-sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveMemoryForm({ type: 'edit', memory });
-                    }}
-                  >
-                    Edit
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <p
-                className="text-base leading-relaxed text-[var(--mv-text)]"
-                style={{
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                }}
-              >
-                {getMemoryBodyText(memory)}
-              </p>
-            )}
-
-            {memory.people.length > 0 && expandedMemoryId !== memory.id && (
-              <p className="text-sm font-medium text-[var(--mv-text-muted)]">
-                With {memory.people.join(', ')}
-              </p>
-            )}
-          </div>
-        </div>
-      </Card>
-    </button>
-  );
 
   return (
     <Card
@@ -497,10 +305,10 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
             </h2>
             <p
               id="ask-memvella-description"
-              className="text-base text-[var(--mv-text-muted)]"
+              className="text-base text-[var(--mv-text-muted-strong)]"
             >
               {viewMode === 'chat' 
-                ? "This is the same Memvella you talk to on the home screen – here you can type instead of speaking. Ask me about something you've shared before, or anything that's on your mind. When it helps, I'll gently bring in your past moments."
+                ? "Type instead of speaking – I'll listen, respond, and gently bring in your memories when it helps."
                 : "Browse your saved memories. Tap any memory to see more details."}
             </p>
           </div>
@@ -564,17 +372,7 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
               aria-live="polite"
               aria-atomic="false"
             >
-              {/* Welcome state when there are no messages */}
-              {messages.length === 0 && !isLoading && !error && (
-                <div className="max-w-[90%] rounded-2xl bg-[var(--mv-bg-soft)] px-4 py-3 text-sm leading-relaxed text-[var(--mv-text-muted)] space-y-2">
-                  <p>
-                    You can talk to me about anything that&apos;s on your mind. When it helps, I&apos;ll gently bring in your memories – but I&apos;m also here just to keep you company.
-                  </p>
-                  <p className="text-xs">
-                    You can also tap the circle on the home screen to talk to me with your voice.
-                  </p>
-                </div>
-              )}
+              {/* Welcome state when there are no messages - removed redundant intro as it's already in the header */}
 
               {messages.map((msg) => {
                 const isUser = msg.role === 'user';
@@ -599,7 +397,7 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
                         max-w-[90%] rounded-2xl px-4 py-3 text-base leading-relaxed shadow-sm
                         ${isUser
                           ? 'bg-[var(--mv-primary)] text-white'
-                          : 'bg-[var(--mv-bg-soft)] text-[var(--mv-text)]'}
+                          : 'bg-[var(--mv-card)] text-[var(--mv-text)]'}
                       `}
                     >
                       {!isUser && (
@@ -716,23 +514,27 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
                 </p>
               </div>
             ) : (
-              bucketOrder.map((bucketKey) => {
-                const bucketMemories = bucketedMemories?.get(bucketKey) ?? [];
-                if (bucketMemories.length === 0) {
-                  return null;
-                }
-
-                return (
-                  <section key={bucketKey} className="space-y-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[var(--mv-text-muted-strong)] mb-1">
-                      {getBucketLabel(bucketKey)}
-                    </p>
-                    <div className="space-y-4">
-                      {bucketMemories.map((memory) => renderMemoryCard(memory))}
-                    </div>
-                  </section>
-                );
-              })
+              bucketedMemories && bucketedMemories.length > 0 ? (
+                <div
+                  role="list"
+                  aria-label="Your memories"
+                  className="space-y-4"
+                  aria-live="polite"
+                >
+                  {bucketedMemories.map((memory) => (
+                    <MemoryCardUnified
+                      key={memory.id}
+                      memory={memory}
+                      role="listitem"
+                      compact={true}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-[var(--mv-text-muted)]">
+                  No memories yet. Start a conversation to save your first memory.
+                </p>
+              )
             )}
           </div>
         )}
@@ -741,63 +543,26 @@ export function AskMemvellaPanel({ onClose, onAssistantActivity }: AskMemvellaPa
       {/* Memory form overlay */}
       {activeMemoryForm && (
         <MemoryFormOverlay
-          type={activeMemoryForm.type}
-          memory={activeMemoryForm.memory}
           onClose={() => {
             setActiveMemoryForm(null);
             setFormError(null);
           }}
-          onSubmit={
-            activeMemoryForm.type === 'create'
-              ? handleCreateMemory
-              : (formData) =>
-                  activeMemoryForm.memory &&
-                  handleEditMemory(activeMemoryForm.memory.id, formData)
-          }
+          onSubmit={handleCreateMemory}
           error={formError}
           isSaving={isSavingMemory}
-          onDelete={
-            activeMemoryForm.type === 'edit' && activeMemoryForm.memory
-              ? handleRequestDeleteFromForm
-              : undefined
-          }
-          isDeleting={isDeletingMemory}
         />
       )}
-
-      {/* Delete confirmation dialog */}
-      <Dialog
-        isOpen={showDeleteDialog}
-        onClose={() => {
-          if (!isDeletingMemory) {
-            setShowDeleteDialog(false);
-          }
-        }}
-        title="Delete this memory?"
-        confirmLabel={isDeletingMemory ? 'Deleting…' : 'Yes, delete this memory'}
-        cancelLabel="Cancel"
-        onConfirm={handleConfirmDeleteMemory}
-        variant="destructive"
-      >
-        Are you sure you want to delete this memory? You will not be able to get it back.
-      </Dialog>
     </Card>
   );
 }
 
 // Memory form overlay component
 function MemoryFormOverlay({
-  type,
-  memory,
   onClose,
   onSubmit,
   error,
   isSaving,
-  onDelete,
-  isDeleting,
 }: {
-  type: 'create' | 'edit';
-  memory?: Memory;
   onClose: () => void;
   onSubmit: (formData: {
     title: string;
@@ -808,38 +573,15 @@ function MemoryFormOverlay({
   }) => void;
   error: string | null;
   isSaving: boolean;
-  onDelete?: () => void;
-  isDeleting?: boolean;
 }) {
   const today = new Date().toISOString().split('T')[0];
   const [formData, setFormData] = useState(() => ({
-    title: memory?.title || '',
-    description: memory?.description || '',
-    date: memory?.date ? (memory.date.includes('T') ? memory.date.split('T')[0] : memory.date) : today,
-    importance: (memory?.importance || 'medium') as 'low' | 'medium' | 'high',
-    people: memory?.people.join(', ') || '',
+    title: '',
+    description: '',
+    date: today,
+    importance: 'medium' as 'low' | 'medium' | 'high',
+    people: '',
   }));
-
-  // Reset form data when memory changes
-  useEffect(() => {
-    if (memory) {
-      setFormData({
-        title: memory.title,
-        description: memory.description,
-        date: memory.date.includes('T') ? memory.date.split('T')[0] : memory.date,
-        importance: memory.importance,
-        people: memory.people.join(', '),
-      });
-    } else {
-      setFormData({
-        title: '',
-        description: '',
-        date: today,
-        importance: 'medium',
-        people: '',
-      });
-    }
-  }, [memory, today]);
 
   const fieldClasses =
     'w-full rounded-[18px] border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-base text-[var(--mv-text)] shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] placeholder:text-[var(--mv-text-muted)]/70';
@@ -873,7 +615,7 @@ function MemoryFormOverlay({
                 id="memory-form-title"
                 className="text-lg font-semibold text-[var(--mv-primary)]"
               >
-                {type === 'create' ? 'Save a new memory' : 'Edit memory'}
+                Save a new memory
               </h3>
               <button
                 type="button"
@@ -892,6 +634,10 @@ function MemoryFormOverlay({
                   {error}
                 </p>
               )}
+
+              <p className="text-sm text-[var(--mv-text-muted)]">
+                Add a few details now – you can always edit this later.
+              </p>
 
               <div>
                 <label htmlFor="memory-title" className="block text-sm font-medium text-[var(--mv-primary)] mb-1">
@@ -973,33 +719,17 @@ function MemoryFormOverlay({
                 <Button
                   type="submit"
                   variant="primary"
-                  disabled={isSaving || isDeleting}
+                  disabled={isSaving}
                   className="w-full"
                 >
-                  {isSaving
-                    ? 'Saving...'
-                    : type === 'create'
-                    ? 'Save'
-                    : 'Save changes'}
+                  {isSaving ? 'Saving...' : 'Save'}
                 </Button>
-
-                {type === 'edit' && onDelete && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={onDelete}
-                    disabled={isSaving || isDeleting}
-                    className="w-full text-[var(--mv-danger)]"
-                  >
-                    {isDeleting ? 'Deleting...' : 'Delete this memory'}
-                  </Button>
-                )}
 
                 <Button
                   type="button"
                   variant="secondary"
                   onClick={onClose}
-                  disabled={isSaving || isDeleting}
+                  disabled={isSaving}
                   className="w-full"
                 >
                   Cancel

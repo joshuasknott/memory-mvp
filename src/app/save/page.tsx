@@ -2,7 +2,6 @@
 
 import { useState, FormEvent, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAction, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { Button } from '@/components/ui/Button';
@@ -22,7 +21,7 @@ export default function SaveMemoryPage() {
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
   const fieldClasses =
-    'w-full rounded-[18px] border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-lg text-[var(--mv-text)] shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] placeholder:text-[var(--mv-text-muted)]/70';
+    'w-full rounded-[18px] border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-base text-[var(--mv-text)] shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] placeholder:text-[var(--mv-text-muted)]/70';
 
   const [formData, setFormData] = useState({
     title: '',
@@ -134,39 +133,41 @@ export default function SaveMemoryPage() {
   };
 
   return (
-    <div className="space-y-8 bg-[var(--mv-bg)]">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <Link
-          href="/timeline"
-          className="inline-flex items-center gap-2 text-lg font-semibold text-[var(--mv-primary)] no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
-        >
-          ← Back to your timeline
-        </Link>
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-base font-medium text-[var(--mv-primary)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
-        >
-          Talk to Memvella
-        </Link>
-      </div>
-      <div className="space-y-3">
-        <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)] md:text-[2.25rem]">
-          Add a new memory
-        </h1>
-        <p className="text-lg text-[var(--mv-text-muted)]">
-          Take your time. You can save a lightweight note and return later if you want to add more
-          detail.
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-[var(--mv-hero-gradient-start)] via-[var(--mv-hero-gradient-mid)] to-[var(--mv-hero-gradient-end)]">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 py-12 sm:py-16 space-y-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Button
+            variant="subtle"
+            onClick={() => router.push('/timeline')}
+            className="w-full sm:w-auto"
+          >
+            ← Back to your timeline
+          </Button>
+          <Button
+            variant="subtle"
+            onClick={() => router.push('/')}
+            className="w-full sm:w-auto"
+          >
+            Talk to Memvella
+          </Button>
+        </div>
+        <div className="space-y-3">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-[var(--mv-primary)]">
+            Save a new memory
+          </h1>
+          <p className="text-sm text-[var(--mv-text-muted)] mt-2 max-w-2xl">
+            Add a short title, a few details, and anyone who was there. You can always come back and edit this later.
+          </p>
+        </div>
 
       <Card>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label
               htmlFor="title"
-              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+              className="mb-2 block text-sm font-medium text-[var(--mv-text-muted-strong)]"
             >
-              Memory title
+              Title
             </label>
             <input
               type="text"
@@ -174,10 +175,11 @@ export default function SaveMemoryPage() {
               required
               value={formData.title}
               onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+              aria-describedby="title-help"
               className={fieldClasses}
               placeholder="What would you call this moment?"
             />
-            <p className="mt-2 text-base text-[var(--mv-text-muted)]">
+            <p id="title-help" className="mt-1 text-sm text-[var(--mv-text-muted)]">
               A title helps you find this memory quickly later on.
             </p>
           </div>
@@ -185,9 +187,9 @@ export default function SaveMemoryPage() {
           <div>
             <label
               htmlFor="description"
-              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+              className="mb-2 block text-sm font-medium text-[var(--mv-text-muted-strong)]"
             >
-              Describe this memory in your own words
+              Description
             </label>
             <textarea
               id="description"
@@ -198,17 +200,17 @@ export default function SaveMemoryPage() {
               className={`${fieldClasses} min-h-[160px] resize-none leading-relaxed`}
               placeholder="Tell me about this memory..."
             />
-            <p id="description-help" className="mt-2 text-base text-[var(--mv-text-muted)]">
-              You don&apos;t need to write a lot. A few sentences is enough.
+            <p id="description-help" className="mt-1 text-sm text-[var(--mv-text-muted)]">
+              A few sentences are enough. You can return to expand anytime.
             </p>
           </div>
 
           <div>
             <label
               htmlFor="date"
-              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+              className="mb-2 block text-sm font-medium text-[var(--mv-text-muted-strong)]"
             >
-              When did this happen?
+              Date
             </label>
             <input
               type="date"
@@ -219,7 +221,7 @@ export default function SaveMemoryPage() {
               aria-describedby="date-help"
               className={`${fieldClasses} cursor-text`}
             />
-            <p id="date-help" className="mt-2 text-base text-[var(--mv-text-muted)]">
+            <p id="date-help" className="mt-1 text-sm text-[var(--mv-text-muted)]">
               Approximate dates are okay.
             </p>
           </div>
@@ -227,7 +229,7 @@ export default function SaveMemoryPage() {
           <div>
             <label
               htmlFor="importance"
-              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+              className="mb-2 block text-sm font-medium text-[var(--mv-text-muted-strong)]"
             >
               Importance
             </label>
@@ -252,9 +254,9 @@ export default function SaveMemoryPage() {
           <div>
             <label
               htmlFor="people"
-              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+              className="mb-2 block text-sm font-medium text-[var(--mv-text-muted-strong)]"
             >
-              Who was involved? (optional)
+              People (optional)
             </label>
             <input
               type="text"
@@ -265,7 +267,7 @@ export default function SaveMemoryPage() {
               className={fieldClasses}
               placeholder="Alice, Bob, Charlie"
             />
-            <p id="people-help" className="mt-2 text-base text-[var(--mv-text-muted)]">
+            <p id="people-help" className="mt-1 text-sm text-[var(--mv-text-muted)]">
               Separate names with commas.
             </p>
           </div>
@@ -273,7 +275,7 @@ export default function SaveMemoryPage() {
           <div>
             <label
               htmlFor="image"
-              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+              className="mb-2 block text-sm font-medium text-[var(--mv-text-muted-strong)]"
             >
               Photo (optional)
             </label>
@@ -299,6 +301,7 @@ export default function SaveMemoryPage() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
+              aria-label="Add a photo to this memory"
               className="w-full rounded-full border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-lg font-semibold text-[var(--mv-text)] shadow-sm transition-colors hover:border-[var(--mv-border-strong)] hover:bg-[var(--mv-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)] inline-flex items-center justify-center gap-2 min-h-[44px]"
             >
               <span>📷</span>
@@ -308,13 +311,13 @@ export default function SaveMemoryPage() {
               <img
                 src={imagePreviewUrl}
                 alt="Preview of image for this memory"
-                className="mt-2 max-h-40 rounded-lg object-cover"
+                className="mt-2 max-h-40 rounded-xl object-cover"
               />
             )}
             {imageError && (
-              <p id="image-error" className="mt-2 text-base text-[var(--mv-text-muted)]">{imageError}</p>
+              <p id="image-error" className="mt-2 text-sm text-[var(--mv-text-muted)]" role="alert">{imageError}</p>
             )}
-            <p id="image-help" className="mt-2 text-base text-[var(--mv-text-muted)]">
+            <p id="image-help" className="mt-1 text-sm text-[var(--mv-text-muted)]">
               A photo can help you recognise this memory later.
             </p>
           </div>
@@ -332,18 +335,19 @@ export default function SaveMemoryPage() {
               type="button"
               variant="subtle"
               onClick={() => router.push('/timeline')}
-              className="justify-start text-left text-lg"
+              className="w-full"
             >
               Cancel
             </Button>
             {lastSaved && (
-              <p className="mt-2 text-left text-base text-[var(--mv-text-muted)]" aria-live="polite">
-                Draft saved
+              <p className="mt-2 text-sm text-[var(--mv-text-muted)]" aria-live="polite">
+                Draft saved a few moments ago.
               </p>
             )}
           </div>
         </form>
       </Card>
+      </div>
     </div>
   );
 }

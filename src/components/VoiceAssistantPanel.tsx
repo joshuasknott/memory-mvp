@@ -566,7 +566,7 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
             </>
           ) : (
             <p className="text-lg leading-relaxed text-[var(--mv-text-muted)]">
-              Tap the microphone and tell me about a moment you&apos;d like to remember.
+              Your recent voice conversations will appear here.
             </p>
           )}
         </div>
@@ -723,12 +723,14 @@ export function VoiceAssistantPanel({ variant = 'default', onAssistantActivity }
             onClick={handleMicToggle}
             aria-pressed={isListening}
             aria-label={isListening ? 'Stop listening' : 'Start listening'}
-            className={`relative flex items-center justify-center rounded-full shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--mv-bg)] h-48 w-48 sm:h-56 sm:w-56 lg:h-64 lg:w-64 bg-gradient-to-br from-[var(--mv-gradient-start)] via-[var(--mv-gradient-mid)] to-[var(--mv-gradient-end)] text-base sm:text-lg font-semibold text-white ${isListening ? 'mv-orb-pulse' : ''}`}
+            className={`relative flex items-center justify-center rounded-full shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--mv-bg)] h-48 w-48 sm:h-56 sm:w-56 lg:h-64 lg:w-64 bg-gradient-to-br from-[var(--mv-gradient-start)] via-[var(--mv-gradient-mid)] to-[var(--mv-gradient-end)] font-semibold ${isListening ? 'mv-orb-pulse' : ''}`}
           >
-            {isListening ? 'Listening…' : 'Tap to talk'}
+            <span className="text-base sm:text-lg font-semibold text-white/95">
+              {isListening ? 'Listening…' : 'Tap to talk'}
+            </span>
           </button>
           <p
-            className="text-base sm:text-lg text-white/95 text-center"
+            className="mt-4 text-base text-white/85 text-center"
             aria-live="polite"
             role="status"
           >

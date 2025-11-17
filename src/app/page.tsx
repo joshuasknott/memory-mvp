@@ -64,11 +64,11 @@ export default function HomeV2Page() {
               >
                 Memvella Voice
               </h1>
-              <p className="text-base sm:text-lg text-white/90">
+              <p className="text-base sm:text-lg text-white/95">
                 Speak to share moments. I&apos;m here to help you remember and feel more grounded.
               </p>
-              <p className="text-sm sm:text-base text-white/90 mt-2 max-w-[600px]">
-                You can talk to me here, or type to me with Ask Memvella – it&apos;s the same companion, just a different way of chatting.
+              <p className="text-base sm:text-lg text-white/80">
+                You can talk to me here, or type to me with Ask Memvella – it&apos;s the same companion in a different form.
               </p>
             </div>
 
@@ -80,9 +80,11 @@ export default function HomeV2Page() {
             {/* Timeline link */}
             <Link
               href="/timeline"
-              className="mt-6 text-sm sm:text-base text-white hover:text-white underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2 rounded"
+              className="mt-10"
             >
-              View your timeline of moments
+              <span className="text-base text-white/90 hover:text-white transition-colors">
+                View your timeline of moments
+              </span>
             </Link>
           </section>
         </main>

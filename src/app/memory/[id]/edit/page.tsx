@@ -21,7 +21,7 @@ interface FormErrors {
 }
 
 // Type for Convex memory document returned from the server (includes imageUrl from query)
-type ConvexMemory = Doc<'memories'> & { imageUrl: string | null };
+// Note: imageUrl is accessed via convexMemory directly, not via the Memory type
 
 export default function EditMemoryPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -68,11 +68,11 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
     people: '',
   });
   const baseFieldClasses =
-    'w-full rounded-2xl border bg-white/95 px-4 py-3 text-base text-[var(--mv-text-dark)] shadow-sm transition-colors focus-visible:outline-none placeholder:text-[var(--mv-text-dark)]/45';
+    'w-full rounded-[18px] border border-[var(--mv-border)] bg-[var(--mv-card)] px-4 py-3.5 text-base text-[var(--mv-text)] shadow-sm transition-colors focus-visible:outline-none placeholder:text-[var(--mv-text-muted)]/70';
   const safeFieldClasses =
-    'border-[var(--mv-border)] focus-visible:ring-2 focus-visible:ring-[var(--mv-accent)]';
+    'focus-visible:ring-2 focus-visible:ring-[var(--mv-primary)] focus-visible:ring-offset-2';
   const errorFieldClasses =
-    'border-[#b42318] focus-visible:ring-2 focus-visible:ring-[#b42318]';
+    'border-[var(--mv-danger)] focus-visible:ring-2 focus-visible:ring-[var(--mv-danger)]';
   const getFieldClasses = (hasError?: boolean) =>
     `${baseFieldClasses} ${hasError ? errorFieldClasses : safeFieldClasses}`;
 
@@ -268,21 +268,17 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
   // Loading state: memory is undefined
   if (memory === undefined) {
     return (
-      <div className="space-y-6">
-        <Link
-          href="/timeline"
-          className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
-        >
-          ← Back to your timeline
-        </Link>
-        <h1 className="text-3xl md:text-4xl font-semibold text-[var(--mv-primary)]">
-          Edit this memory
-        </h1>
-        <Card>
-          <div className="p-10 text-center text-base text-[var(--mv-primary)]">
-            Loading this memory…
-          </div>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-[var(--mv-hero-gradient-start)] via-[var(--mv-hero-gradient-mid)] to-[var(--mv-hero-gradient-end)]">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-12 sm:py-16 space-y-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-[var(--mv-primary)]">
+            Edit this memory
+          </h1>
+          <Card>
+            <div className="p-10 text-center text-base text-[var(--mv-text)]">
+              Loading this memory…
+            </div>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -290,67 +286,65 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
   // Not found state: memory is null or falsy after loading
   if (memory === null || !memory) {
     return (
-      <div className="space-y-6">
-        <Link
-          href="/timeline"
-          className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--mv-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
-        >
-          ← Back to your timeline
-        </Link>
-        <h1 className="text-3xl md:text-4xl font-semibold text-[var(--mv-primary)]">
-          Edit this memory
-        </h1>
-        <Card>
-          <div className="space-y-4 text-center">
-            <h2 className="text-3xl font-semibold text-[var(--mv-primary)]">
-              We couldn’t find this memory.
-            </h2>
-            <p className="text-base text-[var(--mv-text-dark)]/75">
-              It may have been removed or the link is incomplete.
-            </p>
-            <Button asChild aria-label="View all memories in timeline">
-              <Link href="/timeline">Back to your timeline</Link>
-            </Button>
-          </div>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-[var(--mv-hero-gradient-start)] via-[var(--mv-hero-gradient-mid)] to-[var(--mv-hero-gradient-end)]">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-12 sm:py-16 space-y-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-[var(--mv-primary)]">
+            Edit this memory
+          </h1>
+          <Card>
+            <div className="space-y-4 text-center">
+              <h2 className="text-xl sm:text-2xl font-semibold text-[var(--mv-primary)]">
+                We couldn&apos;t find this memory.
+              </h2>
+              <p className="text-base text-[var(--mv-text-muted)]">
+                It may have been removed or the link is incomplete.
+              </p>
+              <Button asChild aria-label="View all memories in timeline">
+                <Link href="/timeline">Back to your timeline</Link>
+              </Button>
+            </div>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <Link
-          href={`/memory/${memory.id}`}
-          className="inline-flex items-center gap-2 text-lg font-semibold text-[var(--mv-primary)] no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
-        >
-          ← Back to this memory
-        </Link>
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-base font-medium text-[var(--mv-primary)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--mv-accent)]"
-        >
-          Talk to Memvella
-        </Link>
-      </div>
-      <div className="space-y-3">
-        <h1 className="text-[2rem] font-semibold text-[var(--mv-primary)] md:text-[2.25rem]">
-          Edit this memory
-        </h1>
-        <p className="text-base text-[var(--mv-text-dark)]/75">
-          Update the context, adjust the importance, or correct any details. Changes are saved to the
-          timeline immediately.
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-[var(--mv-hero-gradient-start)] via-[var(--mv-hero-gradient-mid)] to-[var(--mv-hero-gradient-end)]">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 py-12 sm:py-16 space-y-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Button
+            variant="subtle"
+            onClick={() => router.push(`/memory/${memory.id}`)}
+            className="w-full sm:w-auto"
+          >
+            ← Back to this memory
+          </Button>
+          <Button
+            variant="subtle"
+            onClick={() => router.push('/')}
+            className="w-full sm:w-auto"
+          >
+            Talk to Memvella
+          </Button>
+        </div>
+        <div className="space-y-3">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-[var(--mv-primary)]">
+            Edit this memory
+          </h1>
+          <p className="text-sm text-[var(--mv-text-muted)] mt-2 max-w-2xl">
+            You can update any details here. Changes are saved when you tap &quot;Save changes&quot;.
+          </p>
+        </div>
 
       <Card>
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           <div>
             <label
               htmlFor="title"
-              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+              className="mb-2 block text-sm font-medium text-[var(--mv-text-muted-strong)]"
             >
-              Memory title <span className="text-[#b42318]" aria-label="required">*</span>
+              Title <span className="text-[var(--mv-danger)]" aria-label="required">*</span>
             </label>
             <input
               type="text"
@@ -365,7 +359,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               placeholder="What happened?"
             />
             {touched.title && errors.title && (
-              <p id="title-error" className="mt-2 text-sm font-medium text-[#b42318]" role="alert">
+              <p id="title-error" className="mt-2 text-sm font-medium text-[var(--mv-danger)]" role="alert">
                 {errors.title}
               </p>
             )}
@@ -374,9 +368,9 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
           <div>
             <label
               htmlFor="description"
-              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+              className="mb-2 block text-sm font-medium text-[var(--mv-text-muted-strong)]"
             >
-              Describe this memory <span className="text-[#b42318]" aria-label="required">*</span>
+              Description <span className="text-[var(--mv-danger)]" aria-label="required">*</span>
             </label>
             <textarea
               id="description"
@@ -397,13 +391,13 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
             {touched.description && errors.description && (
               <p
                 id="description-error"
-                className="mt-2 text-sm font-medium text-[#b42318]"
+                className="mt-2 text-sm font-medium text-[var(--mv-danger)]"
                 role="alert"
               >
                 {errors.description}
               </p>
             )}
-            <p id="description-help" className="mt-2 text-sm text-[var(--mv-text-dark)]/65">
+            <p id="description-help" className="mt-1 text-sm text-[var(--mv-text-muted)]">
               A few sentences are enough. You can return to expand anytime.
             </p>
           </div>
@@ -411,9 +405,9 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
           <div>
             <label
               htmlFor="date"
-              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+              className="mb-2 block text-sm font-medium text-[var(--mv-text-muted-strong)]"
             >
-              When did this happen?
+              Date
             </label>
             <input
               type="date"
@@ -431,11 +425,11 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               className={`${getFieldClasses(touched.date && !!errors.date)} cursor-text`}
             />
             {touched.date && errors.date && (
-              <p id="date-error" className="mt-2 text-sm font-medium text-[#b42318]" role="alert">
+              <p id="date-error" className="mt-2 text-sm font-medium text-[var(--mv-danger)]" role="alert">
                 {errors.date}
               </p>
             )}
-            <p id="date-help" className="mt-2 text-sm text-[var(--mv-text-dark)]/65">
+            <p id="date-help" className="mt-1 text-sm text-[var(--mv-text-muted)]">
               Approximate dates are okay.
             </p>
           </div>
@@ -443,7 +437,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
           <div>
             <label
               htmlFor="importance"
-              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+              className="mb-2 block text-sm font-medium text-[var(--mv-text-muted-strong)]"
             >
               Importance
             </label>
@@ -463,9 +457,9 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
           <div>
             <label
               htmlFor="people"
-              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+              className="mb-2 block text-sm font-medium text-[var(--mv-text-muted-strong)]"
             >
-              Who was involved? (optional)
+              People (optional)
             </label>
             <input
               type="text"
@@ -477,7 +471,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               placeholder="Alice, Bob, Charlie"
               aria-label="People involved in this memory, separated by commas"
             />
-            <p id="people-help" className="mt-2 text-sm text-[var(--mv-text-dark)]/65">
+            <p id="people-help" className="mt-1 text-sm text-[var(--mv-text-muted)]">
               Separate names with commas.
             </p>
           </div>
@@ -485,7 +479,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
           <div>
             <label
               htmlFor="image"
-              className="mb-2 block text-lg font-semibold text-[var(--mv-primary)]"
+              className="mb-2 block text-sm font-medium text-[var(--mv-text-muted-strong)]"
             >
               Photo (optional)
             </label>
@@ -520,22 +514,22 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               <img
                 src={imagePreviewUrl}
                 alt="Preview of image for this memory"
-                className="mt-2 max-h-40 rounded-lg object-cover"
+                className="mt-2 max-h-40 rounded-xl object-cover"
               />
             )}
             {imageError && (
-              <p id="image-error" className="mt-2 text-base text-[var(--mv-text-muted)]" role="alert">
+              <p id="image-error" className="mt-1 text-sm text-[var(--mv-text-muted)]" role="alert">
                 {imageError}
               </p>
             )}
-            <p id="image-help" className="mt-2 text-base text-[var(--mv-text-muted)]">
+            <p id="image-help" className="mt-1 text-sm text-[var(--mv-text-muted)]">
               A photo can help you recognise this memory later.
             </p>
             {displayImageUrl && !imagePreviewUrl && (
               <img
                 src={displayImageUrl}
                 alt="Photo for this memory"
-                className="mt-4 max-h-64 w-auto rounded-lg object-contain"
+                className="mt-4 max-h-64 w-auto rounded-xl object-contain"
               />
             )}
             <div className="mt-4 flex flex-col gap-2">
@@ -578,7 +572,7 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
                 isSubmitting ? 'Updating memory' : isValid ? 'Update memory' : 'Complete the form to update this memory'
               }
             >
-              {isSubmitting ? 'Updating…' : 'Update this memory'}
+              {isSubmitting ? 'Saving...' : 'Save changes'}
             </Button>
             <Button
               type="button"
@@ -590,13 +584,14 @@ export default function EditMemoryPage({ params }: { params: Promise<{ id: strin
               Cancel
             </Button>
             {lastSaved && (
-              <p className="mt-2 text-center text-sm text-[var(--mv-text-dark)]/65" aria-live="polite">
-                Draft saved
+              <p className="mt-2 text-sm text-[var(--mv-text-muted)]" aria-live="polite">
+                Draft saved a few moments ago.
               </p>
             )}
           </div>
         </form>
       </Card>
+      </div>
     </div>
   );
 }
